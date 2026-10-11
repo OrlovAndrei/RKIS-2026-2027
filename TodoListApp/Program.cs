@@ -12,3 +12,5 @@ int birthYear = int.Parse(Console.ReadLine() ?? "0");
 int age = DateTime.Now.Year - birthYear;
 
 Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+string[] todos = new string[2];
+int todoCount = 0;
