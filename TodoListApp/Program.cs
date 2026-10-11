@@ -28,4 +28,8 @@ while (true)
         Console.WriteLine("view - показать все задачи");
         Console.WriteLine("exit - выход из программы");
     }
+        else if (command == "profile")
+    {
+        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+    }
 }
