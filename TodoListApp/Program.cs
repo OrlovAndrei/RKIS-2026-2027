@@ -18,4 +18,14 @@ while (true)
 {
     Console.Write("> ");
     string command = Console.ReadLine() ?? "";
+
+    if (command == "help")
+    {
+        Console.WriteLine("Доступные команды:");
+        Console.WriteLine("help - список команд");
+        Console.WriteLine("profile - информация о пользователе");
+        Console.WriteLine("add \"текст задачи\" - добавить задачу");
+        Console.WriteLine("view - показать все задачи");
+        Console.WriteLine("exit - выход из программы");
+    }
 }
