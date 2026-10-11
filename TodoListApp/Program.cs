@@ -32,4 +32,9 @@ while (true)
     {
         Console.WriteLine($"{firstName} {lastName}, {birthYear}");
     }
+        else if (command == "exit")
+    {
+        Console.WriteLine("Выход из программы");
+        break;
+    }
 }
