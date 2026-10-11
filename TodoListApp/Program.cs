@@ -37,4 +37,33 @@ while (true)
         Console.WriteLine("Выход из программы");
         break;
     }
+    else if (command.StartsWith("add "))
+{
+    string[] parts = command.Split('"');
+
+    if (parts.Length != 3 || string.IsNullOrWhiteSpace(parts[1]))
+    {
+        Console.WriteLine("Используйте формат: add \"текст задачи\"");
+        continue;
+    }
+
+    string task = parts[1];
+
+    if (todoCount == todos.Length)
+    {
+        string[] newTodos = new string[todos.Length * 2];
+
+        for (int i = 0; i < todos.Length; i++)
+        {
+            newTodos[i] = todos[i];
+        }
+
+        todos = newTodos;
+    }
+
+    todos[todoCount] = task;
+    todoCount++;
+
+    Console.WriteLine("Задача добавлена");
+}
 }
