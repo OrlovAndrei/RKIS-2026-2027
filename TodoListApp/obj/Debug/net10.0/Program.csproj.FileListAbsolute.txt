@@ -1,0 +1,15 @@
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/bin/Debug/net10.0/Program
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/bin/Debug/net10.0/Program.deps.json
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/bin/Debug/net10.0/Program.runtimeconfig.json
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/bin/Debug/net10.0/Program.dll
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/bin/Debug/net10.0/Program.pdb
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.GeneratedMSBuildEditorConfig.editorconfig
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.AssemblyInfoInputs.cache
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.AssemblyInfo.cs
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.csproj.CoreCompileInputs.cache
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.sourcelink.json
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.dll
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/refint/Program.dll
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.pdb
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/Program.genruntimeconfig.cache
+/home/moltse/Documents/labaTP/RKIS-2026-2027/TodoListApp/obj/Debug/net10.0/ref/Program.dll
