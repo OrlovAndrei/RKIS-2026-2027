@@ -40,6 +40,7 @@ class Program
             else if (command.StartsWith("add ")) AddTask(command);
             else if (command == "view") ViewTasks();
             else if (command.StartsWith("done ")) DoneTask(command);
+            else if (command.StartsWith("delete ")) DeleteTask(command);
             else if (command == "exit")
             {
                 Console.WriteLine("Выход из программы");
@@ -56,6 +57,7 @@ class Program
         Console.WriteLine("add \"текст задачи\" - добавить задачу");
         Console.WriteLine("view - показать задачи");
         Console.WriteLine("done <номер> - отметить выполненной");
+        Console.WriteLine("delete <номер> - удалить задачу");
         Console.WriteLine("exit - выход");
     }
 
@@ -140,5 +142,29 @@ class Program
         statuses[index] = true;
         dates[index] = DateTime.Now;
         Console.WriteLine("Задача выполнена");
+    }
+
+    static void DeleteTask(string command)
+    {
+        string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2)
+        {
+            Console.WriteLine("Формат: delete 1");
+            return;
+        }
+        if (!TryGetIndex(parts[1], out int index)) return;
+
+        for (int i = index; i < todoCount - 1; i++)
+        {
+            todos[i] = todos[i + 1];
+            statuses[i] = statuses[i + 1];
+            dates[i] = dates[i + 1];
+        }
+
+        todoCount--;
+        todos[todoCount] = "";
+        statuses[todoCount] = false;
+        dates[todoCount] = default;
+        Console.WriteLine("Задача удалена");
     }
 }
