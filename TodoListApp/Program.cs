@@ -39,6 +39,7 @@ class Program
             else if (command == "profile") PrintProfile(firstName, lastName, birthYear);
             else if (command.StartsWith("add ")) AddTask(command);
             else if (command == "view") ViewTasks();
+            else if (command.StartsWith("done ")) DoneTask(command);
             else if (command == "exit")
             {
                 Console.WriteLine("Выход из программы");
@@ -54,6 +55,7 @@ class Program
         Console.WriteLine("profile - данные пользователя");
         Console.WriteLine("add \"текст задачи\" - добавить задачу");
         Console.WriteLine("view - показать задачи");
+        Console.WriteLine("done <номер> - отметить выполненной");
         Console.WriteLine("exit - выход");
     }
 
@@ -111,5 +113,32 @@ class Program
             string status = statuses[i] ? "сделано" : "не сделано";
             Console.WriteLine($"{i + 1}. {todos[i]} | {status} | {dates[i]:dd.MM.yyyy HH:mm:ss}");
         }
+    }
+
+    static bool TryGetIndex(string text, out int index)
+    {
+        index = -1;
+        if (!int.TryParse(text, out int number) || number < 1 || number > todoCount)
+        {
+            Console.WriteLine("Задачи с таким номером нет");
+            return false;
+        }
+        index = number - 1;
+        return true;
+    }
+
+    static void DoneTask(string command)
+    {
+        string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2)
+        {
+            Console.WriteLine("Формат: done 1");
+            return;
+        }
+        if (!TryGetIndex(parts[1], out int index)) return;
+
+        statuses[index] = true;
+        dates[index] = DateTime.Now;
+        Console.WriteLine("Задача выполнена");
     }
 }
