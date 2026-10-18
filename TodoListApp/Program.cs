@@ -41,6 +41,7 @@ class Program
             else if (command == "view") ViewTasks();
             else if (command.StartsWith("done ")) DoneTask(command);
             else if (command.StartsWith("delete ")) DeleteTask(command);
+            else if (command.StartsWith("update ")) UpdateTask(command);
             else if (command == "exit")
             {
                 Console.WriteLine("Выход из программы");
@@ -58,6 +59,7 @@ class Program
         Console.WriteLine("view - показать задачи");
         Console.WriteLine("done <номер> - отметить выполненной");
         Console.WriteLine("delete <номер> - удалить задачу");
+        Console.WriteLine("update <номер> \"текст\" - изменить задачу");
         Console.WriteLine("exit - выход");
     }
 
@@ -166,5 +168,22 @@ class Program
         statuses[todoCount] = false;
         dates[todoCount] = default;
         Console.WriteLine("Задача удалена");
+    }
+
+    static void UpdateTask(string command)
+    {
+        string[] parts = command.Split('"');
+        string[] head = parts[0].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 3 || head.Length != 2 || head[0] != "update" ||
+            parts[2].Trim() != "" || string.IsNullOrWhiteSpace(parts[1]))
+        {
+            Console.WriteLine("Формат: update 1 \"новый текст\"");
+            return;
+        }
+        if (!TryGetIndex(head[1], out int index)) return;
+
+        todos[index] = parts[1];
+        dates[index] = DateTime.Now;
+        Console.WriteLine("Задача изменена");
     }
 }
