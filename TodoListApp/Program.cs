@@ -6,6 +6,8 @@ class Program
     const int GrowthFactor = 2;
 
     static string[] todos = new string[InitialSize];
+    static bool[] statuses = new bool[InitialSize];
+    static DateTime[] dates = new DateTime[InitialSize];
     static int todoCount = 0;
 
     static void Main()
@@ -70,20 +72,31 @@ class Program
             return;
         }
 
-        if (todoCount == todos.Length) ExpandTodos();
+        if (todoCount == todos.Length) ExpandArrays();
         todos[todoCount] = parts[1];
+        statuses[todoCount] = false;
+        dates[todoCount] = DateTime.Now;
         todoCount++;
         Console.WriteLine("Задача добавлена");
     }
 
-    static void ExpandTodos()
+    static void ExpandArrays()
     {
-        string[] newTodos = new string[todos.Length * GrowthFactor];
+        int newSize = todos.Length * GrowthFactor;
+        string[] newTodos = new string[newSize];
+        bool[] newStatuses = new bool[newSize];
+        DateTime[] newDates = new DateTime[newSize];
+
         for (int i = 0; i < todoCount; i++)
         {
             newTodos[i] = todos[i];
+            newStatuses[i] = statuses[i];
+            newDates[i] = dates[i];
         }
+
         todos = newTodos;
+        statuses = newStatuses;
+        dates = newDates;
     }
 
     static void ViewTasks()
