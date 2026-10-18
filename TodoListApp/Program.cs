@@ -108,7 +108,8 @@ class Program
         }
         for (int i = 0; i < todoCount; i++)
         {
-            Console.WriteLine($"{i + 1}. {todos[i]}");
+            string status = statuses[i] ? "сделано" : "не сделано";
+            Console.WriteLine($"{i + 1}. {todos[i]} | {status} | {dates[i]:dd.MM.yyyy HH:mm:ss}");
         }
     }
 }
