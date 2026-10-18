@@ -1,79 +1,101 @@
-﻿Console.WriteLine("Работу выполнили Кузнецов и Курбатов");
+﻿using System;
 
-Console.Write("Введите имя: ");
-string firstName = Console.ReadLine() ?? "";
-
-Console.Write("Введите фамилию: ");
-string lastName = Console.ReadLine() ?? "";
-
-Console.Write("Введите год рождения: ");
-int birthYear = int.Parse(Console.ReadLine() ?? "0");
-
-int age = DateTime.Now.Year - birthYear;
-
-Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
-string[] todos = new string[2];
-int todoCount = 0;
-while (true)
+class Program
 {
-    Console.Write("> ");
-    string command = Console.ReadLine() ?? "";
+    const int InitialSize = 2;
+    const int GrowthFactor = 2;
 
-    if (command == "help")
+    static string[] todos = new string[InitialSize];
+    static int todoCount = 0;
+
+    static void Main()
     {
-        Console.WriteLine("Доступные команды:");
-        Console.WriteLine("help - список команд");
-        Console.WriteLine("profile - информация о пользователе");
-        Console.WriteLine("add \"текст задачи\" - добавить задачу");
-        Console.WriteLine("view - показать все задачи");
-        Console.WriteLine("exit - выход из программы");
+        Console.WriteLine("Работу выполнили Кузнецов и Курбатов");
+
+        Console.Write("Введите имя: ");
+        string firstName = Console.ReadLine() ?? "";
+
+        Console.Write("Введите фамилию: ");
+        string lastName = Console.ReadLine() ?? "";
+
+        Console.Write("Введите год рождения: ");
+        int birthYear;
+        while (!int.TryParse(Console.ReadLine(), out birthYear))
+        {
+            Console.Write("Введите год рождения числом: ");
+        }
+
+        int age = DateTime.Now.Year - birthYear;
+        Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+
+        while (true)
+        {
+            Console.Write("> ");
+            string command = Console.ReadLine() ?? "";
+
+            if (command == "help") PrintHelp();
+            else if (command == "profile") PrintProfile(firstName, lastName, birthYear);
+            else if (command.StartsWith("add ")) AddTask(command);
+            else if (command == "view") ViewTasks();
+            else if (command == "exit")
+            {
+                Console.WriteLine("Выход из программы");
+                break;
+            }
+            else Console.WriteLine("Неизвестная команда. Введите help.");
+        }
     }
-        else if (command == "profile")
+
+    static void PrintHelp()
+    {
+        Console.WriteLine("help - список команд");
+        Console.WriteLine("profile - данные пользователя");
+        Console.WriteLine("add \"текст задачи\" - добавить задачу");
+        Console.WriteLine("view - показать задачи");
+        Console.WriteLine("exit - выход");
+    }
+
+    static void PrintProfile(string firstName, string lastName, int birthYear)
     {
         Console.WriteLine($"{firstName} {lastName}, {birthYear}");
     }
-        else if (command == "exit")
+
+    static void AddTask(string command)
     {
-        Console.WriteLine("Выход из программы");
-        break;
+        string[] parts = command.Split('"');
+        if (parts.Length != 3 || parts[0].Trim() != "add" ||
+            parts[2].Trim() != "" || string.IsNullOrWhiteSpace(parts[1]))
+        {
+            Console.WriteLine("Формат: add \"текст задачи\"");
+            return;
+        }
+
+        if (todoCount == todos.Length) ExpandTodos();
+        todos[todoCount] = parts[1];
+        todoCount++;
+        Console.WriteLine("Задача добавлена");
     }
-    else if (command.StartsWith("add "))
-{
-    string[] parts = command.Split('"');
 
-    if (parts.Length != 3 || string.IsNullOrWhiteSpace(parts[1]))
+    static void ExpandTodos()
     {
-        Console.WriteLine("Используйте формат: add \"текст задачи\"");
-        continue;
-    }
-
-    string task = parts[1];
-
-    if (todoCount == todos.Length)
-    {
-        string[] newTodos = new string[todos.Length * 2];
-
-        for (int i = 0; i < todos.Length; i++)
+        string[] newTodos = new string[todos.Length * GrowthFactor];
+        for (int i = 0; i < todoCount; i++)
         {
             newTodos[i] = todos[i];
         }
-
         todos = newTodos;
     }
 
-    todos[todoCount] = task;
-    todoCount++;
-
-    Console.WriteLine("Задача добавлена");
-}
-else if (command == "view")
-{
-    for (int i = 0; i < todos.Length; i++)
+    static void ViewTasks()
     {
-        if (!string.IsNullOrEmpty(todos[i]))
+        if (todoCount == 0)
+        {
+            Console.WriteLine("Список задач пуст");
+            return;
+        }
+        for (int i = 0; i < todoCount; i++)
         {
             Console.WriteLine($"{i + 1}. {todos[i]}");
         }
     }
-}
 }
