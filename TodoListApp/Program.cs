@@ -10,7 +10,6 @@ namespace TodoListApp
         const string CommandView = "view";
         const string CommandExit = "exit";
         const int InitialSize = 2;
-
         static void Main(string[] args)
         {
             Console.WriteLine("Работу выполнили Катмаков и Науменко.");
@@ -24,6 +23,8 @@ namespace TodoListApp
             int age = currentYear - birthYear;
             Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}.");
             string[] todos = new string[InitialSize];
+            bool[] statuses = new bool[InitialSize];
+            DateTime[] dates = new DateTime[InitialSize];
             int taskCount = 0;
             Console.WriteLine("Добро пожаловать в TodoList! Введите help для отображения списка команд.");
             while (true)
@@ -44,7 +45,7 @@ namespace TodoListApp
                         HandleProfile(firstName, lastName, birthYear);
                         break;
                     case CommandAdd:
-                        HandleAdd(ref todos, ref taskCount, argument);
+                        HandleAdd(ref todos, ref statuses, ref dates, ref taskCount, argument);
                         break;
                     case CommandView:
                         HandleView(todos, taskCount);
@@ -58,14 +59,21 @@ namespace TodoListApp
                 }
             }
         }
-        static string[] ExpandArray(string[] oldArray)
+        static void ExpandArrays(ref string[] oldStrings, ref bool[] oldBools, ref DateTime[] oldDates)
         {
-            string[] newArray = new string[oldArray.Length * 2];
-            for (int i = 0; i < oldArray.Length; i++)
-            {
-                newArray[i] = oldArray[i];
-            }
-            return newArray;
+            int newSize = oldStrings.Length * 2;
+            string[] newStrings = new string[newSize];
+            for (int i = 0; i < oldStrings.Length; i++)
+                newStrings[i] = oldStrings[i];
+            bool[] newBools = new bool[newSize];
+            for (int i = 0; i < oldBools.Length; i++)
+                newBools[i] = oldBools[i];
+            DateTime[] newDates = new DateTime[newSize];
+            for (int i = 0; i < oldDates.Length; i++)
+                newDates[i] = oldDates[i];
+            oldStrings = newStrings;
+            oldBools = newBools;
+            oldDates = newDates;
         }
         static void HandleHelp()
         {
@@ -79,7 +87,7 @@ namespace TodoListApp
         {
             Console.WriteLine($"{firstName} {lastName}, {birthYear}");
         }
-        static void HandleAdd(ref string[] todos, ref int taskCount, string argument)
+        static void HandleAdd(ref string[] todos, ref bool[] statuses, ref DateTime[] dates, ref int taskCount, string argument)
         {
             if (string.IsNullOrWhiteSpace(argument))
             {
@@ -87,12 +95,13 @@ namespace TodoListApp
                 return;
             }
             string task = argument.Trim('"');
-
             if (taskCount == todos.Length)
             {
-                todos = ExpandArray(todos);
+                ExpandArrays(ref todos, ref statuses, ref dates);
             }
             todos[taskCount] = task;
+            statuses[taskCount] = false;
+            dates[taskCount] = DateTime.Now;
             taskCount++;
             Console.WriteLine("Задача добавлена.");
         }
