@@ -48,7 +48,7 @@ namespace TodoListApp
                         HandleAdd(ref todos, ref statuses, ref dates, ref taskCount, argument);
                         break;
                     case CommandView:
-                        HandleView(todos, taskCount);
+                        HandleView(todos, statuses, dates, taskCount);
                         break;
                     case CommandExit:
                         Console.WriteLine("Завершение работы программы.");
@@ -105,7 +105,7 @@ namespace TodoListApp
             taskCount++;
             Console.WriteLine("Задача добавлена.");
         }
-        static void HandleView(string[] todos, int taskCount)
+        static void HandleView(string[] todos, bool[] statuses, DateTime[] dates, int taskCount)
         {
             if (taskCount == 0)
             {
@@ -114,7 +114,12 @@ namespace TodoListApp
             }
             for (int i = 0; i < taskCount; i++)
             {
-                Console.WriteLine($"{i + 1}. {todos[i]}");
+                string statusText = "не сделано";
+                if (statuses[i])
+                {
+                    statusText = "сделано";
+                }
+                Console.WriteLine($"{i + 1}. {todos[i]} ({statusText}) - {dates[i]}");
             }
         }
     }
