@@ -10,6 +10,7 @@ namespace TodoListApp
         const string CommandView = "view";
         const string CommandDone = "done";
         const string CommandDelete = "delete";
+        const string CommandUpdate = "update";
         const string CommandExit = "exit";
         const int InitialSize = 2;
         static void Main(string[] args)
@@ -58,6 +59,9 @@ namespace TodoListApp
                     case CommandDelete:
                         HandleDelete(todos, statuses, dates, ref taskCount, argument);
                         break;
+                    case CommandUpdate:
+                        HandleUpdate(todos, dates, taskCount, argument);
+                        break;
                     case CommandExit:
                         Console.WriteLine("Завершение работы программы.");
                         return;
@@ -91,6 +95,7 @@ namespace TodoListApp
             Console.WriteLine("view - показать задачи");
             Console.WriteLine("done <номер задачи> - отметить задачу как выполненную");
             Console.WriteLine("delete <номер задачи> - удалить задачу");
+            Console.WriteLine("update <номер задачи> \"новый текст\" - обновить задачу");
             Console.WriteLine("exit - выход");
         }
         static void HandleProfile(string firstName, string lastName, int birthYear)
@@ -139,8 +144,9 @@ namespace TodoListApp
                 Console.WriteLine("Введите номер задачи.");
                 return;
             }
+            string cleanArgument = argument.Trim('<', '>');
             int taskNumber;
-            if (!int.TryParse(argument, out taskNumber))
+            if (!int.TryParse(cleanArgument, out taskNumber))
             {
                 Console.WriteLine("Некорректный номер задачи.");
                 return;
@@ -162,8 +168,9 @@ namespace TodoListApp
                 Console.WriteLine("Введите номер задачи.");
                 return;
             }
+            string cleanArgument = argument.Trim('<', '>');
             int taskNumber;
-            if (!int.TryParse(argument, out taskNumber))
+            if (!int.TryParse(cleanArgument, out taskNumber))
             {
                 Console.WriteLine("Некорректный номер задачи.");
                 return;
@@ -182,6 +189,43 @@ namespace TodoListApp
             }
             taskCount--;
             Console.WriteLine($"Задача №{taskNumber} успешно удалена.");
+        }
+        static void HandleUpdate(string[] todos, DateTime[] dates, int taskCount, string argument)
+        {
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                Console.WriteLine("Введите номер задачи и новый текст.");
+                return;
+            }
+            int spaceIndex = argument.IndexOf(' ');
+            if (spaceIndex == -1)
+            {
+                Console.WriteLine("Введите новый текст задачи после её номера.");
+                return;
+            }
+            string numberPart = argument.Substring(0, spaceIndex).Trim('<', '>');
+            string textPart = argument.Substring(spaceIndex + 1);
+            int taskNumber;
+            if (!int.TryParse(numberPart, out taskNumber))
+            {
+                Console.WriteLine("Некорректный номер задачи.");
+                return;
+            }
+            int index = taskNumber - 1;
+            if (index < 0 || index >= taskCount)
+            {
+                Console.WriteLine("Задача с таким номером не найдена.");
+                return;
+            }
+            string newText = textPart.Trim(' ', '"');
+            if (string.IsNullOrWhiteSpace(newText))
+            {
+                Console.WriteLine("Текст задачи не может быть пустым.");
+                return;
+            }
+            todos[index] = newText;
+            dates[index] = DateTime.Now;
+            Console.WriteLine($"Задача №{taskNumber} успешно обновлена.");
         }
     }
 }
