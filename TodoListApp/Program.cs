@@ -9,6 +9,7 @@ namespace TodoListApp
         const string CommandAdd = "add";
         const string CommandView = "view";
         const string CommandDone = "done";
+        const string CommandDelete = "delete";
         const string CommandExit = "exit";
         const int InitialSize = 2;
         static void Main(string[] args)
@@ -54,6 +55,9 @@ namespace TodoListApp
                     case CommandDone:
                         HandleDone(statuses, dates, taskCount, argument);
                         break;
+                    case CommandDelete:
+                        HandleDelete(todos, statuses, dates, ref taskCount, argument);
+                        break;
                     case CommandExit:
                         Console.WriteLine("Завершение работы программы.");
                         return;
@@ -86,6 +90,7 @@ namespace TodoListApp
             Console.WriteLine("add \"текст задачи\" - добавить задачу");
             Console.WriteLine("view - показать задачи");
             Console.WriteLine("done <номер задачи> - отметить задачу как выполненную");
+            Console.WriteLine("delete <номер задачи> - удалить задачу");
             Console.WriteLine("exit - выход");
         }
         static void HandleProfile(string firstName, string lastName, int birthYear)
@@ -149,6 +154,34 @@ namespace TodoListApp
             statuses[index] = true;
             dates[index] = DateTime.Now;
             Console.WriteLine($"Задача №{taskNumber} отмечена как выполненная.");
+        }
+        static void HandleDelete(string[] todos, bool[] statuses, DateTime[] dates, ref int taskCount, string argument)
+        {
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                Console.WriteLine("Введите номер задачи.");
+                return;
+            }
+            int taskNumber;
+            if (!int.TryParse(argument, out taskNumber))
+            {
+                Console.WriteLine("Некорректный номер задачи.");
+                return;
+            }
+            int index = taskNumber - 1;
+            if (index < 0 || index >= taskCount)
+            {
+                Console.WriteLine("Задача с таким номером не найдена.");
+                return;
+            }
+            for (int i = index; i < taskCount - 1; i++)
+            {
+                todos[i] = todos[i + 1];
+                statuses[i] = statuses[i + 1];
+                dates[i] = dates[i + 1];
+            }
+            taskCount--;
+            Console.WriteLine($"Задача №{taskNumber} успешно удалена.");
         }
     }
 }
