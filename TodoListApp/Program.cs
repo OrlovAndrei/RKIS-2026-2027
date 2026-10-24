@@ -23,8 +23,15 @@ class Program
 
         Console.Write("Введите год рождения: ");
         int birthYear;
-        while (!int.TryParse(Console.ReadLine(), out birthYear))
+        while (true)
         {
+            string? birthInput = Console.ReadLine();
+            if (birthInput == null)
+            {
+                Console.WriteLine("Ввод завершён");
+                return;
+            }
+            if (int.TryParse(birthInput, out birthYear)) break;
             Console.Write("Введите год рождения числом: ");
         }
 
@@ -34,7 +41,9 @@ class Program
         while (true)
         {
             Console.Write("> ");
-            string command = Console.ReadLine() ?? "";
+            string? input = Console.ReadLine();
+            if (input == null) break;
+            string command = input.Trim();
 
             if (command == "help") PrintHelp();
             else if (command == "profile") PrintProfile(firstName, lastName, birthYear);
@@ -57,11 +66,15 @@ class Program
     {
         Console.WriteLine("help - список команд");
         Console.WriteLine("profile - данные пользователя");
-        Console.WriteLine("add \"текст задачи\" - добавить задачу");
-        Console.WriteLine("add --multiline или add -m - многострочная задача до !end");
-        Console.WriteLine("view - только текст задачи (в таблице)");
-        Console.WriteLine("view -i, -s, -d, -a, -is - дополнительные колонки");
-        Console.WriteLine("read <номер> - полный текст, статус и дата");
+        Console.WriteLine("add \"текст\" - добавить однострочную задачу");
+        Console.WriteLine("add --multiline / -m - многострочная задача, завершение !end");
+        Console.WriteLine("view - таблица только с текстом");
+        Console.WriteLine("view --index (-i) - номера задач");
+        Console.WriteLine("view --status (-s) - статусы");
+        Console.WriteLine("view --update-date (-d) - даты изменений");
+        Console.WriteLine("view --all (-a) - все колонки");
+        Console.WriteLine("view -is / -isd - комбинирование коротких флагов");
+        Console.WriteLine("read <номер> - полный текст, статус, дата");
         Console.WriteLine("done <номер> - отметить выполненной");
         Console.WriteLine("delete <номер> - удалить задачу");
         Console.WriteLine("update <номер> \"текст\" - изменить задачу");
