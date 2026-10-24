@@ -3,77 +3,91 @@ using System.Text;
 
 class Program
 {
-    const int InitialSize = 2;
-    const int GrowthFactor = 2;
-
-    static string[] todos = new string[InitialSize];
-    static bool[] statuses = new bool[InitialSize];
-    static DateTime[] dates = new DateTime[InitialSize];
-    static int todoCount = 0;
-
     static void Main()
     {
         Console.WriteLine("Работу выполнили Кузнецов и Курбатов");
 
-        Console.Write("Введите имя: ");
-        string firstName = Console.ReadLine() ?? "";
+        string? firstName = ReadRequired("Введите имя: ");
+        if (firstName == null) return;
 
-        Console.Write("Введите фамилию: ");
-        string lastName = Console.ReadLine() ?? "";
+        string? lastName = ReadRequired("Введите фамилию: ");
+        if (lastName == null) return;
 
-        Console.Write("Введите год рождения: ");
-        int birthYear;
-        while (true)
-        {
-            string? birthInput = Console.ReadLine();
-            if (birthInput == null)
-            {
-                Console.WriteLine("Ввод завершён");
-                return;
-            }
-            if (int.TryParse(birthInput, out birthYear)) break;
-            Console.Write("Введите год рождения числом: ");
-        }
+        int? birthYear = ReadBirthYear();
+        if (birthYear == null) return;
 
-        int age = DateTime.Now.Year - birthYear;
-        Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+        Profile profile = new Profile(firstName, lastName, birthYear.Value);
+        TodoList todoList = new TodoList();
+
+        Console.WriteLine("Добавлен пользователь " + profile.GetInfo());
 
         while (true)
         {
             Console.Write("> ");
             string? input = Console.ReadLine();
             if (input == null) break;
-            string command = input.Trim();
 
-            if (command == "help") PrintHelp();
-            else if (command == "profile") PrintProfile(firstName, lastName, birthYear);
-            else if (command == "add" || command.StartsWith("add ")) AddTask(command);
-            else if (command == "view" || command.StartsWith("view ")) ViewTasks(command);
-            else if (command == "read" || command.StartsWith("read ")) ReadTask(command);
-            else if (command.StartsWith("done ")) DoneTask(command);
-            else if (command.StartsWith("delete ")) DeleteTask(command);
-            else if (command.StartsWith("update ")) UpdateTask(command);
-            else if (command == "exit")
+            string command = input.Trim();
+            if (command.Length == 0) continue;
+
+            string name = command.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+            switch (name)
             {
-                Console.WriteLine("Выход из программы");
-                break;
+                case "help": PrintHelp(); break;
+                case "profile": Console.WriteLine(profile.GetInfo()); break;
+                case "add": AddTask(command, todoList); break;
+                case "view": ViewTasks(command, todoList); break;
+                case "read": ReadTask(command, todoList); break;
+                case "done": DoneTask(command, todoList); break;
+                case "delete": DeleteTask(command, todoList); break;
+                case "update": UpdateTask(command, todoList); break;
+                case "exit":
+                    Console.WriteLine("Выход из программы");
+                    return;
+                default:
+                    Console.WriteLine("Неизвестная команда. Введите help.");
+                    break;
             }
-            else Console.WriteLine("Неизвестная команда. Введите help.");
+        }
+    }
+
+    static string? ReadRequired(string prompt)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            string? value = Console.ReadLine();
+            if (value == null) return null;
+            if (!string.IsNullOrWhiteSpace(value)) return value.Trim();
+            Console.WriteLine("Поле не должно быть пустым");
+        }
+    }
+
+    static int? ReadBirthYear()
+    {
+        while (true)
+        {
+            Console.Write("Введите год рождения: ");
+            string? text = Console.ReadLine();
+            if (text == null) return null;
+            if (int.TryParse(text, out int year) && year >= 1900 && year <= DateTime.Now.Year)
+                return year;
+            Console.WriteLine("Введите корректный год рождения числом");
         }
     }
 
     static void PrintHelp()
     {
         Console.WriteLine("help - список команд");
-        Console.WriteLine("profile - данные пользователя");
+        Console.WriteLine("profile - данные пользователя (имя, фамилия, возраст)");
         Console.WriteLine("add \"текст\" - добавить однострочную задачу");
-        Console.WriteLine("add --multiline / -m - многострочная задача, завершение !end");
+        Console.WriteLine("add -m / --multiline - многострочная задача, завершение !end");
         Console.WriteLine("view - таблица только с текстом");
-        Console.WriteLine("view --index (-i) - номера задач");
-        Console.WriteLine("view --status (-s) - статусы");
-        Console.WriteLine("view --update-date (-d) - даты изменений");
-        Console.WriteLine("view --all (-a) - все колонки");
-        Console.WriteLine("view -is / -isd - комбинирование коротких флагов");
+        Console.WriteLine("view -i/--index - номера задач");
+        Console.WriteLine("view -s/--status - статусы");
+        Console.WriteLine("view -d/--update-date - даты изменений");
+        Console.WriteLine("view -a/--all - все колонки");
+        Console.WriteLine("view -is / -isd - сочетания коротких флагов");
         Console.WriteLine("read <номер> - полный текст, статус, дата");
         Console.WriteLine("done <номер> - отметить выполненной");
         Console.WriteLine("delete <номер> - удалить задачу");
@@ -81,16 +95,12 @@ class Program
         Console.WriteLine("exit - выход");
     }
 
-    static void PrintProfile(string firstName, string lastName, int birthYear)
+    static void AddTask(string command, TodoList todoList)
     {
-        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
-    }
-
-    static void AddTask(string command)
-    {
-        if (command == "add --multiline" || command == "add -m" || command == "add --multi-line")
+        string arguments = command.Substring(3).Trim();
+        if (arguments == "-m" || arguments == "--multiline" || arguments == "--multi-line")
         {
-            AddMultilineTask();
+            AddMultilineTask(todoList);
             return;
         }
 
@@ -102,10 +112,11 @@ class Program
             return;
         }
 
-        SaveTask(parts[1]);
+        todoList.Add(new TodoItem(parts[1]));
+        Console.WriteLine("Задача добавлена");
     }
 
-    static void AddMultilineTask()
+    static void AddMultilineTask(TodoList todoList)
     {
         Console.WriteLine("Введите строки задачи. Для завершения напишите !end");
         StringBuilder text = new StringBuilder();
@@ -121,7 +132,6 @@ class Program
                 return;
             }
             if (line == "!end") break;
-
             if (!firstLine) text.Append('\n');
             text.Append(line);
             firstLine = false;
@@ -132,64 +142,37 @@ class Program
             Console.WriteLine("Нельзя добавить пустую задачу");
             return;
         }
-        SaveTask(text.ToString());
-    }
 
-    static void SaveTask(string text)
-    {
-        if (todoCount == todos.Length) ExpandArrays();
-        todos[todoCount] = text;
-        statuses[todoCount] = false;
-        dates[todoCount] = DateTime.Now;
-        todoCount++;
+        todoList.Add(new TodoItem(text.ToString()));
         Console.WriteLine("Задача добавлена");
     }
 
-    static void ExpandArrays()
-    {
-        int newSize = todos.Length * GrowthFactor;
-        string[] newTodos = new string[newSize];
-        bool[] newStatuses = new bool[newSize];
-        DateTime[] newDates = new DateTime[newSize];
-
-        for (int i = 0; i < todoCount; i++)
-        {
-            newTodos[i] = todos[i];
-            newStatuses[i] = statuses[i];
-            newDates[i] = dates[i];
-        }
-
-        todos = newTodos;
-        statuses = newStatuses;
-        dates = newDates;
-    }
-
-    static void ViewTasks(string command)
+    static void ViewTasks(string command, TodoList todoList)
     {
         bool showIndex = false;
-        bool showStatus = false;
+        bool showDone = false;
         bool showDate = false;
         bool showAll = false;
 
-        string[] flags = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 1; i < flags.Length; i++)
+        string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 1; i < parts.Length; i++)
         {
-            string flag = flags[i];
+            string flag = parts[i];
             if (flag == "--all" || flag == "-a") showAll = true;
             else if (flag == "--index" || flag == "-i") showIndex = true;
-            else if (flag == "--status" || flag == "-s") showStatus = true;
+            else if (flag == "--status" || flag == "-s") showDone = true;
             else if (flag == "--update-date" || flag == "-d") showDate = true;
             else if (flag.Length > 2 && flag[0] == '-' && flag[1] != '-')
             {
-                for (int j = 1; j < flag.Length; j++)
+                foreach (char letter in flag.Substring(1))
                 {
-                    if (flag[j] == 'a') showAll = true;
-                    else if (flag[j] == 'i') showIndex = true;
-                    else if (flag[j] == 's') showStatus = true;
-                    else if (flag[j] == 'd') showDate = true;
+                    if (letter == 'a') showAll = true;
+                    else if (letter == 'i') showIndex = true;
+                    else if (letter == 's') showDone = true;
+                    else if (letter == 'd') showDate = true;
                     else
                     {
-                        Console.WriteLine("Неизвестный флаг: -" + flag[j]);
+                        Console.WriteLine("Неизвестный флаг: -" + letter);
                         return;
                     }
                 }
@@ -204,47 +187,18 @@ class Program
         if (showAll)
         {
             showIndex = true;
-            showStatus = true;
+            showDone = true;
             showDate = true;
         }
-
-        if (todoCount == 0)
-        {
-            Console.WriteLine("Список задач пуст");
-            return;
-        }
-
-        string header = "";
-        if (showIndex) header += "№".PadRight(3) + " | ";
-        header += "Текст задачи".PadRight(33);
-        if (showStatus) header += " | " + "Статус".PadRight(12);
-        if (showDate) header += " | Дата изменения";
-
-        Console.WriteLine(header);
-        Console.WriteLine(new string('-', header.Length));
-        for (int i = 0; i < todoCount; i++)
-        {
-            // В таблице заменяем переносы строк пробелами; полный текст доступен через read.
-            string preview = todos[i].Replace("\r", " ").Replace("\n", " ");
-            if (preview.Length > 30) preview = preview.Substring(0, 30) + "...";
-
-            string row = "";
-            if (showIndex) row += (i + 1).ToString().PadRight(3) + " | ";
-            row += preview.PadRight(33);
-            if (showStatus)
-            {
-                string status = statuses[i] ? "сделано" : "не сделано";
-                row += " | " + status.PadRight(12);
-            }
-            if (showDate) row += " | " + dates[i].ToString("dd.MM.yyyy HH:mm:ss");
-            Console.WriteLine(row);
-        }
+        todoList.View(showIndex, showDone, showDate);
     }
 
-    static bool TryGetIndex(string text, out int index)
+    // В команде пользователь вводит номер с 1, а массив индексируется с 0.
+    static bool TryGetIndex(string numberText, TodoList todoList, out int index)
     {
         index = -1;
-        if (!int.TryParse(text, out int number) || number < 1 || number > todoCount)
+        if (!int.TryParse(numberText, out int number) ||
+            number < 1 || todoList.GetItem(number - 1) == null)
         {
             Console.WriteLine("Задачи с таким номером нет");
             return false;
@@ -253,7 +207,7 @@ class Program
         return true;
     }
 
-    static void ReadTask(string command)
+    static void ReadTask(string command, TodoList todoList)
     {
         string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length != 2)
@@ -261,15 +215,15 @@ class Program
             Console.WriteLine("Формат: read 1");
             return;
         }
-        if (!TryGetIndex(parts[1], out int index)) return;
+        if (!TryGetIndex(parts[1], todoList, out int index)) return;
 
+        TodoItem? item = todoList.GetItem(index);
+        if (item == null) return;
         Console.WriteLine("Задача №" + (index + 1));
-        Console.WriteLine(todos[index]); // Выводит полный текст, включая переносы строк.
-        Console.WriteLine("Статус: " + (statuses[index] ? "выполнена" : "не выполнена"));
-        Console.WriteLine($"Дата изменения: {dates[index]:dd.MM.yyyy HH:mm:ss}");
+        Console.WriteLine(item.GetFullInfo());
     }
 
-    static void DoneTask(string command)
+    static void DoneTask(string command, TodoList todoList)
     {
         string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length != 2)
@@ -277,14 +231,15 @@ class Program
             Console.WriteLine("Формат: done 1");
             return;
         }
-        if (!TryGetIndex(parts[1], out int index)) return;
+        if (!TryGetIndex(parts[1], todoList, out int index)) return;
 
-        statuses[index] = true;
-        dates[index] = DateTime.Now;
+        TodoItem? item = todoList.GetItem(index);
+        if (item == null) return;
+        item.MarkDone();
         Console.WriteLine("Задача выполнена");
     }
 
-    static void DeleteTask(string command)
+    static void DeleteTask(string command, TodoList todoList)
     {
         string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length != 2)
@@ -292,23 +247,13 @@ class Program
             Console.WriteLine("Формат: delete 1");
             return;
         }
-        if (!TryGetIndex(parts[1], out int index)) return;
+        if (!TryGetIndex(parts[1], todoList, out int index)) return;
 
-        for (int i = index; i < todoCount - 1; i++)
-        {
-            todos[i] = todos[i + 1];
-            statuses[i] = statuses[i + 1];
-            dates[i] = dates[i + 1];
-        }
-
-        todoCount--;
-        todos[todoCount] = "";
-        statuses[todoCount] = false;
-        dates[todoCount] = default;
-        Console.WriteLine("Задача удалена");
+        if (todoList.Delete(index))
+            Console.WriteLine("Задача удалена");
     }
 
-    static void UpdateTask(string command)
+    static void UpdateTask(string command, TodoList todoList)
     {
         string[] parts = command.Split('"');
         string[] head = parts[0].Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -318,10 +263,11 @@ class Program
             Console.WriteLine("Формат: update 1 \"новый текст\"");
             return;
         }
-        if (!TryGetIndex(head[1], out int index)) return;
+        if (!TryGetIndex(head[1], todoList, out int index)) return;
 
-        todos[index] = parts[1];
-        dates[index] = DateTime.Now;
+        TodoItem? item = todoList.GetItem(index);
+        if (item == null) return;
+        item.UpdateText(parts[1]);
         Console.WriteLine("Задача изменена");
     }
 }
