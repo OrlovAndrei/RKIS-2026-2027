@@ -40,6 +40,7 @@ class Program
             else if (command == "profile") PrintProfile(firstName, lastName, birthYear);
             else if (command == "add" || command.StartsWith("add ")) AddTask(command);
             else if (command == "view" || command.StartsWith("view ")) ViewTasks(command);
+            else if (command == "read" || command.StartsWith("read ")) ReadTask(command);
             else if (command.StartsWith("done ")) DoneTask(command);
             else if (command.StartsWith("delete ")) DeleteTask(command);
             else if (command.StartsWith("update ")) UpdateTask(command);
@@ -60,6 +61,7 @@ class Program
         Console.WriteLine("add --multiline или add -m - многострочная задача до !end");
         Console.WriteLine("view - только текст задачи (в таблице)");
         Console.WriteLine("view -i, -s, -d, -a, -is - дополнительные колонки");
+        Console.WriteLine("read <номер> - полный текст, статус и дата");
         Console.WriteLine("done <номер> - отметить выполненной");
         Console.WriteLine("delete <номер> - удалить задачу");
         Console.WriteLine("update <номер> \"текст\" - изменить задачу");
@@ -236,6 +238,22 @@ class Program
         }
         index = number - 1;
         return true;
+    }
+
+    static void ReadTask(string command)
+    {
+        string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2)
+        {
+            Console.WriteLine("Формат: read 1");
+            return;
+        }
+        if (!TryGetIndex(parts[1], out int index)) return;
+
+        Console.WriteLine("Задача №" + (index + 1));
+        Console.WriteLine(todos[index]); // Выводит полный текст, включая переносы строк.
+        Console.WriteLine("Статус: " + (statuses[index] ? "выполнена" : "не выполнена"));
+        Console.WriteLine($"Дата изменения: {dates[index]:dd.MM.yyyy HH:mm:ss}");
     }
 
     static void DoneTask(string command)
