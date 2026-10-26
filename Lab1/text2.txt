@@ -1,0 +1,25 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.Write("Введите ваше имя: ");
+        string name = Console.ReadLine();
+        
+        Console.WriteLine($"Привет, {name}! Давай проверим твои знания математики.");
+        Console.Write("Сколько будет 100 * 100? Введите ответ: ");
+        
+        string userAnswer = Console.ReadLine();
+
+        // Проверяем, что ввел пользователь
+        if (userAnswer == "10000")
+        {
+            Console.WriteLine("Отлично! Это правильный ответ.");
+        }
+        else
+        {
+            Console.WriteLine("Неверно. Правильный ответ: 10000. Попробуй еще раз или не пробуй)!");
+        }
+    }
+}
