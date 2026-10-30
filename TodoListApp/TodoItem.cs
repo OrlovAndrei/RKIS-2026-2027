@@ -12,7 +12,17 @@ public class TodoItem // Класс одной задачи.
         IsDone = false; // Новая задача ещё не выполнена.
         LastUpdate = DateTime.Now; // Запоминаем текущую дату и время.
     }
-
+    // Создаёт задачу с восстановленными данными из файла.
+    public TodoItem(string text, bool isDone, DateTime lastUpdate)
+    {
+        // Восстанавливаем текст задачи.
+        Text = text;
+        // Восстанавливаем статус выполнения.
+        IsDone = isDone;
+        // Восстанавливаем дату последнего изменения.
+        LastUpdate = lastUpdate;
+    }
+    
     public void MarkDone() // Метод отмечает задачу выполненной.
     {
         IsDone = true; // Меняем статус задачи.

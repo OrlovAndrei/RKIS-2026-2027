@@ -11,6 +11,9 @@ public class TodoList // Класс для управления списком �
 
     private TodoItem[] items; // Массив объектов задач.
     private int count; // Количество добавленных задач.
+    
+    // Возвращает количество задач в списке.
+    public int Count => count;
 
     public TodoList() // Конструктор создаёт пустой список.
     {
