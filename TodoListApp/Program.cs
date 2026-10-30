@@ -1,5 +1,5 @@
 ﻿using System; // Подключаем основные функции C#.
-using System.Collections.Generic; // Подключаем коллекцию HashSet и список List.
+using System.Collections.Generic; // Подключаем коллекции HashSet и List.
 
 // Выводим информацию об авторах программы.
 Console.WriteLine("Работу выполнили Гонтарева Юлия и Рыжих Вероника");
