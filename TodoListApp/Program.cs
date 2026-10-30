@@ -1,310 +1,385 @@
-﻿using System; // Подключаем основные функции C#.
-using System.Collections.Generic; // Подключаем коллекции HashSet и List.
+﻿using System; // Подключаем базовые типы .NET (Console, DateTime, StringSplitOptions и др.)
+using System.IO; // Подключаем классы для работы с файлами и путями (File, Path)
+using System.Collections.Generic; // Подключаем обобщённые коллекции (List, HashSet)
 
 // Выводим информацию об авторах программы.
-Console.WriteLine("Работу выполнили Гонтарева Юлия и Рыжих Вероника");
-Console.WriteLine(); // Печатаем пустую строку.
+Console.WriteLine("Работу выполнили Гонтарева Юлия и Рыжих Вероника"); // Печатаем строку с авторами
+Console.WriteLine(); // Печатаем пустую строку для отступа
 
-// Запрашиваем имя пользователя.
-Console.Write("Введите имя: ");
-string firstName = Console.ReadLine() ?? ""; // Считываем имя или используем пустую строку.
+// Определяем папку и пути к файлам с данными.
+string dataDirectory = Path.Combine( // Собираем путь к папке data, учитывая разделители ОС
+    AppDomain.CurrentDomain.BaseDirectory, // Базовая папка, из которой запущена программа
+    "data" // Имя вложенной папки с данными
+); // Конец вызова Path.Combine
 
-// Запрашиваем фамилию пользователя.
-Console.Write("Введите фамилию: ");
-string lastName = Console.ReadLine() ?? ""; // Считываем фамилию или используем пустую строку.
+FileManager.EnsureDataDirectory(dataDirectory); // Создаём папку data, если её ещё нет
 
-// Устанавливаем минимально допустимый год рождения.
-const int MinBirthYear = 1900;
-int birthYear; // Объявляем переменную для года рождения.
+string profileFilePath = Path.Combine(dataDirectory, "profile.txt"); // Путь к файлу с данными профиля
+string todoFilePath = Path.Combine(dataDirectory, "todo.csv"); // Путь к файлу со списком задач
 
-// Повторяем ввод, пока год не станет корректным.
-while (true)
+// Загружаем профиль или создаём его при первом запуске.
+Profile profile; // Объявляем переменную профиля (значение присвоим ниже)
+
+if (File.Exists(profileFilePath)) // Если файл профиля уже существует (не первый запуск)
 {
-    Console.Write("Введите год рождения: "); // Запрашиваем год.
+    profile = FileManager.LoadProfile(profileFilePath); // Читаем профиль из файла
+}
+else // Иначе это первый запуск, профиля ещё нет
+{
+    // Запрашиваем имя пользователя.
+    Console.Write("Введите имя: "); // Выводим приглашение без перевода строки
+    string firstName = Console.ReadLine() ?? ""; // Читаем имя; если ввод null, берём пустую строку
 
-    if (int.TryParse(Console.ReadLine(), out birthYear) // Проверяем, удалось ли получить целое число.
-        && birthYear >= MinBirthYear // Проверяем минимальный год.
-        && birthYear <= DateTime.Now.Year) // Не допускаем год из будущего.
+    // Запрашиваем фамилию пользователя.
+    Console.Write("Введите фамилию: "); // Выводим приглашение для фамилии
+    string lastName = Console.ReadLine() ?? ""; // Читаем фамилию; null заменяем пустой строкой
+
+    // Устанавливаем минимально допустимый год рождения.
+    const int MinBirthYear = 1900; // Константа: раньше этого года рождение считается ошибкой
+    int birthYear; // Переменная для года рождения (заполнится в TryParse)
+
+    // Повторяем ввод, пока год не станет корректным.
+    while (true) // Бесконечный цикл, выходим из него через break
     {
-        break; // Завершаем цикл при правильном вводе.
+        Console.Write("Введите год рождения: "); // Выводим приглашение для года рождения
+
+        if (int.TryParse(Console.ReadLine(), out birthYear) // Пробуем преобразовать ввод в число
+            && birthYear >= MinBirthYear // И год не меньше минимально допустимого
+            && birthYear <= DateTime.Now.Year) // И год не больше текущего
+        {
+            break; // Ввод корректен, выходим из цикла
+        }
+
+        Console.WriteLine("Ошибка. Введите корректный год рождения."); // Сообщаем об ошибке и повторяем ввод
     }
 
-    Console.WriteLine("Ошибка. Введите корректный год рождения."); // Сообщаем об ошибке.
+    // Создаём профиль и сразу сохраняем его.
+    profile = new Profile(firstName, lastName, birthYear); // Создаём объект профиля из введённых данных
+    FileManager.SaveProfile(profile, profileFilePath); // Записываем профиль в файл, чтобы не вводить заново
 }
 
-// Создаём объект профиля пользователя.
-Profile profile = new Profile(firstName, lastName, birthYear);
+// Загружаем список задач или создаём новый.
+TodoList todoList; // Объявляем переменную списка задач
 
-// Создаём объект списка задач.
-TodoList todoList = new TodoList();
+if (File.Exists(todoFilePath)) // Если файл с задачами уже существует
+{
+    todoList = FileManager.LoadTodos(todoFilePath); // Загружаем задачи из файла
+}
+else // Иначе файла с задачами ещё нет
+{
+    todoList = new TodoList(); // Создаём пустой список задач
+    FileManager.SaveTodos(todoList, todoFilePath); // Сразу сохраняем пустой список в файл
+}
 
 // Выводим информацию о пользователе.
-Console.WriteLine(profile.GetInfo());
-Console.WriteLine("Введите help, чтобы увидеть список команд.");
+Console.WriteLine(profile.GetInfo()); // Печатаем имя, фамилию и возраст пользователя
+Console.WriteLine("Введите help, чтобы увидеть список команд."); // Подсказываем, как узнать команды
 
 // Объявляем константы названий команд.
-const string CommandHelp = "help"; // Команда справки.
-const string CommandProfile = "profile"; // Команда просмотра профиля.
-const string CommandAdd = "add"; // Команда добавления задачи.
-const string CommandView = "view"; // Команда просмотра задач.
-const string CommandDone = "done"; // Команда выполнения задачи.
-const string CommandDelete = "delete"; // Команда удаления задачи.
-const string CommandUpdate = "update"; // Команда изменения задачи.
-const string CommandRead = "read"; // Команда чтения задачи.
-const string CommandExit = "exit"; // Команда завершения программы.
+const string CommandHelp = "help"; // Название команды справки
+const string CommandProfile = "profile"; // Название команды просмотра профиля
+const string CommandAdd = "add"; // Название команды добавления задачи
+const string CommandView = "view"; // Название команды просмотра списка
+const string CommandDone = "done"; // Название команды отметки о выполнении
+const string CommandDelete = "delete"; // Название команды удаления задачи
+const string CommandUpdate = "update"; // Название команды изменения текста задачи
+const string CommandRead = "read"; // Название команды чтения полной информации
+const string CommandExit = "exit"; // Название команды выхода
 
 // Метод выводит список доступных команд.
-void ShowHelp()
+void ShowHelp() // Локальный метод без параметров и без возвращаемого значения
 {
-    Console.WriteLine("help    - список команд");
-    Console.WriteLine("profile - данные пользователя");
-    Console.WriteLine("add \"текст\" - добавить задачу");
-    Console.WriteLine("add --multiline (-m) - многострочная задача, конец: !end");
-    Console.WriteLine("view - показать задачи");
-    Console.WriteLine("view --index/-i --status/-s --update-date/-d");
-    Console.WriteLine("view --all/-a - показать все столбцы");
-    Console.WriteLine("read <номер> - полная информация о задаче");
-    Console.WriteLine("done <номер> - выполнить задачу");
-    Console.WriteLine("update <номер> \"новый текст\" - изменить задачу");
-    Console.WriteLine("delete <номер> - удалить задачу");
-    Console.WriteLine("exit - завершить программу");
-}
+    Console.WriteLine("help    - список команд"); // Описание команды help
+    Console.WriteLine("profile - данные пользователя"); // Описание команды profile
+    Console.WriteLine("add \"текст\" - добавить задачу"); // Описание add (\" — экранированная кавычка)
+    Console.WriteLine("add --multiline (-m) - многострочная задача, конец: !end"); // Описание многострочного add
+    Console.WriteLine("view - показать задачи"); // Описание команды view
+    Console.WriteLine("view --index/-i --status/-s --update-date/-d"); // Флаги столбцов для view
+    Console.WriteLine("view --all/-a - показать все столбцы"); // Флаг показа всех столбцов
+    Console.WriteLine("read <номер> - полная информация о задаче"); // Описание команды read
+    Console.WriteLine("done <номер> - выполнить задачу"); // Описание команды done
+    Console.WriteLine("update <номер> \"новый текст\" - изменить задачу"); // Описание команды update
+    Console.WriteLine("delete <номер> - удалить задачу"); // Описание команды delete
+    Console.WriteLine("exit - завершить программу"); // Описание команды exit
+} // Конец метода ShowHelp
 
 // Метод разбирает флаги команды.
-HashSet<string> ParseFlags(string commandArgs)
+HashSet<string> ParseFlags(string commandArgs) // Принимает строку аргументов, возвращает набор флагов
 {
-    HashSet<string> flags = new HashSet<string>(); // Создаём набор найденных флагов.
+    HashSet<string> flags = new HashSet<string>(); // Создаём пустое множество (дубликаты не хранятся)
 
-    string flagsPart = commandArgs.Split('"')[0]; // Берём часть команды до кавычек.
+    // Берём часть команды до кавычек.
+    string flagsPart = commandArgs.Split('"')[0]; // Делим по кавычке и берём текст до первой кавычки
 
-    foreach (string token in flagsPart.Split(' ', StringSplitOptions.RemoveEmptyEntries)) // Разделяем аргументы по пробелам.
+    // Разделяем аргументы по пробелам.
+    foreach (string token in flagsPart.Split( // Перебираем каждый «кусочек» строки
+        ' ', // Разделитель — пробел
+        StringSplitOptions.RemoveEmptyEntries)) // Пустые элементы (двойные пробелы) отбрасываем
     {
-        if (token.StartsWith("--")) // Проверяем длинный флаг.
+        if (token.StartsWith("--")) // Если кусочек начинается с двух дефисов — это длинный флаг
         {
-            flags.Add(token.Substring(2).ToLower()); // Сохраняем флаг без двух дефисов.
+            // Сохраняем длинный флаг без двух дефисов.
+            flags.Add(token.Substring(2).ToLower()); // Отрезаем "--", приводим к нижнему регистру, добавляем
         }
-        else if (token.StartsWith("-")) // Проверяем короткий флаг.
+        else if (token.StartsWith("-")) // Если начинается с одного дефиса — это короткие флаги
         {
-            foreach (char symbol in token.Substring(1)) // Разбираем каждый символ короткого флага.
+            // Разбираем каждый символ короткого флага.
+            foreach (char symbol in token.Substring(1)) // Перебираем буквы после дефиса (например, в "-is")
             {
-                flags.Add(char.ToLower(symbol).ToString()); // Сохраняем символ как отдельный флаг.
+                flags.Add(char.ToLower(symbol).ToString()); // Каждую букву в нижнем регистре добавляем как флаг
             }
         }
     }
 
-    return flags; // Возвращаем найденные флаги.
-}
+    return flags; // Возвращаем собранный набор флагов
+} // Конец метода ParseFlags
 
 // Метод проверяет наличие длинного или короткого флага.
-bool HasFlag(HashSet<string> flags, string longName, string shortName)
+bool HasFlag(HashSet<string> flags, string longName, string shortName) // Принимает набор и два имени флага
 {
-    return flags.Contains(longName) || flags.Contains(shortName); // Возвращаем результат проверки.
-}
+    return flags.Contains(longName) || flags.Contains(shortName); // true, если есть длинное или короткое имя
+} // Конец метода HasFlag
 
 // Метод считывает многострочную задачу.
-string ReadMultilineText()
+string ReadMultilineText() // Возвращает весь введённый текст одной строкой
 {
-    List<string> lines = new List<string>(); // Создаём список строк задачи.
+    List<string> lines = new List<string>(); // Список для накопления введённых строк
 
-    Console.WriteLine("Вводите строки. Для завершения введите !end");
+    Console.WriteLine("Вводите строки. Для завершения введите !end"); // Объясняем, как закончить ввод
 
-    while (true) // Повторяем ввод строк.
+    while (true) // Читаем строки, пока пользователь не завершит ввод
     {
-        Console.Write("> "); // Показываем приглашение ввода.
+        Console.Write("> "); // Приглашение к вводу очередной строки
 
-        string? line = Console.ReadLine(); // Считываем очередную строку.
+        string? line = Console.ReadLine(); // Читаем строку (может быть null, поэтому тип string?)
 
-        if (line == null || line.Trim() == "!end") // Проверяем конец ввода.
+        if (line == null || line.Trim() == "!end") // Если ввод закончился или введена команда !end
         {
-            break; // Завершаем цикл.
+            break; // Прекращаем чтение
         }
 
-        lines.Add(line); // Добавляем строку в список.
+        lines.Add(line); // Добавляем введённую строку в список
     }
 
-    return string.Join("\n", lines); // Объединяем строки переносами строк.
-}
+    // Объединяем введённые строки переносами.
+    return string.Join("\n", lines); // Склеиваем строки через символ перевода строки и возвращаем
+} // Конец метода ReadMultilineText
 
 // Метод создаёт и добавляет новую задачу.
-void AddTask(string commandArgs)
+void AddTask(string commandArgs) // Принимает аргументы команды add
 {
-    HashSet<string> flags = ParseFlags(commandArgs); // Получаем флаги команды.
-    string text; // Объявляем переменную для текста задачи.
+    HashSet<string> flags = ParseFlags(commandArgs); // Получаем флаги из аргументов
+    string text; // Переменная для текста задачи
 
-    if (HasFlag(flags, "multiline", "m")) // Проверяем режим многострочного ввода.
+    // Проверяем режим многострочного ввода.
+    if (HasFlag(flags, "multiline", "m")) // Если указан флаг --multiline или -m
     {
-        text = ReadMultilineText(); // Считываем несколько строк.
+        text = ReadMultilineText(); // Читаем текст из нескольких строк
     }
-    else // Если используется обычный ввод.
+    else // Иначе ожидаем текст в кавычках
     {
-        string[] parts = commandArgs.Split('"'); // Разделяем аргументы по кавычкам.
+        // Разделяем аргументы по кавычкам.
+        string[] parts = commandArgs.Split('"'); // Для add "текст" получится ["", "текст", ""]
 
-        if (parts.Length < 3 || parts[1].Trim() == "") // Проверяем формат и наличие текста.
+        if (parts.Length < 3 || parts[1].Trim() == "") // Если кавычек нет/не хватает или текст пустой
         {
-            Console.WriteLine("Формат: add \"текст задачи\""); // Показываем правильный формат.
-            return; // Прерываем добавление.
+            Console.WriteLine("Формат: add \"текст задачи\""); // Подсказываем правильный формат
+            return; // Выходим из метода без добавления
         }
 
-        text = parts[1]; // Получаем текст между кавычками.
+        text = parts[1]; // Берём текст между кавычками
     }
 
-    if (text.Trim() == "") // Проверяем, что текст не пустой.
+    // Проверяем, что текст задачи не пустой.
+    if (text.Trim() == "") // Если после удаления пробелов ничего не осталось
     {
-        Console.WriteLine("Ошибка. Задача пустая."); // Сообщаем об ошибке.
-        return; // Прерываем добавление.
+        Console.WriteLine("Ошибка. Задача пустая."); // Сообщаем об ошибке
+        return; // Выходим без добавления
     }
 
-    TodoItem item = new TodoItem(text); // Создаём объект задачи.
-    todoList.Add(item); // Передаём задачу списку.
-}
+    // Создаём и добавляем задачу.
+    TodoItem item = new TodoItem(text); // Создаём объект задачи с этим текстом
+    todoList.Add(item); // Добавляем задачу в список
+
+    // Сохраняем список после добавления задачи.
+    FileManager.SaveTodos(todoList, todoFilePath); // Записываем обновлённый список в файл
+
+    Console.WriteLine("Задача добавлена."); // Подтверждаем добавление
+} // Конец метода AddTask
 
 // Метод получает задачу по введённому номеру.
-TodoItem? GetTask(string commandArgs)
+TodoItem? GetTask(string commandArgs) // Возвращает задачу или null, если номер некорректен
 {
-    if (!int.TryParse(commandArgs.Trim(), out int index)) // Проверяем, является ли аргумент числом.
+    if (!int.TryParse(commandArgs.Trim(), out int index)) // Пробуем получить число из строки аргументов
     {
-        Console.WriteLine("Ошибка. Укажите номер задачи."); // Сообщаем об ошибке ввода.
-        return null; // Возвращаем отсутствие задачи.
+        Console.WriteLine("Ошибка. Укажите номер задачи."); // Если не число — сообщаем об ошибке
+        return null; // Возвращаем null как признак неудачи
     }
 
-    return todoList.GetItem(index); // Получаем задачу из списка.
-}
+    return todoList.GetItem(index); // Возвращаем задачу с этим номером из списка
+} // Конец метода GetTask
 
 // Метод отмечает задачу выполненной.
-void DoneTask(string commandArgs)
+void DoneTask(string commandArgs) // Принимает аргументы команды done
 {
-    TodoItem? item = GetTask(commandArgs); // Получаем задачу по номеру.
+    TodoItem? item = GetTask(commandArgs); // Получаем задачу по номеру (может быть null)
 
-    if (item == null) // Проверяем, найдена ли задача.
+    if (item == null) // Если задача не найдена
     {
-        return; // Прерываем выполнение при ошибке.
+        return; // Прекращаем выполнение метода
     }
 
-    item.MarkDone(); // Меняем статус задачи через метод класса.
-    Console.WriteLine("Задача отмечена выполненной."); // Подтверждаем выполнение.
-}
+    // Меняем статус задачи.
+    item.MarkDone(); // Отмечаем задачу выполненной и обновляем дату изменения
+
+    // Сохраняем изменения.
+    FileManager.SaveTodos(todoList, todoFilePath); // Записываем список в файл
+
+    Console.WriteLine("Задача отмечена выполненной."); // Подтверждаем действие
+} // Конец метода DoneTask
 
 // Метод изменяет текст существующей задачи.
-void UpdateTask(string commandArgs)
+void UpdateTask(string commandArgs) // Принимает аргументы команды update
 {
-    string[] parts = commandArgs.Split('"'); // Отделяем номер от нового текста.
+    // Отделяем номер задачи от нового текста.
+    string[] parts = commandArgs.Split('"'); // Для 1 "текст" получится ["1 ", "текст", ""]
 
-    if (parts.Length < 3 || parts[1].Trim() == "") // Проверяем формат команды.
+    if (parts.Length < 3 || parts[1].Trim() == "") // Если нет кавычек или новый текст пустой
     {
-        Console.WriteLine("Формат: update <номер> \"новый текст\""); // Показываем правильный формат.
-        return; // Прерываем изменение.
+        Console.WriteLine("Формат: update <номер> \"новый текст\""); // Подсказываем формат команды
+        return; // Выходим без изменений
     }
 
-    TodoItem? item = GetTask(parts[0]); // Получаем задачу по номеру.
+    // Получаем задачу по номеру.
+    TodoItem? item = GetTask(parts[0]); // Часть до кавычки — это номер задачи
 
-    if (item == null) // Проверяем, существует ли задача.
+    if (item == null) // Если задача не найдена
     {
-        return; // Прерываем изменение при ошибке.
+        return; // Прекращаем выполнение
     }
 
-    item.UpdateText(parts[1]); // Изменяем текст через метод класса.
-    Console.WriteLine("Задача обновлена."); // Подтверждаем изменение.
-}
+    // Изменяем текст задачи.
+    item.UpdateText(parts[1]); // Записываем новый текст и обновляем дату изменения
+
+    // Сохраняем изменения.
+    FileManager.SaveTodos(todoList, todoFilePath); // Записываем список в файл
+
+    Console.WriteLine("Задача обновлена."); // Подтверждаем изменение
+} // Конец метода UpdateTask
 
 // Метод удаляет задачу из списка.
-void DeleteTask(string commandArgs)
+void DeleteTask(string commandArgs) // Принимает аргументы команды delete
 {
-    if (!int.TryParse(commandArgs.Trim(), out int index)) // Проверяем правильность номера.
+    if (!int.TryParse(commandArgs.Trim(), out int index)) // Пробуем получить номер задачи из строки
     {
-        Console.WriteLine("Ошибка. Укажите номер задачи."); // Сообщаем об ошибке.
-        return; // Прерываем удаление.
+        Console.WriteLine("Ошибка. Укажите номер задачи."); // Если не число — сообщаем об ошибке
+        return; // Выходим без удаления
     }
 
-    todoList.Delete(index); // Передаём номер методу удаления.
-}
+    // Удаляем задачу.
+    todoList.Delete(index); // Удаляем задачу по номеру и сдвигаем остальные
+
+    // Сохраняем актуальный список задач.
+    FileManager.SaveTodos(todoList, todoFilePath); // Записываем список в файл
+} // Конец метода DeleteTask
 
 // Метод выводит полную информацию о задаче.
-void ReadTask(string commandArgs)
+void ReadTask(string commandArgs) // Принимает аргументы команды read
 {
-    TodoItem? item = GetTask(commandArgs); // Получаем задачу по номеру.
+    TodoItem? item = GetTask(commandArgs); // Получаем задачу по номеру (может быть null)
 
-    if (item == null) // Проверяем, найдена ли задача.
+    if (item == null) // Если задача не найдена
     {
-        return; // Прерываем вывод при ошибке.
+        return; // Прекращаем выполнение
     }
 
-    Console.WriteLine(item.GetFullInfo()); // Выводим информацию методом класса.
-}
+    Console.WriteLine(item.GetFullInfo()); // Печатаем полный текст, статус и дату изменения
+} // Конец метода ReadTask
 
 // Метод отображает таблицу задач с выбранными столбцами.
-void ViewTasks(string commandArgs)
+void ViewTasks(string commandArgs) // Принимает аргументы команды view (флаги)
 {
-    HashSet<string> flags = ParseFlags(commandArgs); // Получаем флаги отображения.
+    HashSet<string> flags = ParseFlags(commandArgs); // Получаем набор флагов из аргументов
 
-    bool showAll = HasFlag(flags, "all", "a"); // Проверяем запрос всех столбцов.
+    // Проверяем, запрошены ли все столбцы.
+    bool showAll = HasFlag(flags, "all", "a"); // true, если указан --all или -a
 
-    bool showIndex = showAll || HasFlag(flags, "index", "i"); // Определяем, показывать ли номера.
-    bool showDone = showAll || HasFlag(flags, "status", "s"); // Определяем, показывать ли статусы.
-    bool showDate = showAll || HasFlag(flags, "update-date", "d"); // Определяем, показывать ли даты.
+    bool showIndex = showAll || HasFlag(flags, "index", "i"); // Показывать номера: при --all или --index/-i
+    bool showDone = showAll || HasFlag(flags, "status", "s"); // Показывать статусы: при --all или --status/-s
+    bool showDate = showAll || HasFlag(flags, "update-date", "d"); // Показывать даты: при --all или --update-date/-d
 
-    todoList.View(showIndex, showDone, showDate); // Передаём настройки отображения списку.
-}
+    // Передаём настройки отображения списку задач.
+    todoList.View(showIndex, showDone, showDate); // Список сам выводит таблицу с нужными столбцами
+} // Конец метода ViewTasks
 
 // Основной цикл принимает команды пользователя.
-while (true)
+while (true) // Бесконечный цикл: программа работает до команды exit
 {
-    Console.Write("> "); // Выводим приглашение для команды.
+    Console.Write("> "); // Выводим приглашение к вводу команды
 
-    string input = (Console.ReadLine() ?? "").Trim(); // Считываем команду и убираем пробелы по краям.
+    // Считываем команду и удаляем пробелы по краям.
+    string input = (Console.ReadLine() ?? "").Trim(); // null заменяем пустой строкой, обрезаем пробелы
 
-    if (input == "") // Проверяем, не введена ли пустая строка.
+    if (input == "") // Если пользователь ничего не ввёл
     {
-        continue; // Переходим к следующему вводу.
+        continue; // Пропускаем итерацию и снова запрашиваем ввод
     }
 
-    string[] commandParts = input.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries); // Разделяем команду и аргументы.
+    // Разделяем команду и её аргументы.
+    string[] commandParts = input.Split( // Делим строку на название команды и остальное
+        ' ', // Разделитель — пробел
+        2, // Максимум 2 части: команда и всё остальное целиком
+        StringSplitOptions.RemoveEmptyEntries // Пустые части отбрасываем
+    ); // Конец вызова Split
 
-    string command = commandParts[0].ToLower(); // Получаем название команды.
+    string command = commandParts[0].ToLower(); // Название команды в нижнем регистре (Add = add)
 
-    string commandArgs = commandParts.Length > 1 // Проверяем, есть ли аргументы.
-        ? commandParts[1].Trim() // Получаем аргументы команды.
-        : ""; // Если аргументов нет, используем пустую строку.
+    string commandArgs = commandParts.Length > 1 // Если после команды есть что-то ещё...
+        ? commandParts[1].Trim() // ...берём это как аргументы, обрезав пробелы
+        : ""; // ...иначе аргументов нет — пустая строка
 
-    switch (command) // Выбираем действие по названию команды.
+    // Выбираем действие по названию команды.
+    switch (command) // Сравниваем команду с известными вариантами
     {
-        case CommandHelp: // Если введена команда справки.
-            ShowHelp(); // Показываем список команд.
-            break; // Завершаем обработку команды.
+        case CommandHelp: // Если введено help
+            ShowHelp(); // Показываем справку
+            break; // Выходим из switch
 
-        case CommandProfile: // Если запрошен профиль.
-            Console.WriteLine(profile.GetInfo()); // Выводим данные пользователя.
-            break; // Завершаем обработку команды.
+        case CommandProfile: // Если введено profile
+            // Выводим сохранённый профиль пользователя.
+            Console.WriteLine(profile.GetInfo()); // Печатаем данные пользователя
+            break; // Выходим из switch
 
-        case CommandAdd: // Если нужно добавить задачу.
-            AddTask(commandArgs); // Вызываем метод добавления.
-            break; // Завершаем обработку команды.
+        case CommandAdd: // Если введено add
+            AddTask(commandArgs); // Добавляем задачу
+            break; // Выходим из switch
 
-        case CommandView: // Если нужно показать список задач.
-            ViewTasks(commandArgs); // Вызываем метод отображения.
-            break; // Завершаем обработку команды.
+        case CommandView: // Если введено view
+            ViewTasks(commandArgs); // Показываем таблицу задач
+            break; // Выходим из switch
 
-        case CommandDone: // Если нужно выполнить задачу.
-            DoneTask(commandArgs); // Вызываем метод изменения статуса.
-            break; // Завершаем обработку команды.
+        case CommandDone: // Если введено done
+            DoneTask(commandArgs); // Отмечаем задачу выполненной
+            break; // Выходим из switch
 
-        case CommandDelete: // Если нужно удалить задачу.
-            DeleteTask(commandArgs); // Вызываем метод удаления.
-            break; // Завершаем обработку команды.
+        case CommandDelete: // Если введено delete
+            DeleteTask(commandArgs); // Удаляем задачу
+            break; // Выходим из switch
 
-        case CommandUpdate: // Если нужно изменить текст задачи.
-            UpdateTask(commandArgs); // Вызываем метод изменения.
-            break; // Завершаем обработку команды.
+        case CommandUpdate: // Если введено update
+            UpdateTask(commandArgs); // Изменяем текст задачи
+            break; // Выходим из switch
 
-        case CommandRead: // Если нужно прочитать задачу.
-            ReadTask(commandArgs); // Выводим полную информацию.
-            break; // Завершаем обработку команды.
+        case CommandRead: // Если введено read
+            ReadTask(commandArgs); // Показываем полную информацию о задаче
+            break; // Выходим из switch
 
-        case CommandExit: // Если пользователь завершает программу.
-            Console.WriteLine("Завершение работы."); // Выводим сообщение.
-            return; // Завершаем программу.
+        case CommandExit: // Если введено exit
+            Console.WriteLine("Завершение работы."); // Прощальное сообщение
+            return; // Завершаем программу (выход из верхнеуровневого кода)
 
-        default: // Если команда не распознана.
-            Console.WriteLine("Неизвестная команда. Введите help."); // Сообщаем об ошибке.
-            break; // Возвращаемся к вводу команды.
+        default: // Если команда не совпала ни с одной из известных
+            Console.WriteLine("Неизвестная команда. Введите help."); // Сообщаем, что команда неизвестна
+            break; // Выходим из switch
     }
 }
