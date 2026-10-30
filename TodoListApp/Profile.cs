@@ -12,7 +12,7 @@ public class Profile // Класс профиля пользователя.
         LastName = lastName; // Сохраняем фамилию.
         BirthYear = birthYear; // Сохраняем год рождения.
     }
-
+    
     public string GetInfo() // Метод формирует информацию о пользователе.
     {
         int age = DateTime.Now.Year - BirthYear; // Вычисляем возраст по годам.
