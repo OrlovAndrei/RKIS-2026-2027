@@ -12,6 +12,7 @@ public class AddCommand : ICommand
         if (!Multiline)
         {
             TodoList.Add(new TodoItem(Text));
+            SaveTasks();
             Console.WriteLine("Задача добавлена");
             return;
         }
@@ -44,7 +45,15 @@ public class AddCommand : ICommand
         }
 
         TodoList.Add(new TodoItem(fullText));
+        SaveTasks();
         Console.WriteLine("Задача добавлена");
+    }
+
+    private void SaveTasks()
+    {
+        try { FileManager.SaveTodos(TodoList, FileManager.TodoFilePath); }
+        catch (System.IO.IOException ex) { Console.WriteLine("Ошибка сохранения: " + ex.Message); }
+        catch (UnauthorizedAccessException ex) { Console.WriteLine("Нет доступа к файлу: " + ex.Message); }
     }
 }
 
