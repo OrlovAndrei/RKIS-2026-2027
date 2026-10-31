@@ -45,9 +45,9 @@ class Program
             {
                 AddTodo(input);
             }
-            else if (input == "view")
+            else if (input == "view" || input.StartsWith("view "))
             {
-                ViewTodos();
+                ViewTodos(input);
             }
             else if (input.StartsWith("done"))
             {
@@ -110,7 +110,12 @@ class Program
         Console.WriteLine("  profile - вывести данные пользователя");
         Console.WriteLine("  add \"текст\" - добавить новую задачу");
         Console.WriteLine("  add --multiline (-m) - добавить многострочную задачу, ввод завершается строкой !end");
-        Console.WriteLine("  view - показать все задачи");
+        Console.WriteLine("  view [флаги] - показать задачи в виде таблицы");
+        Console.WriteLine("      --index (-i) - показывать номер задачи");
+        Console.WriteLine("      --status (-s) - показывать статус задачи");
+        Console.WriteLine("      --update-date (-d) - показывать дату изменения");
+        Console.WriteLine("      --all (-a) - показывать все данные");
+        Console.WriteLine("      короткие флаги можно объединять, например: view -is");
         Console.WriteLine("  done <номер> - отметить задачу выполненной");
         Console.WriteLine("  delete <номер> - удалить задачу");
         Console.WriteLine("  update <номер> \"текст\" - изменить задачу");
@@ -201,21 +206,139 @@ class Program
         return null;
     }
 
-    static void ViewTodos()
+    static void ViewTodos(string input)
     {
-        Console.WriteLine("Список задач:");
+        if (!ParseViewFlags(input, out bool showIndex, out bool showStatus, out bool showDate))
+        {
+            return;
+        }
+
         if (count == 0)
         {
             Console.WriteLine("Задач пока нет.");
             return;
         }
 
+        string header = "";
+        if (showIndex)
+        {
+            header += $"{"№",-4} | ";
+        }
+        header += $"{"Задача",-33}";
+        if (showStatus)
+        {
+            header += $" | {"Статус",-12}";
+        }
+        if (showDate)
+        {
+            header += $" | {"Изменена",-19}";
+        }
+
+        Console.WriteLine(header);
+        Console.WriteLine(new string('-', header.Length));
+
         for (int i = 0; i < count; i++)
         {
-            string status = statuses[i] ? "Сделано" : "Не сделано";
-            string date = dates[i].ToString("dd.MM.yyyy HH:mm:ss");
-            Console.WriteLine($"{i + 1}. {todos[i]} [{status}] ({date})");
+            string row = "";
+            if (showIndex)
+            {
+                row += $"{i + 1,-4} | ";
+            }
+            row += $"{GetShortText(todos[i]),-33}";
+            if (showStatus)
+            {
+                row += $" | {GetStatusText(statuses[i]),-12}";
+            }
+            if (showDate)
+            {
+                row += $" | {dates[i]:dd.MM.yyyy HH:mm:ss}";
+            }
+            Console.WriteLine(row);
         }
+    }
+
+    static bool ParseViewFlags(string input, out bool showIndex, out bool showStatus, out bool showDate)
+    {
+        showIndex = false;
+        showStatus = false;
+        showDate = false;
+
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 1; i < parts.Length; i++)
+        {
+            string flag = parts[i];
+
+            if (flag == "--all")
+            {
+                showIndex = true;
+                showStatus = true;
+                showDate = true;
+            }
+            else if (flag == "--index")
+            {
+                showIndex = true;
+            }
+            else if (flag == "--status")
+            {
+                showStatus = true;
+            }
+            else if (flag == "--update-date")
+            {
+                showDate = true;
+            }
+            else if (flag.StartsWith("-") && !flag.StartsWith("--") && flag.Length > 1)
+            {
+                for (int j = 1; j < flag.Length; j++)
+                {
+                    char c = flag[j];
+                    if (c == 'i')
+                    {
+                        showIndex = true;
+                    }
+                    else if (c == 's')
+                    {
+                        showStatus = true;
+                    }
+                    else if (c == 'd')
+                    {
+                        showDate = true;
+                    }
+                    else if (c == 'a')
+                    {
+                        showIndex = true;
+                        showStatus = true;
+                        showDate = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Неизвестный флаг: -{c}");
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Неизвестный флаг: {flag}");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static string GetShortText(string text)
+    {
+        string oneLine = text.Replace("\n", " ");
+        if (oneLine.Length > 30)
+        {
+            return oneLine.Substring(0, 30) + "...";
+        }
+        return oneLine;
+    }
+
+    static string GetStatusText(bool isDone)
+    {
+        return isDone ? "Выполнена" : "Не выполнена";
     }
 
     static void DoneTodo(string input)
@@ -225,7 +348,7 @@ class Program
         {
             statuses[index] = true;
             dates[index] = DateTime.Now;
-            Console.WriteLine($"Задача \"{todos[index]}\" отмечена как выполненная!");
+            Console.WriteLine($"Задача \"{GetShortText(todos[index])}\" отмечена как выполненная!");
             return;
         }
 
@@ -250,7 +373,7 @@ class Program
             dates[count - 1] = default;
             count--;
 
-            Console.WriteLine($"Задача \"{deletedTask}\" успешно удалена!");
+            Console.WriteLine($"Задача \"{GetShortText(deletedTask)}\" успешно удалена!");
             return;
         }
 
