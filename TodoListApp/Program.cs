@@ -3,16 +3,8 @@ using System.Text;
 
 class Program
 {
-    const int InitialCapacity = 2;
-
-    static string firstName = "";
-    static string lastName = "";
-    static int birthYear = 0;
-
-    static string[] todos = new string[InitialCapacity];
-    static bool[] statuses = new bool[InitialCapacity];
-    static DateTime[] dates = new DateTime[InitialCapacity];
-    static int count = 0;
+    static TodoList todoList = new TodoList();
+    static Profile? profile;
 
     static void Main()
     {
@@ -88,10 +80,11 @@ class Program
     static void RegisterUser()
     {
         Console.Write("Введите имя: ");
-        firstName = Console.ReadLine() ?? "";
+        string firstName = Console.ReadLine() ?? "";
         Console.Write("Введите фамилию: ");
-        lastName = Console.ReadLine() ?? "";
+        string lastName = Console.ReadLine() ?? "";
 
+        int birthYear;
         while (true)
         {
             Console.Write("Введите год рождения: ");
@@ -103,8 +96,8 @@ class Program
             Console.WriteLine("Некорректный год рождения, попробуйте снова.");
         }
 
-        int age = DateTime.Now.Year - birthYear;
-        Console.WriteLine($"\nДобавлен пользователь {firstName} {lastName}, возраст - {age}");
+        profile = new Profile(firstName, lastName, birthYear);
+        Console.WriteLine($"\nДобавлен пользователь {profile.GetInfo()}");
     }
 
     static void PrintHelp()
@@ -129,19 +122,24 @@ class Program
 
     static void PrintProfile()
     {
-        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+        if (profile == null)
+        {
+            Console.WriteLine("Пользователь не зарегистрирован.");
+            return;
+        }
+        Console.WriteLine(profile.GetInfo());
     }
 
-    static bool TryParseIndex(string text, out int index)
+    static TodoItem? FindItem(string text, out int index)
     {
         index = -1;
         if (!int.TryParse(text, out int number))
         {
-            return false;
+            return null;
         }
 
         index = number - 1;
-        return index >= 0 && index < count;
+        return todoList.GetItem(index);
     }
 
     static void AddTodo(string input)
@@ -164,15 +162,7 @@ class Program
             return;
         }
 
-        if (count == todos.Length)
-        {
-            ResizeArrays();
-        }
-
-        todos[count] = task;
-        statuses[count] = false;
-        dates[count] = DateTime.Now;
-        count++;
+        todoList.Add(new TodoItem(task));
         Console.WriteLine("Задача успешно добавлена!");
     }
 
@@ -218,48 +208,7 @@ class Program
             return;
         }
 
-        if (count == 0)
-        {
-            Console.WriteLine("Задач пока нет.");
-            return;
-        }
-
-        string header = "";
-        if (showIndex)
-        {
-            header += $"{"№",-4} | ";
-        }
-        header += $"{"Задача",-33}";
-        if (showStatus)
-        {
-            header += $" | {"Статус",-12}";
-        }
-        if (showDate)
-        {
-            header += $" | {"Изменена",-19}";
-        }
-
-        Console.WriteLine(header);
-        Console.WriteLine(new string('-', header.Length));
-
-        for (int i = 0; i < count; i++)
-        {
-            string row = "";
-            if (showIndex)
-            {
-                row += $"{i + 1,-4} | ";
-            }
-            row += $"{GetShortText(todos[i]),-33}";
-            if (showStatus)
-            {
-                row += $" | {GetStatusText(statuses[i]),-12}";
-            }
-            if (showDate)
-            {
-                row += $" | {dates[i]:dd.MM.yyyy HH:mm:ss}";
-            }
-            Console.WriteLine(row);
-        }
+        todoList.View(showIndex, showStatus, showDate);
     }
 
     static bool ParseViewFlags(string input, out bool showIndex, out bool showStatus, out bool showDate)
@@ -331,30 +280,18 @@ class Program
         return true;
     }
 
-    static string GetShortText(string text)
-    {
-        string oneLine = text.Replace("\n", " ");
-        if (oneLine.Length > 30)
-        {
-            return oneLine.Substring(0, 30) + "...";
-        }
-        return oneLine;
-    }
-
-    static string GetStatusText(bool isDone)
-    {
-        return isDone ? "Выполнена" : "Не выполнена";
-    }
-
     static void DoneTodo(string input)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2 && TryParseIndex(parts[1], out int index))
+        if (parts.Length >= 2)
         {
-            statuses[index] = true;
-            dates[index] = DateTime.Now;
-            Console.WriteLine($"Задача \"{GetShortText(todos[index])}\" отмечена как выполненная!");
-            return;
+            TodoItem? item = FindItem(parts[1], out int index);
+            if (item != null)
+            {
+                item.MarkDone();
+                Console.WriteLine($"Задача \"{item.GetShortText()}\" отмечена как выполненная!");
+                return;
+            }
         }
 
         Console.WriteLine("Неверный номер задачи. Используйте: done <номер>");
@@ -363,23 +300,14 @@ class Program
     static void DeleteTodo(string input)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2 && TryParseIndex(parts[1], out int index))
+        if (parts.Length >= 2)
         {
-            string deletedTask = todos[index];
-            for (int i = index; i < count - 1; i++)
+            TodoItem? item = FindItem(parts[1], out int index);
+            if (item != null && todoList.Delete(index))
             {
-                todos[i] = todos[i + 1];
-                statuses[i] = statuses[i + 1];
-                dates[i] = dates[i + 1];
+                Console.WriteLine($"Задача \"{item.GetShortText()}\" успешно удалена!");
+                return;
             }
-
-            todos[count - 1] = "";
-            statuses[count - 1] = false;
-            dates[count - 1] = default;
-            count--;
-
-            Console.WriteLine($"Задача \"{GetShortText(deletedTask)}\" успешно удалена!");
-            return;
         }
 
         Console.WriteLine("Неверный номер задачи. Используйте: delete <номер>");
@@ -391,12 +319,15 @@ class Program
         if (quoteParts.Length >= 2 && !string.IsNullOrWhiteSpace(quoteParts[1]))
         {
             string[] firstParts = quoteParts[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (firstParts.Length >= 2 && TryParseIndex(firstParts[1], out int index))
+            if (firstParts.Length >= 2)
             {
-                todos[index] = quoteParts[1];
-                dates[index] = DateTime.Now;
-                Console.WriteLine($"Задача {index + 1} успешно обновлена!");
-                return;
+                TodoItem? item = FindItem(firstParts[1], out int index);
+                if (item != null)
+                {
+                    item.UpdateText(quoteParts[1]);
+                    Console.WriteLine($"Задача {index + 1} успешно обновлена!");
+                    return;
+                }
             }
         }
 
@@ -406,34 +337,17 @@ class Program
     static void ReadTodo(string input)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2 && TryParseIndex(parts[1], out int index))
+        if (parts.Length >= 2)
         {
-            Console.WriteLine($"Задача {index + 1}:");
-            Console.WriteLine(todos[index]);
-            Console.WriteLine($"Статус: {GetStatusText(statuses[index])}");
-            Console.WriteLine($"Дата последнего изменения: {dates[index]:dd.MM.yyyy HH:mm:ss}");
-            return;
+            TodoItem? item = FindItem(parts[1], out int index);
+            if (item != null)
+            {
+                Console.WriteLine($"Задача {index + 1}:");
+                Console.WriteLine(item.GetFullInfo());
+                return;
+            }
         }
 
         Console.WriteLine("Неверный номер задачи. Используйте: read <номер>");
-    }
-
-    static void ResizeArrays()
-    {
-        int newCapacity = todos.Length * 2;
-        string[] newTodos = new string[newCapacity];
-        bool[] newStatuses = new bool[newCapacity];
-        DateTime[] newDates = new DateTime[newCapacity];
-
-        for (int i = 0; i < count; i++)
-        {
-            newTodos[i] = todos[i];
-            newStatuses[i] = statuses[i];
-            newDates[i] = dates[i];
-        }
-
-        todos = newTodos;
-        statuses = newStatuses;
-        dates = newDates;
     }
 }
