@@ -30,6 +30,8 @@ class Program
                 continue;
             }
 
+            input = input.Trim();
+
             if (input == "help")
             {
                 PrintHelp();
@@ -84,11 +86,19 @@ class Program
         firstName = Console.ReadLine() ?? "";
         Console.Write("Введите фамилию: ");
         lastName = Console.ReadLine() ?? "";
-        Console.Write("Введите год рождения: ");
-        string? yearInput = Console.ReadLine();
-        birthYear = Convert.ToInt32(yearInput);
-        int currentYear = DateTime.Now.Year;
-        int age = currentYear - birthYear;
+
+        while (true)
+        {
+            Console.Write("Введите год рождения: ");
+            string? yearInput = Console.ReadLine();
+            if (int.TryParse(yearInput, out birthYear) && birthYear > 1900 && birthYear <= DateTime.Now.Year)
+            {
+                break;
+            }
+            Console.WriteLine("Некорректный год рождения, попробуйте снова.");
+        }
+
+        int age = DateTime.Now.Year - birthYear;
         Console.WriteLine($"\nДобавлен пользователь {firstName} {lastName}, возраст - {age}");
     }
 
@@ -108,6 +118,18 @@ class Program
     static void PrintProfile()
     {
         Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+    }
+
+    static bool TryParseIndex(string text, out int index)
+    {
+        index = -1;
+        if (!int.TryParse(text, out int number))
+        {
+            return false;
+        }
+
+        index = number - 1;
+        return index >= 0 && index < count;
     }
 
     static void AddTodo(string input)
@@ -153,17 +175,13 @@ class Program
 
     static void DoneTodo(string input)
     {
-        string[] parts = input.Split(' ');
-        if (parts.Length >= 2)
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2 && TryParseIndex(parts[1], out int index))
         {
-            int index = Convert.ToInt32(parts[1]) - 1;
-            if (index >= 0 && index < count)
-            {
-                statuses[index] = true;
-                dates[index] = DateTime.Now;
-                Console.WriteLine($"Задача \"{todos[index]}\" отмечена как выполненная!");
-                return;
-            }
+            statuses[index] = true;
+            dates[index] = DateTime.Now;
+            Console.WriteLine($"Задача \"{todos[index]}\" отмечена как выполненная!");
+            return;
         }
 
         Console.WriteLine("Неверный номер задачи. Используйте: done <номер>");
@@ -171,28 +189,24 @@ class Program
 
     static void DeleteTodo(string input)
     {
-        string[] parts = input.Split(' ');
-        if (parts.Length >= 2)
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2 && TryParseIndex(parts[1], out int index))
         {
-            int index = Convert.ToInt32(parts[1]) - 1;
-            if (index >= 0 && index < count)
+            string deletedTask = todos[index];
+            for (int i = index; i < count - 1; i++)
             {
-                string deletedTask = todos[index];
-                for (int i = index; i < count - 1; i++)
-                {
-                    todos[i] = todos[i + 1];
-                    statuses[i] = statuses[i + 1];
-                    dates[i] = dates[i + 1];
-                }
-
-                todos[count - 1] = "";
-                statuses[count - 1] = false;
-                dates[count - 1] = default;
-                count--;
-
-                Console.WriteLine($"Задача \"{deletedTask}\" успешно удалена!");
-                return;
+                todos[i] = todos[i + 1];
+                statuses[i] = statuses[i + 1];
+                dates[i] = dates[i + 1];
             }
+
+            todos[count - 1] = "";
+            statuses[count - 1] = false;
+            dates[count - 1] = default;
+            count--;
+
+            Console.WriteLine($"Задача \"{deletedTask}\" успешно удалена!");
+            return;
         }
 
         Console.WriteLine("Неверный номер задачи. Используйте: delete <номер>");
@@ -203,18 +217,13 @@ class Program
         string[] quoteParts = input.Split('"');
         if (quoteParts.Length >= 2 && !string.IsNullOrWhiteSpace(quoteParts[1]))
         {
-            string newText = quoteParts[1];
-            string[] firstParts = quoteParts[0].Trim().Split(' ');
-            if (firstParts.Length >= 2)
+            string[] firstParts = quoteParts[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (firstParts.Length >= 2 && TryParseIndex(firstParts[1], out int index))
             {
-                int index = Convert.ToInt32(firstParts[1]) - 1;
-                if (index >= 0 && index < count)
-                {
-                    todos[index] = newText;
-                    dates[index] = DateTime.Now;
-                    Console.WriteLine($"Задача {index + 1} успешно обновлена!");
-                    return;
-                }
+                todos[index] = quoteParts[1];
+                dates[index] = DateTime.Now;
+                Console.WriteLine($"Задача {index + 1} успешно обновлена!");
+                return;
             }
         }
 
