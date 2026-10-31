@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 class Program
 {
@@ -6,19 +7,66 @@ class Program
     {
         Console.WriteLine("Работу выполнили Кузнецов и Курбатов");
 
-        string? firstName = ReadRequired("Введите имя: ");
-        if (firstName == null) return;
+        // Папка data создаётся внутри TodoListApp, если запускать из неё.
+        string dataDir = Path.Combine(Directory.GetCurrentDirectory(), "data");
+        FileManager.EnsureDataDirectory(dataDir);
+        string profilePath = Path.Combine(dataDir, "profile.txt");
+        string todoPath = Path.Combine(dataDir, "todo.csv");
+        FileManager.TodoFilePath = todoPath;
 
-        string? lastName = ReadRequired("Введите фамилию: ");
-        if (lastName == null) return;
+        Profile profile;
+        if (File.Exists(profilePath))
+        {
+            try
+            {
+                profile = FileManager.LoadProfile(profilePath);
+                Console.WriteLine("Профиль загружен: " + profile.GetInfo());
+            }
+            catch (Exception ex) when (ex is IOException || ex is ArgumentException)
+            {
+                Console.WriteLine("Не удалось загрузить профиль: " + ex.Message);
+                return; // Не перезаписываем существующий повреждённый файл.
+            }
+        }
+        else
+        {
+            string? firstName = ReadRequired("Введите имя: ");
+            if (firstName == null) return;
+            string? lastName = ReadRequired("Введите фамилию: ");
+            if (lastName == null) return;
+            int? birthYear = ReadBirthYear();
+            if (birthYear == null) return;
+            profile = new Profile(firstName, lastName, birthYear.Value);
 
-        int? birthYear = ReadBirthYear();
-        if (birthYear == null) return;
+            try { FileManager.SaveProfile(profile, profilePath); }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                Console.WriteLine("Не удалось сохранить профиль: " + ex.Message);
+                return;
+            }
+            Console.WriteLine("Добавлен пользователь " + profile.GetInfo());
+        }
 
-        Profile profile = new Profile(firstName, lastName, birthYear.Value);
-        TodoList todoList = new TodoList();
-
-        Console.WriteLine("Добавлен пользователь " + profile.GetInfo());
+        TodoList todoList;
+        try
+        {
+            if (File.Exists(todoPath))
+            {
+                todoList = FileManager.LoadTodos(todoPath);
+                Console.WriteLine("Загружено задач: " + todoList.Count);
+            }
+            else
+            {
+                todoList = new TodoList();
+                FileManager.SaveTodos(todoList, todoPath);
+                Console.WriteLine("Создан новый список задач");
+            }
+        }
+        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)
+        {
+            Console.WriteLine("Не удалось загрузить или создать список задач: " + ex.Message);
+            return;
+        }
 
         while (true)
         {
@@ -29,7 +77,6 @@ class Program
 
             ICommand command = CommandParser.Parse(input, todoList, profile);
             command.Execute();
-
             if (command is ExitCommand) break;
         }
     }
