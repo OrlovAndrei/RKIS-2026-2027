@@ -9,6 +9,9 @@ public class TodoList
     private TodoItem?[] _items;
     private int _count;
 
+    // Даём FileManager прочитать количество, не открывая приватный массив.
+    public int Count => _count;
+
     public TodoList()
     {
         _items = new TodoItem?[InitialSize];

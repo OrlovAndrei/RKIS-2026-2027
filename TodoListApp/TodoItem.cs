@@ -7,14 +7,19 @@ public class TodoItem
     public bool IsDone { get; private set; }
     public DateTime LastUpdate { get; private set; }
 
-    public TodoItem(string text)
+    public TodoItem(string text) : this(text, false, DateTime.Now) { }
+
+    // Восстанавливаем сохранённые статус и время, а не создаём новые.
+    public TodoItem(string text, bool isDone, DateTime lastUpdate)
     {
         if (string.IsNullOrWhiteSpace(text))
             throw new ArgumentException("Текст задачи не может быть пустым", nameof(text));
+        if (lastUpdate == default)
+            throw new ArgumentException("Некорректная дата задачи", nameof(lastUpdate));
 
         Text = text;
-        IsDone = false;
-        LastUpdate = DateTime.Now;
+        IsDone = isDone;
+        LastUpdate = lastUpdate;
     }
 
     public void MarkDone()
