@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 class Program
 {
@@ -108,6 +109,7 @@ class Program
         Console.WriteLine("  help - показать список доступных команд");
         Console.WriteLine("  profile - вывести данные пользователя");
         Console.WriteLine("  add \"текст\" - добавить новую задачу");
+        Console.WriteLine("  add --multiline (-m) - добавить многострочную задачу, ввод завершается строкой !end");
         Console.WriteLine("  view - показать все задачи");
         Console.WriteLine("  done <номер> - отметить задачу выполненной");
         Console.WriteLine("  delete <номер> - удалить задачу");
@@ -134,26 +136,69 @@ class Program
 
     static void AddTodo(string input)
     {
-        string[] parts = input.Split('"');
-        if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        string? task;
+
+        if (parts.Length == 2 && (parts[1] == "--multiline" || parts[1] == "-m"))
         {
-            string task = parts[1];
-
-            if (count == todos.Length)
-            {
-                ResizeArrays();
-            }
-
-            todos[count] = task;
-            statuses[count] = false;
-            dates[count] = DateTime.Now;
-            count++;
-            Console.WriteLine($"Задача \"{task}\" успешно добавлена!");
+            task = ReadMultilineText();
         }
         else
         {
-            Console.WriteLine("Неверный формат. Используйте: add \"текст задачи\"");
+            task = ExtractQuotedText(input);
         }
+
+        if (string.IsNullOrWhiteSpace(task))
+        {
+            Console.WriteLine("Неверный формат. Используйте: add \"текст задачи\" или add --multiline");
+            return;
+        }
+
+        if (count == todos.Length)
+        {
+            ResizeArrays();
+        }
+
+        todos[count] = task;
+        statuses[count] = false;
+        dates[count] = DateTime.Now;
+        count++;
+        Console.WriteLine("Задача успешно добавлена!");
+    }
+
+    static string ReadMultilineText()
+    {
+        Console.WriteLine("Введите текст задачи построчно, для завершения введите !end");
+        StringBuilder sb = new StringBuilder();
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? line = Console.ReadLine();
+
+            if (line == null || line.Trim() == "!end")
+            {
+                break;
+            }
+
+            if (sb.Length > 0)
+            {
+                sb.Append('\n');
+            }
+            sb.Append(line);
+        }
+
+        return sb.ToString();
+    }
+
+    static string? ExtractQuotedText(string input)
+    {
+        string[] parts = input.Split('"');
+        if (parts.Length >= 2 && !string.IsNullOrWhiteSpace(parts[1]))
+        {
+            return parts[1];
+        }
+        return null;
     }
 
     static void ViewTodos()
