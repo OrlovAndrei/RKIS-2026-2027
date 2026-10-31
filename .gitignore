@@ -416,3 +416,9 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+**/bin/
+**/obj/
+.vs/
+.DS_Store
+# Локальные данные приложения
+TodoListApp/data/
