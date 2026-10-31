@@ -61,6 +61,10 @@ class Program
             {
                 UpdateTodo(input);
             }
+            else if (input.StartsWith("read"))
+            {
+                ReadTodo(input);
+            }
             else if (input == "exit")
             {
                 Console.WriteLine("Выход из программы.");
@@ -119,6 +123,7 @@ class Program
         Console.WriteLine("  done <номер> - отметить задачу выполненной");
         Console.WriteLine("  delete <номер> - удалить задачу");
         Console.WriteLine("  update <номер> \"текст\" - изменить задачу");
+        Console.WriteLine("  read <номер> - показать полный текст задачи, статус и дату изменения");
         Console.WriteLine("  exit - завершить работу программы");
     }
 
@@ -396,6 +401,21 @@ class Program
         }
 
         Console.WriteLine("Неверный формат или номер задачи. Используйте: update <номер> \"новый текст\"");
+    }
+
+    static void ReadTodo(string input)
+    {
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2 && TryParseIndex(parts[1], out int index))
+        {
+            Console.WriteLine($"Задача {index + 1}:");
+            Console.WriteLine(todos[index]);
+            Console.WriteLine($"Статус: {GetStatusText(statuses[index])}");
+            Console.WriteLine($"Дата последнего изменения: {dates[index]:dd.MM.yyyy HH:mm:ss}");
+            return;
+        }
+
+        Console.WriteLine("Неверный номер задачи. Используйте: read <номер>");
     }
 
     static void ResizeArrays()
