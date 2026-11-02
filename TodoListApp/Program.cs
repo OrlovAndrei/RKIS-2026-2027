@@ -37,6 +37,14 @@ namespace TodoListApp
         private const string DateFormat = "dd.MM.yyyy HH:mm";
         private const string ViewFormatMessage = "Неизвестный флаг. Формат: view [--index|-i] [--status|-s] [--update-date|-d] [--all|-a]";
 
+        private const int MaxTextLength = 30;
+        private const string TruncationSuffix = "...";
+        private const string HeaderIndex = "№";
+        private const string HeaderText = "Задача";
+        private const string HeaderStatus = "Статус";
+        private const string HeaderDate = "Дата изменения";
+        private const char HeaderLineChar = '-';
+
         private const string StatusDone = "сделано";
         private const string StatusNotDone = "не сделано";
 
@@ -304,6 +312,54 @@ namespace TodoListApp
             return true;
         }
 
+                private static string TruncateText(string text)
+        {
+            string singleLine = text.Replace(MultilineJoiner, " ");
+            if (singleLine.Length <= MaxTextLength)
+            {
+                return singleLine;
+            }
+
+            return singleLine.Substring(0, MaxTextLength) + TruncationSuffix;
+        }
+
+        private static void PrintRow(List<string> cells, int[] widths)
+        {
+            List<string> paddedCells = new List<string>();
+            for (int column = 0; column < cells.Count; column++)
+            {
+                paddedCells.Add(cells[column].PadRight(widths[column]));
+            }
+
+            Console.WriteLine(string.Join(ColumnSeparator, paddedCells));
+        }
+
+        private static void PrintTable(List<string> headers, List<List<string>> rows)
+        {
+            int[] widths = new int[headers.Count];
+            for (int column = 0; column < headers.Count; column++)
+            {
+                widths[column] = headers[column].Length;
+                foreach (List<string> row in rows)
+                {
+                    if (row[column].Length > widths[column])
+                    {
+                        widths[column] = row[column].Length;
+                    }
+                }
+            }
+
+            PrintRow(headers, widths);
+
+            int totalWidth = widths.Sum() + ColumnSeparator.Length * (widths.Length - 1);
+            Console.WriteLine(new string(HeaderLineChar, totalWidth));
+
+            foreach (List<string> row in rows)
+            {
+                PrintRow(row, widths);
+            }
+        }
+
         private static void ShowTodos(string command)
         {
             if (!TryParseViewFlags(command, out bool showIndex, out bool showStatus, out bool showDate))
@@ -318,6 +374,25 @@ namespace TodoListApp
                 return;
             }
 
+            List<string> headers = new List<string>();
+            if (showIndex)
+            {
+                headers.Add(HeaderIndex);
+            }
+
+            headers.Add(HeaderText);
+
+            if (showStatus)
+            {
+                headers.Add(HeaderStatus);
+            }
+
+            if (showDate)
+            {
+                headers.Add(HeaderDate);
+            }
+
+            List<List<string>> rows = new List<List<string>>();
             for (int i = 0; i < todoCount; i++)
             {
                 List<string> cells = new List<string>();
@@ -326,7 +401,7 @@ namespace TodoListApp
                     cells.Add((i + 1).ToString());
                 }
 
-                cells.Add(todos[i]);
+                cells.Add(TruncateText(todos[i]));
 
                 if (showStatus)
                 {
@@ -338,8 +413,10 @@ namespace TodoListApp
                     cells.Add(dates[i].ToString(DateFormat));
                 }
 
-                Console.WriteLine(string.Join(ColumnSeparator, cells));
+                rows.Add(cells);
             }
+
+            PrintTable(headers, rows);
         }
 
         private static void MarkTodoDone(string command)
