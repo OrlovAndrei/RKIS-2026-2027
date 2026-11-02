@@ -45,6 +45,11 @@ namespace TodoListApp
         private const string HeaderDate = "Дата изменения";
         private const char HeaderLineChar = '-';
 
+        private const string CommandRead = "read";
+        private const string ReadStatusDone = "выполнена";
+        private const string ReadStatusNotDone = "не выполнена";
+        private const string ReadFormatMessage = "Формат: read <номер задачи>";
+
         private const string StatusDone = "сделано";
         private const string StatusNotDone = "не сделано";
 
@@ -124,6 +129,12 @@ namespace TodoListApp
                 if (command.StartsWith(CommandUpdate + " "))
                 {
                     UpdateTodo(command);
+                    continue;
+                }
+
+                if (command.StartsWith(CommandRead + " "))
+                {
+                    ReadTodo(command);
                     continue;
                 }
 
@@ -417,6 +428,22 @@ namespace TodoListApp
             }
 
             PrintTable(headers, rows);
+        }
+        private static void ReadTodo(string command)
+        {
+            string[] parts = command.Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2 || !TryParseTodoIndex(parts[1], out int index))
+            {
+                Console.WriteLine(ReadFormatMessage);
+                return;
+            }
+
+            string statusText = statuses[index] ? ReadStatusDone : ReadStatusNotDone;
+
+            Console.WriteLine($"Задача №{index + 1}:");
+            Console.WriteLine(todos[index]);
+            Console.WriteLine($"Статус: {statusText}");
+            Console.WriteLine($"Дата последнего изменения: {dates[index].ToString(DateFormat)}");
         }
 
         private static void MarkTodoDone(string command)
