@@ -2,8 +2,6 @@ namespace TodoListApp
 {
     internal class Program
     {
-        private const int InitialTodosCapacity = 2;
-        private const int CapacityGrowthFactor = 2;
         private const char TaskTextSeparator = '"';
         private const char CommandArgumentSeparator = ' ';
 
@@ -11,6 +9,7 @@ namespace TodoListApp
         private const string CommandProfile = "profile";
         private const string CommandAdd = "add";
         private const string CommandView = "view";
+        private const string CommandRead = "read";
         private const string CommandDone = "done";
         private const string CommandDelete = "delete";
         private const string CommandUpdate = "update";
@@ -33,32 +32,14 @@ namespace TodoListApp
         private const char LetterDate = 'd';
         private const char LetterAll = 'a';
 
-        private const string ColumnSeparator = " | ";
-        private const string DateFormat = "dd.MM.yyyy HH:mm";
+        private const string AddFormatMessage = "Формат: add \"текст задачи\" или add --multiline";
+        private const string DoneFormatMessage = "Формат: done <номер задачи>";
+        private const string DeleteFormatMessage = "Формат: delete <номер задачи>";
+        private const string UpdateFormatMessage = "Формат: update <номер задачи> \"новый текст\"";
+        private const string ReadFormatMessage = "Формат: read <номер задачи>";
         private const string ViewFormatMessage = "Неизвестный флаг. Формат: view [--index|-i] [--status|-s] [--update-date|-d] [--all|-a]";
 
-        private const int MaxTextLength = 30;
-        private const string TruncationSuffix = "...";
-        private const string HeaderIndex = "№";
-        private const string HeaderText = "Задача";
-        private const string HeaderStatus = "Статус";
-        private const string HeaderDate = "Дата изменения";
-        private const char HeaderLineChar = '-';
-
-        private const string CommandRead = "read";
-        private const string ReadStatusDone = "выполнена";
-        private const string ReadStatusNotDone = "не выполнена";
-        private const string ReadFormatMessage = "Формат: read <номер задачи>";
-
-        private const string StatusDone = "сделано";
-        private const string StatusNotDone = "не сделано";
-
-        private const string UpdateFormatMessage = "Формат: update <номер задачи> \"новый текст\"";
-
-        private static string[] todos = new string[InitialTodosCapacity];
-        private static bool[] statuses = new bool[InitialTodosCapacity];
-        private static DateTime[] dates = new DateTime[InitialTodosCapacity];
-        private static int todoCount = 0;
+        private static TodoList todoList = new TodoList();
 
         static void Main(string[] args)
         {
@@ -81,7 +62,6 @@ namespace TodoListApp
 
             Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
 
-
             Profile profile = new Profile(firstName, lastName, birthYear);
 
             while (true)
@@ -102,8 +82,8 @@ namespace TodoListApp
 
                 if (command == CommandProfile)
                 {
-                    ShowProfile(profile);                    
-		    continue;
+                    ShowProfile(profile);
+                    continue;
                 }
 
                 if (command.StartsWith(CommandAdd + " "))
@@ -117,6 +97,13 @@ namespace TodoListApp
                     ShowTodos(command);
                     continue;
                 }
+
+                if (command.StartsWith(CommandRead + " "))
+                {
+                    ReadTodo(command);
+                    continue;
+                }
+
                 if (command.StartsWith(CommandDone + " "))
                 {
                     MarkTodoDone(command);
@@ -135,59 +122,21 @@ namespace TodoListApp
                     continue;
                 }
 
-                if (command.StartsWith(CommandRead + " "))
-                {
-                    ReadTodo(command);
-                    continue;
-                }
-
                 Console.WriteLine("Неизвестная команда.");
             }
         }
 
-        private static T[] ExpandArray<T>(T[] array)
+        private static TodoItem? FindTodo(string numberText)
         {
-            T[] expandedArray = new T[array.Length * CapacityGrowthFactor];
-            for (int i = 0; i < array.Length; i++)
+            if (!int.TryParse(numberText, out int todoNumber))
             {
-                expandedArray[i] = array[i];
-            }
-            return expandedArray;
-        }
-
-        private static void ExpandAllArrays()
-        {
-            todos = ExpandArray(todos);
-            statuses = ExpandArray(statuses);
-            dates = ExpandArray(dates);
-        }
-
-        private static bool TryParseTodoIndex(string numberText, out int index)
-        {
-            index = -1;
-            if (!int.TryParse(numberText, out int todoNumber) || todoNumber < 1 || todoNumber > todoCount)
-            {
-                return false;
+                return null;
             }
 
-            index = todoNumber - 1;
-            return true;
+            return todoList.GetItem(todoNumber - 1);
         }
 
-        private static void SaveTodo(string text)
-        {
-            if (todoCount == todos.Length)
-            {
-                ExpandAllArrays();
-            }
-
-            todos[todoCount] = text;
-            statuses[todoCount] = false;
-            dates[todoCount] = DateTime.Now;
-            todoCount++;
-        }
-
-                private static void ShowHelp()
+        private static void ShowHelp()
         {
             Console.WriteLine("Доступные команды:");
             Console.WriteLine("help - вывести список команд");
@@ -207,7 +156,7 @@ namespace TodoListApp
             Console.WriteLine("exit - завершить программу");
         }
 
-                private static void ShowProfile(Profile profile)
+        private static void ShowProfile(Profile profile)
         {
             Console.WriteLine(profile.GetInfo());
         }
@@ -236,11 +185,11 @@ namespace TodoListApp
             string[] parts = command.Split(TaskTextSeparator);
             if (parts.Length < 2 || parts[1] == "")
             {
-                Console.WriteLine("Формат: add \"текст задачи\" или add --multiline");
+                Console.WriteLine(AddFormatMessage);
                 return;
             }
 
-            SaveTodo(parts[1]);
+            todoList.Add(new TodoItem(parts[1]));
             Console.WriteLine("Задача добавлена.");
         }
 
@@ -267,7 +216,7 @@ namespace TodoListApp
                 return;
             }
 
-            SaveTodo(string.Join(MultilineJoiner, lines));
+            todoList.Add(new TodoItem(string.Join(MultilineJoiner, lines)));
             Console.WriteLine("Задача добавлена.");
         }
 
@@ -333,54 +282,6 @@ namespace TodoListApp
             return true;
         }
 
-                private static string TruncateText(string text)
-        {
-            string singleLine = text.Replace(MultilineJoiner, " ");
-            if (singleLine.Length <= MaxTextLength)
-            {
-                return singleLine;
-            }
-
-            return singleLine.Substring(0, MaxTextLength) + TruncationSuffix;
-        }
-
-        private static void PrintRow(List<string> cells, int[] widths)
-        {
-            List<string> paddedCells = new List<string>();
-            for (int column = 0; column < cells.Count; column++)
-            {
-                paddedCells.Add(cells[column].PadRight(widths[column]));
-            }
-
-            Console.WriteLine(string.Join(ColumnSeparator, paddedCells));
-        }
-
-        private static void PrintTable(List<string> headers, List<List<string>> rows)
-        {
-            int[] widths = new int[headers.Count];
-            for (int column = 0; column < headers.Count; column++)
-            {
-                widths[column] = headers[column].Length;
-                foreach (List<string> row in rows)
-                {
-                    if (row[column].Length > widths[column])
-                    {
-                        widths[column] = row[column].Length;
-                    }
-                }
-            }
-
-            PrintRow(headers, widths);
-
-            int totalWidth = widths.Sum() + ColumnSeparator.Length * (widths.Length - 1);
-            Console.WriteLine(new string(HeaderLineChar, totalWidth));
-
-            foreach (List<string> row in rows)
-            {
-                PrintRow(row, widths);
-            }
-        }
-
         private static void ShowTodos(string command)
         {
             if (!TryParseViewFlags(command, out bool showIndex, out bool showStatus, out bool showDate))
@@ -389,107 +290,45 @@ namespace TodoListApp
                 return;
             }
 
-            if (todoCount == 0)
-            {
-                Console.WriteLine("Список задач пуст.");
-                return;
-            }
-
-            List<string> headers = new List<string>();
-            if (showIndex)
-            {
-                headers.Add(HeaderIndex);
-            }
-
-            headers.Add(HeaderText);
-
-            if (showStatus)
-            {
-                headers.Add(HeaderStatus);
-            }
-
-            if (showDate)
-            {
-                headers.Add(HeaderDate);
-            }
-
-            List<List<string>> rows = new List<List<string>>();
-            for (int i = 0; i < todoCount; i++)
-            {
-                List<string> cells = new List<string>();
-                if (showIndex)
-                {
-                    cells.Add((i + 1).ToString());
-                }
-
-                cells.Add(TruncateText(todos[i]));
-
-                if (showStatus)
-                {
-                    cells.Add(statuses[i] ? StatusDone : StatusNotDone);
-                }
-
-                if (showDate)
-                {
-                    cells.Add(dates[i].ToString(DateFormat));
-                }
-
-                rows.Add(cells);
-            }
-
-            PrintTable(headers, rows);
+            todoList.View(showIndex, showStatus, showDate);
         }
+
         private static void ReadTodo(string command)
         {
             string[] parts = command.Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length != 2 || !TryParseTodoIndex(parts[1], out int index))
+            TodoItem? item = parts.Length == 2 ? FindTodo(parts[1]) : null;
+            if (item == null)
             {
                 Console.WriteLine(ReadFormatMessage);
                 return;
             }
 
-            string statusText = statuses[index] ? ReadStatusDone : ReadStatusNotDone;
-
-            Console.WriteLine($"Задача №{index + 1}:");
-            Console.WriteLine(todos[index]);
-            Console.WriteLine($"Статус: {statusText}");
-            Console.WriteLine($"Дата последнего изменения: {dates[index].ToString(DateFormat)}");
+            Console.WriteLine(item.GetFullInfo());
         }
 
         private static void MarkTodoDone(string command)
         {
-            string[] parts = command.Split(CommandArgumentSeparator);
-            if (parts.Length != 2 || !TryParseTodoIndex(parts[1], out int index))
+            string[] parts = command.Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            TodoItem? item = parts.Length == 2 ? FindTodo(parts[1]) : null;
+            if (item == null)
             {
-                Console.WriteLine("Формат: done <номер задачи>");
+                Console.WriteLine(DoneFormatMessage);
                 return;
             }
 
-            statuses[index] = true;
-            dates[index] = DateTime.Now;
+            item.MarkDone();
             Console.WriteLine("Задача отмечена выполненной.");
         }
 
         private static void DeleteTodo(string command)
         {
-            string[] parts = command.Split(CommandArgumentSeparator);
-            if (parts.Length != 2 || !TryParseTodoIndex(parts[1], out int index))
+            string[] parts = command.Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2 || !int.TryParse(parts[1], out int todoNumber) || !todoList.Delete(todoNumber - 1))
             {
-                Console.WriteLine("Формат: delete <номер задачи>");
+                Console.WriteLine(DeleteFormatMessage);
                 return;
             }
 
-            for (int i = index; i < todoCount - 1; i++)
-            {
-                todos[i] = todos[i + 1];
-                statuses[i] = statuses[i + 1];
-                dates[i] = dates[i + 1];
-            }
-
-            todos[todoCount - 1] = "";
-            statuses[todoCount - 1] = false;
-            dates[todoCount - 1] = default;
-            todoCount--;
             Console.WriteLine("Задача удалена.");
         }
 
@@ -502,15 +341,15 @@ namespace TodoListApp
                 return;
             }
 
-            string[] headParts = quoteParts[0].Trim().Split(CommandArgumentSeparator);
-            if (headParts.Length != 2 || !TryParseTodoIndex(headParts[1], out int index))
+            string[] headParts = quoteParts[0].Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            TodoItem? item = headParts.Length == 2 ? FindTodo(headParts[1]) : null;
+            if (item == null)
             {
                 Console.WriteLine(UpdateFormatMessage);
                 return;
             }
 
-            todos[index] = quoteParts[1];
-            dates[index] = DateTime.Now;
+            item.UpdateText(quoteParts[1]);
             Console.WriteLine("Задача обновлена.");
         }
     }
