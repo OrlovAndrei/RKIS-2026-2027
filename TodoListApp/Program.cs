@@ -22,6 +22,21 @@ namespace TodoListApp
         private const string MultilineEndMarker = "!end";
         private const string MultilineJoiner = "\n";
 
+        private const string FlagIndexLong = "--index";
+        private const string FlagStatusLong = "--status";
+        private const string FlagDateLong = "--update-date";
+        private const string FlagAllLong = "--all";
+        private const string FlagPrefix = "-";
+        private const string LongFlagPrefix = "--";
+        private const char LetterIndex = 'i';
+        private const char LetterStatus = 's';
+        private const char LetterDate = 'd';
+        private const char LetterAll = 'a';
+
+        private const string ColumnSeparator = " | ";
+        private const string DateFormat = "dd.MM.yyyy HH:mm";
+        private const string ViewFormatMessage = "Неизвестный флаг. Формат: view [--index|-i] [--status|-s] [--update-date|-d] [--all|-a]";
+
         private const string StatusDone = "сделано";
         private const string StatusNotDone = "не сделано";
 
@@ -81,12 +96,11 @@ namespace TodoListApp
                     continue;
                 }
 
-                if (command == CommandView)
+                if (command == CommandView || command.StartsWith(CommandView + " "))
                 {
-                    ShowTodos();
+                    ShowTodos(command);
                     continue;
                 }
-
                 if (command.StartsWith(CommandDone + " "))
                 {
                     MarkTodoDone(command);
@@ -228,15 +242,103 @@ namespace TodoListApp
             Console.WriteLine("Задача добавлена.");
         }
 
-        private static void ShowTodos()
+        private static string ToShortFlag(string flag)
         {
-            for (int i = 0; i < todos.Length; i++)
+            switch (flag)
             {
-                if (!string.IsNullOrEmpty(todos[i]))
+                case FlagIndexLong:
+                    return FlagPrefix + LetterIndex;
+                case FlagStatusLong:
+                    return FlagPrefix + LetterStatus;
+                case FlagDateLong:
+                    return FlagPrefix + LetterDate;
+                case FlagAllLong:
+                    return FlagPrefix + LetterAll;
+                default:
+                    return flag;
+            }
+        }
+
+        private static bool TryParseViewFlags(string command, out bool showIndex, out bool showStatus, out bool showDate)
+        {
+            showIndex = false;
+            showStatus = false;
+            showDate = false;
+
+            string[] parts = command.Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string flag = ToShortFlag(parts[i]);
+                if (!flag.StartsWith(FlagPrefix) || flag.StartsWith(LongFlagPrefix) || flag.Length < 2)
                 {
-                    string statusText = statuses[i] ? StatusDone : StatusNotDone;
-                    Console.WriteLine($"{i + 1} {todos[i]} {statusText} {dates[i]}");
+                    return false;
                 }
+
+                foreach (char letter in flag.Substring(1))
+                {
+                    if (letter == LetterIndex)
+                    {
+                        showIndex = true;
+                    }
+                    else if (letter == LetterStatus)
+                    {
+                        showStatus = true;
+                    }
+                    else if (letter == LetterDate)
+                    {
+                        showDate = true;
+                    }
+                    else if (letter == LetterAll)
+                    {
+                        showIndex = true;
+                        showStatus = true;
+                        showDate = true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static void ShowTodos(string command)
+        {
+            if (!TryParseViewFlags(command, out bool showIndex, out bool showStatus, out bool showDate))
+            {
+                Console.WriteLine(ViewFormatMessage);
+                return;
+            }
+
+            if (todoCount == 0)
+            {
+                Console.WriteLine("Список задач пуст.");
+                return;
+            }
+
+            for (int i = 0; i < todoCount; i++)
+            {
+                List<string> cells = new List<string>();
+                if (showIndex)
+                {
+                    cells.Add((i + 1).ToString());
+                }
+
+                cells.Add(todos[i]);
+
+                if (showStatus)
+                {
+                    cells.Add(statuses[i] ? StatusDone : StatusNotDone);
+                }
+
+                if (showDate)
+                {
+                    cells.Add(dates[i].ToString(DateFormat));
+                }
+
+                Console.WriteLine(string.Join(ColumnSeparator, cells));
             }
         }
 
