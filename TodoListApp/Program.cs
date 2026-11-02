@@ -81,6 +81,9 @@ namespace TodoListApp
 
             Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
 
+
+            Profile profile = new Profile(firstName, lastName, birthYear);
+
             while (true)
             {
                 Console.Write("Введите команду: ");
@@ -99,8 +102,8 @@ namespace TodoListApp
 
                 if (command == CommandProfile)
                 {
-                    ShowProfile(firstName, lastName, birthYear);
-                    continue;
+                    ShowProfile(profile);                    
+		    continue;
                 }
 
                 if (command.StartsWith(CommandAdd + " "))
@@ -204,9 +207,9 @@ namespace TodoListApp
             Console.WriteLine("exit - завершить программу");
         }
 
-        private static void ShowProfile(string firstName, string lastName, int birthYear)
+                private static void ShowProfile(Profile profile)
         {
-            Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+            Console.WriteLine(profile.GetInfo());
         }
 
         private static bool IsMultilineAdd(string command)
