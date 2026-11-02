@@ -16,6 +16,12 @@ namespace TodoListApp
         private const string CommandUpdate = "update";
         private const string CommandExit = "exit";
 
+        private const string FlagMultilineLong = "--multiline";
+        private const string FlagMultilineShort = "-m";
+        private const string MultilinePrompt = "> ";
+        private const string MultilineEndMarker = "!end";
+        private const string MultilineJoiner = "\n";
+
         private const string StatusDone = "сделано";
         private const string StatusNotDone = "не сделано";
 
@@ -132,6 +138,19 @@ namespace TodoListApp
             return true;
         }
 
+        private static void SaveTodo(string text)
+        {
+            if (todoCount == todos.Length)
+            {
+                ExpandAllArrays();
+            }
+
+            todos[todoCount] = text;
+            statuses[todoCount] = false;
+            dates[todoCount] = DateTime.Now;
+            todoCount++;
+        }
+
         private static void ShowHelp()
         {
             Console.WriteLine("Доступные команды:");
@@ -150,24 +169,62 @@ namespace TodoListApp
             Console.WriteLine($"{firstName} {lastName}, {birthYear}");
         }
 
+        private static bool IsMultilineAdd(string command)
+        {
+            string[] parts = command.Split(CommandArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length == 2
+                && parts[0] == CommandAdd
+                && (parts[1] == FlagMultilineLong || parts[1] == FlagMultilineShort);
+        }
+
         private static void AddTodo(string command)
+        {
+            if (IsMultilineAdd(command))
+            {
+                AddMultilineTodo();
+                return;
+            }
+
+            AddSingleLineTodo(command);
+        }
+
+        private static void AddSingleLineTodo(string command)
         {
             string[] parts = command.Split(TaskTextSeparator);
             if (parts.Length < 2 || parts[1] == "")
             {
-                Console.WriteLine("Формат: add \"текст задачи\"");
+                Console.WriteLine("Формат: add \"текст задачи\" или add --multiline");
                 return;
             }
 
-            if (todoCount == todos.Length)
+            SaveTodo(parts[1]);
+            Console.WriteLine("Задача добавлена.");
+        }
+
+        private static void AddMultilineTodo()
+        {
+            Console.WriteLine($"Вводите строки задачи, для завершения введите {MultilineEndMarker}");
+
+            List<string> lines = new List<string>();
+            while (true)
             {
-                ExpandAllArrays();
+                Console.Write(MultilinePrompt);
+                string? line = Console.ReadLine();
+                if (line == null || line == MultilineEndMarker)
+                {
+                    break;
+                }
+
+                lines.Add(line);
             }
 
-            todos[todoCount] = parts[1];
-            statuses[todoCount] = false;
-            dates[todoCount] = DateTime.Now;
-            todoCount++;
+            if (lines.Count == 0)
+            {
+                Console.WriteLine("Задача не добавлена: не введено ни одной строки.");
+                return;
+            }
+
+            SaveTodo(string.Join(MultilineJoiner, lines));
             Console.WriteLine("Задача добавлена.");
         }
 
