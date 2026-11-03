@@ -23,6 +23,7 @@ namespace TodoListApp
             }
 
             item.UpdateText(Text);
+            FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
             Console.WriteLine("Задача обновлена.");
         }
     }
