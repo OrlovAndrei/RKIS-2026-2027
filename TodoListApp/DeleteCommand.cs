@@ -18,6 +18,7 @@ namespace TodoListApp
                 Console.WriteLine($"Задача №{Index + 1} не найдена.");
                 return;
             }
+            FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
 
             Console.WriteLine("Задача удалена.");
         }
