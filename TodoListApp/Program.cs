@@ -9,21 +9,9 @@ namespace TodoListApp
 
             Console.WriteLine("Работу выполнил Добрынин");
 
-            Console.Write("Введите имя: ");
-            string firstName = Console.ReadLine() ?? "";
+            FileManager.EnsureDataDirectory(FileManager.DataDirectoryPath);
 
-            Console.Write("Введите фамилию: ");
-            string lastName = Console.ReadLine() ?? "";
-
-            Console.Write("Введите год рождения: ");
-            string birthYearText = Console.ReadLine() ?? "";
-
-            int birthYear = int.Parse(birthYearText);
-            int age = DateTime.Now.Year - birthYear;
-
-            Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
-
-            Profile profile = new Profile(firstName, lastName, birthYear);
+            Profile profile = LoadOrCreateProfile();
             TodoList todoList = new TodoList();
 
             while (true)
@@ -43,6 +31,41 @@ namespace TodoListApp
                     break;
                 }
             }
+        }
+
+        private static Profile LoadOrCreateProfile()
+        {
+            Profile? loadedProfile = FileManager.LoadProfile(FileManager.ProfileFilePath);
+            if (loadedProfile != null)
+            {
+                Console.WriteLine($"Загружен профиль: {loadedProfile.GetInfo()}");
+                return loadedProfile;
+            }
+
+            Console.Write("Введите имя: ");
+            string firstName = Console.ReadLine() ?? "";
+
+            Console.Write("Введите фамилию: ");
+            string lastName = Console.ReadLine() ?? "";
+
+            int birthYear;
+            while (true)
+            {
+                Console.Write("Введите год рождения: ");
+                if (int.TryParse(Console.ReadLine(), out birthYear))
+                {
+                    break;
+                }
+
+                Console.WriteLine("Год рождения должен быть числом.");
+            }
+
+            int age = DateTime.Now.Year - birthYear;
+            Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+
+            Profile newProfile = new Profile(firstName, lastName, birthYear);
+            FileManager.SaveProfile(newProfile, FileManager.ProfileFilePath);
+            return newProfile;
         }
     }
 }
