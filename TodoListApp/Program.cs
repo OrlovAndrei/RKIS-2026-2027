@@ -12,7 +12,7 @@ namespace TodoListApp
             FileManager.EnsureDataDirectory(FileManager.DataDirectoryPath);
 
             Profile profile = LoadOrCreateProfile();
-            TodoList todoList = new TodoList();
+            TodoList todoList = LoadOrCreateTodoList();
 
             while (true)
             {
@@ -31,6 +31,19 @@ namespace TodoListApp
                     break;
                 }
             }
+        }
+        private static TodoList LoadOrCreateTodoList()
+        {
+            if (!File.Exists(FileManager.TodoFilePath))
+            {
+                TodoList newTodoList = new TodoList();
+                FileManager.SaveTodos(newTodoList, FileManager.TodoFilePath);
+                return newTodoList;
+            }
+
+            TodoList loadedTodoList = FileManager.LoadTodos(FileManager.TodoFilePath);
+            Console.WriteLine($"Загружено задач: {loadedTodoList.Count}");
+            return loadedTodoList;
         }
 
         private static Profile LoadOrCreateProfile()
