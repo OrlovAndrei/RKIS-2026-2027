@@ -21,6 +21,7 @@ namespace TodoListApp
             }
 
             item.MarkDone();
+            FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
             Console.WriteLine("Задача отмечена выполненной.");
         }
     }
