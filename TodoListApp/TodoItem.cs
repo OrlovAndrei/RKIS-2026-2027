@@ -23,6 +23,13 @@ namespace TodoListApp
             isDone = false;
             lastUpdate = DateTime.Now;
         }
+        
+	public TodoItem(string text, bool isDone, DateTime lastUpdate)
+        {
+            this.text = text ?? "";
+            this.isDone = isDone;
+            this.lastUpdate = lastUpdate;
+        }
 
         public string Text => text;
 
