@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31129.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoListApp", "TodoListApp.csproj", "{865DEA64-0FF0-4254-B3E6-F5496274CEB4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FA846DE7-878D-42FC-BA01-A228CC50D12B}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{865DEA64-0FF0-4254-B3E6-F5496274CEB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{865DEA64-0FF0-4254-B3E6-F5496274CEB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{865DEA64-0FF0-4254-B3E6-F5496274CEB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{865DEA64-0FF0-4254-B3E6-F5496274CEB4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F69BDB82-8126-4978-8B2E-94BA92477EBA}
+	EndGlobalSection
+EndGlobal
