@@ -81,6 +81,38 @@ namespace TodoList
                     case "view":
                         ShowTasks(); // Вызов метода
                         break;
+                    case "done":
+                        // Проверяем правильность индекса и вызываем метод
+                        if (TryParseIndex(parts, out int doneIdx)) 
+                            MarkAsDone(doneIdx);
+                        break;
+                    case "delete":
+                        if (TryParseIndex(parts, out int delIdx)) 
+                            DeleteTask(delIdx);
+                        break;
+                    case "update":
+                        // Для update парсим строку отдельно, так как нужно отделить индекс от текста
+                        if (parts.Length > 1)
+                        {
+                            string[] updateArgs = parts[1].Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (updateArgs.Length == 2 && int.TryParse(updateArgs[0], out int updIdx))
+                            {
+                                int realIndex = updIdx - 1;
+                                if (realIndex >= 0 && realIndex < count)
+                                    UpdateTask(realIndex, updateArgs[1].Trim('"'));
+                                else
+                                    Console.WriteLine("Ошибка! Задачи с таким номером не существует.");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Ошибка! Используйте: update <индекс> \"новый текст\"");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ошибка! Используйте: update <индекс> \"новый текст\"");
+                        }
+                        break;
                     case "exit":
                         isRunning = false;
                         Console.WriteLine("Завершение работы...");
@@ -92,7 +124,7 @@ namespace TodoList
             }
         }
 
-        // === МЕТОДЫ КОМАНД ===
+        // === ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ===
         
         private static void ShowHelp()
         {
@@ -100,9 +132,53 @@ namespace TodoList
             Console.WriteLine("  profile - данные пользователя");
             Console.WriteLine("  add \"текст\" - добавить задачу");
             Console.WriteLine("  view - показать задачи");
+            Console.WriteLine("  done <idx> - отметить задачу выполненной");
+            Console.WriteLine("  delete <idx> - удалить задачу");
+            Console.WriteLine("  update <idx> \"текст\" - обновить текст задачи");
             Console.WriteLine("  exit - выйти");
         }
-                        
+
+        // Проверка, что ввели корректный номер задачи (защита от падения)
+        private static bool TryParseIndex(string[] parts, out int index)
+        {
+            index = -1;
+            if (parts.Length < 2 || !int.TryParse(parts[1], out int userIdx))
+            {
+                Console.WriteLine("Ошибка! Укажите корректный номер задачи.");
+                return false;
+            }
+            index = userIdx - 1; // Перевод в 0-индексацию (пользователь вводит с 1)
+            if (index < 0 || index >= count)
+            {
+                Console.WriteLine("Ошибка! Задачи с таким номером не существует.");
+                return false;
+            }
+            return true;
+        }
+
+         private static void ResizeArrays()
+        {   
+            int newSize = todos.Length * 2;
+
+            string[] newTodos = new string[newSize];
+            bool[] newStatuses = new bool[newSize];
+            DateTime[] newDates = new DateTime[newSize];
+
+            for (int i = 0; i < todos.Length; i++)
+            {
+                newTodos[i] = todos[i];
+                newStatuses[i] = statuses[i];
+                newDates[i] = dates[i];
+            }
+            todos = newTodos;
+            statuses = newStatuses;
+            dates = newDates;
+
+            Console.WriteLine($"[Массив расширен до {newSize} элементов]");
+        }
+
+         // === МЕТОДЫ КОМАНД ===  
+
         private static void AddTask(string taskText)
         {
             if (count >= todos.Length) ResizeArrays();
@@ -133,25 +209,33 @@ namespace TodoList
             }
         }
       
-        private static void ResizeArrays()
-        {   
-            int newSize = todos.Length * 2;
+        // === МЕТОДЫ ТРЕТЬЕГО ШАГА ===
 
-            string[] newTodos = new string[newSize];
-            bool[] newStatuses = new bool[newSize];
-            DateTime[] newDates = new DateTime[newSize];
+        private static void MarkAsDone(int index)
+        {
+            statuses[index] = true;          // Отмечаем как выполненную
+            dates[index] = DateTime.Now;     // Обновляем дату
+            Console.WriteLine($"Задача #{index + 1} отмечена выполненной.");
+        }
 
-            for (int i = 0; i < todos.Length; i++)
+        private static void DeleteTask(int index)
+        {
+            // Сдвигаем все элементы, начиная с удаляемого, влево на 1 позицию
+            for (int i = index; i < count - 1; i++)
             {
-                newTodos[i] = todos[i];
-                newStatuses[i] = statuses[i];
-                newDates[i] = dates[i];
+                todos[i] = todos[i + 1];
+                statuses[i] = statuses[i + 1];
+                dates[i] = dates[i + 1];
             }
-            todos = newTodos;
-            statuses = newStatuses;
-            dates = newDates;
+            count--; // Уменьшаем счетчик задач
+            Console.WriteLine($"Задача #{index + 1} удалена.");
+        }
 
-            Console.WriteLine($"[Массив расширен до {newSize} элементов]");
+        private static void UpdateTask(int index, string newText)
+        {
+            todos[index] = newText;          // Меняем текст
+            dates[index] = DateTime.Now;     // Обновляем дату изменения
+            Console.WriteLine($"Задача #{index + 1} обновлена.");
         }
     }
 }
