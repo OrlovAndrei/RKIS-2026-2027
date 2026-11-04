@@ -119,6 +119,11 @@ namespace TodoList
                             Console.WriteLine("Ошибка! Используйте: update <индекс> \"новый текст\"");
                         }
                         break;
+                    case "read":
+                        // Используем метод проверки индекса
+                        if (TryParseIndex(parts, out int readIdx)) 
+                            ReadTask(readIdx);
+                        break;
                     case "exit":
                         isRunning = false;
                         Console.WriteLine("Завершение работы...");
@@ -137,7 +142,13 @@ namespace TodoList
             Console.WriteLine("  help - список команд");
             Console.WriteLine("  profile - данные пользователя");
             Console.WriteLine("  add \"текст\" - добавить задачу");
-            Console.WriteLine("  view - показать задачи");
+            Console.WriteLine("  add -m / --multiline - добавить задачу в несколько строк");
+            Console.WriteLine("  view [флаги] - показать задачи в виде таблицы");
+            Console.WriteLine("         -i, --index       показать индексы");
+            Console.WriteLine("         -s, --status      показать статусы");
+            Console.WriteLine("         -d, --update-date показать даты изменения");
+            Console.WriteLine("         -a, --all         показать все данные");
+            Console.WriteLine("  read <idx> - прочитать полный текст задачи");
             Console.WriteLine("  done <idx> - отметить задачу выполненной");
             Console.WriteLine("  delete <idx> - удалить задачу");
             Console.WriteLine("  update <idx> \"текст\" - обновить текст задачи");
@@ -323,6 +334,14 @@ namespace TodoList
             todos[index] = newText;          // Меняем текст
             dates[index] = DateTime.Now;     // Обновляем дату изменения
             Console.WriteLine($"Задача #{index + 1} обновлена.");
+        }
+        private static void ReadTask(int index)
+        {
+            Console.WriteLine("=== Полный текст задачи ===");
+            Console.WriteLine(todos[index]); // Выводим текст как есть, с переносами строк
+            Console.WriteLine("===========================");
+            Console.WriteLine($"Статус: {(statuses[index] ? "выполнена" : "не выполнена")}");
+            Console.WriteLine($"Дата изменения: {dates[index].ToString(DateFormat)}");
         }
     }
 }
