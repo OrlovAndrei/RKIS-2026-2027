@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace TodoList
 {
@@ -41,39 +42,28 @@ namespace TodoList
             {
                 Console.Write("> ");
                 string inputLine = Console.ReadLine();
-                if (inputLine == "exit")
+                
+                if (inputLine == null) continue;
+                inputLine = inputLine.Trim();
+                if (string.IsNullOrEmpty(inputLine)) continue;
+
+                string[] parts = inputLine.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                string command = parts[0].ToLower();
+                string argsString = parts.Length > 1 ? parts[1] : "";
+
+                if (command == "exit")
                 {
                     Console.WriteLine("Завершение программы");
                     break;
                 }
-                else if (inputLine == "help")
-                {
-                    Help();
-                }
-                else if (inputLine == "profile")
-                {
-                    Profile();
-                }
-                else if (inputLine.StartsWith("add "))
-                {
-                    AddTask(inputLine);
-                }
-                else if (inputLine == "view")
-                {
-                    View();
-                }
-                else if (inputLine.StartsWith("done "))
-                {
-                    Done(inputLine);
-                }
-                else if (inputLine.StartsWith("delete "))
-                {
-                    Delete(inputLine);
-                }
-                else if (inputLine.StartsWith("update "))
-                {
-                    Update(inputLine);
-                }
+                 else if (command == "help") { Help(); }
+                else if (command == "profile") { Profile(); }
+                else if (command == "add") { AddTask(argsString); }
+                else if (command == "view") { View(argsString); }
+                else if (command == "read") { ReadTask(argsString); } 
+                else if (command == "done") { Done(argsString); }
+                else if (command == "delete") { Delete(argsString); }
+                else if (command == "update") { Update(argsString); }
                 else
                 {
                     Console.WriteLine("Неизвестная команда. Введите help");
@@ -87,9 +77,16 @@ namespace TodoList
             Console.WriteLine("help - список команд");
             Console.WriteLine("profile - данные пользователя");
             Console.WriteLine("add \"текст\" - добавить задачу");
+            Console.WriteLine("add -m / --multiline - добавить задачу в несколько строк (завершение !end)");
             Console.WriteLine("done \"номер\" - пометить задачу выполненной");
             Console.WriteLine("update \"номер\" \"текст\" - обновляет текст задачи");
-            Console.WriteLine("view - показывать задачи");
+            Console.WriteLine("delete \"номер\" - удалить задачу");
+            Console.WriteLine("view [флаги] - показывать задачи");
+            Console.WriteLine("  -i, --index       - показать индекс");
+            Console.WriteLine("  -s, --status      - показать статус");
+            Console.WriteLine("  -d, --update-date - показать дату изменения");
+            Console.WriteLine("  -a, --all         - показать все данные");
+            Console.WriteLine("read <idx> - прочитать полный текст задачи");
             Console.WriteLine("exit - выход");
         }
 
@@ -98,10 +95,40 @@ namespace TodoList
             Console.WriteLine($"{name1} {name2}, {year}");
         }
 
-        static void AddTask(string inputLine)
+                static void AddTask(string argsString)
         {
-            string[] parts = inputLine.Split(' ', 2);
-            string task = parts[1].Trim('"');
+            bool isMultiline = argsString.Contains("-m") || argsString.Contains("--multiline");
+            string task = "";
+
+            if (isMultiline)
+            {
+                Console.WriteLine("Введите текст задачи (для завершения введите !end):");
+                StringBuilder sb = new StringBuilder();
+                
+                while (true)
+                {
+                    Console.Write("> ");
+                    string line = Console.ReadLine();
+                    
+                    if (line == null) break;
+                    if (line.Trim() == "!end") break; 
+                    
+                    if (sb.Length > 0) sb.Append("\n"); 
+                    sb.Append(line);
+                }
+                task = sb.ToString();
+            }
+            else
+            {
+                task = argsString.Trim('"');
+            }
+
+            if (string.IsNullOrWhiteSpace(task))
+            {
+                Console.WriteLine("Текст задачи пуст.");
+                return;
+            }
+
             if (todoCount >= todos.Length)
             {
                 Arr();
@@ -113,17 +140,88 @@ namespace TodoList
             Console.WriteLine($"Задача добавлена: {task}");
         }
 
-        static void View()
+                static bool HasFlag(string argsString, string shortName, string longName)
+        {
+            
+            if (argsString.Contains(longName)) return true;
+            
+            string[] words = argsString.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string word in words)
+            {
+                if (word.StartsWith("-") && !word.StartsWith("--"))
+                {
+                    if (word.Contains(shortName)) return true;
+                }
+            }
+            return false;
+        }
+
+        static void View(string argsString)
         {
             if (todoCount == 0)
             {
                 Console.WriteLine("Список задач пуст");
                 return;
             }
+
+            bool showIndex = HasFlag(argsString, "i", "--index") || HasFlag(argsString, "a", "--all");
+            bool showStatus = HasFlag(argsString, "s", "--status") || HasFlag(argsString, "a", "--all");
+            bool showDate = HasFlag(argsString, "d", "--update-date") || HasFlag(argsString, "a", "--all");
+
+            if (showIndex) Console.Write($"| {"ID",-4} ");
+            if (showStatus) Console.Write($"| {"Статус",-12} ");
+            if (showDate) Console.Write($"| {"Дата изменения",-16} ");
+            Console.WriteLine($"| {"Текст задачи",-30} |");
+
+            if (showIndex) Console.Write($"|{new string('-', 6)}");
+            if (showStatus) Console.Write($"|{new string('-', 14)}");
+            if (showDate) Console.Write($"|{new string('-', 18)}");
+            Console.WriteLine($"|{new string('-', 32)}|");
+
             for (int i = 0; i < todoCount; i++)
             {
-                Console.WriteLine($"Задача {i + 1}: {todos[i]}, статус: {statues[i]}, дата изменения: {dates[i]}");
+                if (showIndex) Console.Write($"| {i + 1,-4} ");
+                
+                if (showStatus) 
+                {
+                    string st = statues[i] ? "выполнена" : "не выполнена";
+                    Console.Write($"| {st,-12} ");
+                }
+
+                if (showDate) 
+                {
+                    Console.Write($"| {dates[i].ToString("dd.MM.yyyy HH:mm"),-16} ");
+                }
+
+                string text = todos[i].Replace("\n", " "); 
+                if (text.Length > 30)
+                {
+                    text = text.Substring(0, 27) + "...";
+                }
+                Console.WriteLine($"| {text,-30} |");
             }
+
+        }
+
+        static void ReadTask(string argsString)
+        {
+            if (!int.TryParse(argsString, out int taskNumber))
+            {
+                Console.WriteLine("Номер задачи должен быть числом");
+                return;
+            }
+            int index = taskNumber - 1;
+            
+            if (index < 0 || index >= todoCount)
+            {
+                Console.WriteLine("Задачи с таким номером не существует");
+                return;
+            }
+
+            Console.WriteLine("Полный текст задачи:");
+            Console.WriteLine(todos[index]);
+            Console.WriteLine($"Статус: {(statues[index] ? "выполнена" : "не выполнена")}");
+            Console.WriteLine($"Дата последнего изменения: {dates[index]}");
         }
 
         static void Arr()
@@ -152,10 +250,9 @@ namespace TodoList
         }
 
         //Практическая работа №4
-        static void Done(string inputLine)
+        static void Done(String argsString)
         {
-            string[] parts = inputLine.Split(' ', 2);
-            if (!int.TryParse(parts[1], out int taskNumber))
+            if (!int.TryParse(argsString, out int taskNumber))
             {
                 Console.WriteLine("Номер задачи должен быть числом");
                 return;
@@ -166,10 +263,9 @@ namespace TodoList
             Console.WriteLine("Задача помечена, как выполненная");
         }
 
-        static void Delete(string inputLine)
+        static void Delete(string argsString)
         {
-            string[] parts = inputLine.Split(' ', 2);
-            if (!int.TryParse(parts[1], out int taskNumber))
+            if (!int.TryParse(argsString, out int taskNumber))
             {
                 Console.WriteLine("Номер задачи должен быть числом");
                 return;
@@ -188,20 +284,21 @@ namespace TodoList
             Console.WriteLine($"Задача {taskNumber} удалена.");
         }
 
-        static void Update(string inputLine)
+        static void Update(string argsString)
         {
-            string[] parts = inputLine.Split(' ', 3);
-            if (parts.Length < 3)
+            string[] parts = argsString.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
             {
                 Console.WriteLine("Укажите номер задачи и новый текст");
                 return;
             }
-            if (!int.TryParse(parts[1], out int taskNumber))
+            if (!int.TryParse(parts[0], out int taskNumber))
             {
                 Console.WriteLine("Номер задачи должен быть числом");
                 return;
             }
 
+            string newText = parts[1].Trim('"');
             int index = taskNumber - 1;
             if (index < 0 || index >= todoCount)
             {
@@ -209,7 +306,7 @@ namespace TodoList
                 return;
             }
 
-            string newText = parts[2].Trim('"');
+            
             todos[index] = newText;
             dates[index] = DateTime.Now;
             Console.WriteLine($"Задача {taskNumber} обновлена.");
