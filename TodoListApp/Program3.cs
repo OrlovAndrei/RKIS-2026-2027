@@ -1,4 +1,5 @@
 using System;
+using System.Text; // Для работы с кодировками
 
 namespace TodoList
 {
@@ -6,21 +7,42 @@ namespace TodoList
     {
         static void Main(string[] args)
         {
+            // 1. Настраиваем кодировку, чтобы русские буквы корректно читались и выводились
+            Console.InputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
+
+            // 2. Приветствие
+            Console.WriteLine("Работу выполнили: Осинцева и Малюкова");
+
+            // 3. Запрос имени
+            Console.Write("Введите имя: ");
+            // Знак "!" говорит компилятору, что мы уверены: здесь не будет null
+            string firstName = Console.ReadLine()!;
+
+            // 4. Запрос фамилии
+            Console.Write("Введите фамилию: ");
+            string lastName = Console.ReadLine()!;
+
+            // 5. Запрос года рождения
+            Console.Write("Введите год рождения: ");
+            string birthYearStr = Console.ReadLine()!;
+
+            // 6. Преобразование строки в целое число
+            int birthYear = Convert.ToInt32(birthYearStr);
+
+            // 7. Вычисление возраста
+            int currentYear = DateTime.Now.Year;
+            int age = currentYear - birthYear;
+
+            // 8. Вывод результата
+            Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+
             // Массив на 2 элемента
             string[] todos = new string[2];
             int count = 0; // Счетчик добавленных задач 
             bool isRunning = true; 
 
-            // Интерактивный ввод профиля
-            Console.WriteLine("Давайте познакомимся!");
-            Console.Write("Введите ваше Имя: ");
-            string userName = Console.ReadLine();
-            Console.Write("Введите вашу Фамилию: ");
-            string userSurname = Console.ReadLine();
-            Console.Write("Введите год рождения: ");
-            string userBirthYear = Console.ReadLine();
-
-            Console.WriteLine($"\nДобро пожаловать, {userName}! Введите 'help'.");
+            Console.WriteLine($"\nДобро пожаловать, {firstName} {lastName}! Введите 'help'.");
 
             while (isRunning)
             {
@@ -46,7 +68,7 @@ namespace TodoList
                         Console.WriteLine("  exit - выйти");
                         break;
                     case "profile":
-                        Console.WriteLine($"{userName} {userSurname}, {userBirthYear}");
+                        Console.WriteLine($"{firstName} {lastName}, {birthYearStr}");
                         break;
                     case "add":
                         // Разделяем строку ввода максимум на 2 части (по первому пробелу).
