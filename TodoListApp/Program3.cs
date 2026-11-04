@@ -73,10 +73,16 @@ namespace TodoList
                         Console.WriteLine($"{firstName} {lastName}, {birthYearStr} (возраст: {age})");
                         break;
                     case "add":
-                        if (parts.Length > 1) 
-                            AddTask(parts[1].Trim('"')); // Вызов метода
-                        else 
-                            Console.WriteLine("Ошибка! Используйте: add \"текст\"");
+                        // Проверяем, что флаг передан именно как аргумент, а не внутри текста
+                        if (parts.Length > 1 && (parts[1] == "-m" || parts[1] == "--multiline"))
+                        {
+                            AddMultilineTask();
+                        }
+                        else
+                        {
+                            if (parts.Length > 1) AddTask(parts[1].Trim('"'));
+                            else Console.WriteLine("Ошибка! Используйте: add \"текст\" или add -m");
+                        }
                         break;
                     case "view":
                         ShowTasks(); // Вызов метода
@@ -124,7 +130,7 @@ namespace TodoList
             }
         }
 
-        // === ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ===
+        // === МЕТОДЫ ===
         
         private static void ShowHelp()
         {
@@ -176,9 +182,7 @@ namespace TodoList
 
             Console.WriteLine($"[Массив расширен до {newSize} элементов]");
         }
-
-         // === МЕТОДЫ КОМАНД ===  
-
+         
         private static void AddTask(string taskText)
         {
             if (count >= todos.Length) ResizeArrays();
@@ -188,6 +192,30 @@ namespace TodoList
             dates[count] = DateTime.Now;         // Записываем текущие дату и время
             count++;
             Console.WriteLine("Задача добавлена!");
+        }
+
+        private static void AddMultilineTask()
+        {
+          Console.WriteLine("Введите текст задачи (для завершения введите '! end'):");
+          StringBuilder sb = new StringBuilder();
+    
+          while (true)
+          {
+            string? line = Console.ReadLine();
+            if (line == null) break;
+
+            if (line.Trim() == "! end" || line.Trim() == "!end")
+               break;
+
+            // Если это не первая строка, добавляем перенос
+            if (sb.Length > 0) sb.Append("\n");
+            sb.Append(line);
+        }
+
+        if (sb.Length > 0)
+            AddTask(sb.ToString());
+        else
+            Console.WriteLine("Задача не добавлена (пустой текст).");
         }
 
         private static void ShowTasks()
@@ -208,8 +236,6 @@ namespace TodoList
                 Console.WriteLine($"{i + 1}. {todos[i]} [{statusStr}] {dates[i].ToString(DateFormat)}");
             }
         }
-      
-        // === МЕТОДЫ ТРЕТЬЕГО ШАГА ===
 
         private static void MarkAsDone(int index)
         {
