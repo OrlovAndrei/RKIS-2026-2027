@@ -85,7 +85,7 @@ namespace TodoList
                         }
                         break;
                     case "view":
-                        ShowTasks(); // Вызов метода
+                        ShowTasks(input); // Передаем строку ввода для анализа флагов
                         break;
                     case "done":
                         // Проверяем правильность индекса и вызываем метод
@@ -218,7 +218,7 @@ namespace TodoList
             Console.WriteLine("Задача не добавлена (пустой текст).");
         }
 
-        private static void ShowTasks()
+        private static void ShowTasks(string input)
         {
             if (count == 0)
             {
@@ -226,34 +226,95 @@ namespace TodoList
                 return;
             }
 
-            Console.WriteLine("Список задач:");
+            // Определяем, какие флаги включены. 
+            // Метод Contains найдет флаг, даже если он в комбинации (например, в "-is" он найдет "-i")
+            // Разбиваем ввод на отдельные слова, чтобы проверять флаги точно
+            string[] words = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            bool showIndex = false;
+            bool showStatus = false;
+            bool showDate = false;
+
+            foreach (string word in words)
+            {
+                // Проверяем длинные флаги
+                if (word == "-a" || word == "--all") { showIndex = true; showStatus = true; showDate = true; }
+                if (word == "-i" || word == "--index") showIndex = true;
+                if (word == "-s" || word == "--status") showStatus = true;
+                if (word == "-d" || word == "--update-date") showDate = true;
+
+                // Проверяем короткие комбинированные флаги (например, -is или -si)
+                if (word.StartsWith("-") && !word.StartsWith("--") && word.Length > 2)
+                {
+                    if (word.Contains('i')) showIndex = true;
+                    if (word.Contains('s')) showStatus = true;
+                    if (word.Contains('d')) showDate = true;
+                }
+            }
+
+            // Формируем заголовок таблицы
+            string header = "";
+            if (showIndex) header += "| " + "№".PadRight(3) + " ";
+            header += "| " + "Текст задачи".PadRight(33) + " "; // 30 символов текста + 3 точки
+            if (showStatus) header += "| " + "Статус".PadRight(12) + " ";
+            if (showDate) header += "| " + "Дата изменения".PadRight(16) + " ";
+            header += "|";
+
+            string separator = new string('-', header.Length);
+            Console.WriteLine(separator);
+            Console.WriteLine(header);
+            Console.WriteLine(separator);
+
+            // Выводим строки с данными
             for (int i = 0; i < count; i++)
             {
-                // Переводим bool в текст: если true - "сделано", иначе - "не сделано"
-                string statusStr = statuses[i] ? "сделано" : "не сделано";
+                string row = "";
 
-                // Формат: <индекс> <текст> <статус> <дата>
-                Console.WriteLine($"{i + 1}. {todos[i]} [{statusStr}] {dates[i].ToString(DateFormat)}");
+                // 1. Индекс
+                if (showIndex) 
+                    row += "| " + (i + 1).ToString().PadRight(3) + " ";
+
+                // 2. Текст задачи
+                // Заменяем переносы строк на пробелы, чтобы таблица не поехала
+                string displayText = todos[i].Replace("\n", " ");
+                // Обрезаем текст до 30 символов
+                if (displayText.Length > 30) 
+                    displayText = displayText.Substring(0, 30) + "...";
+                row += "| " + displayText.PadRight(33) + " ";
+
+                // 3. Статус
+                if (showStatus) 
+                {
+                    string statusStr = statuses[i] ? "сделано" : "не сделано";
+                    row += "| " + statusStr.PadRight(12) + " ";
+                }
+
+                // 4. Дата
+                if (showDate) 
+                    row += "| " + dates[i].ToString(DateFormat).PadRight(16) + " ";
+
+                row += "|";
+                Console.WriteLine(row);
             }
+            Console.WriteLine(separator);
         }
 
         private static void MarkAsDone(int index)
         {
-            statuses[index] = true;          // Отмечаем как выполненную
-            dates[index] = DateTime.Now;     // Обновляем дату
+            statuses[index] = true;          
+            dates[index] = DateTime.Now;     
             Console.WriteLine($"Задача #{index + 1} отмечена выполненной.");
         }
 
         private static void DeleteTask(int index)
         {
-            // Сдвигаем все элементы, начиная с удаляемого, влево на 1 позицию
             for (int i = index; i < count - 1; i++)
             {
                 todos[i] = todos[i + 1];
                 statuses[i] = statuses[i + 1];
                 dates[i] = dates[i + 1];
             }
-            count--; // Уменьшаем счетчик задач
+            count--; 
             Console.WriteLine($"Задача #{index + 1} удалена.");
         }
 
