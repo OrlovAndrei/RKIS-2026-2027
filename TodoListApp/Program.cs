@@ -59,7 +59,7 @@ namespace TodoListApp
                         HandleAdd(ref todos, ref statuses, ref dates, ref taskCount, argument);
                         break;
                     case CommandView:
-                        HandleView(todos, statuses, dates, taskCount);
+                        HandleView(todos, statuses, dates, taskCount, argument);
                         break;
                     case CommandDone:
                         HandleDone(statuses, dates, taskCount, argument);
@@ -171,21 +171,76 @@ namespace TodoListApp
             Console.WriteLine("Задача добавлена.");
         }
 
-        static void HandleView(string[] todos, bool[] statuses, DateTime[] dates, int taskCount)
+        static void HandleView(string[] todos, bool[] statuses, DateTime[] dates, int taskCount, string argument)
         {
             if (taskCount == 0)
             {
                 Console.WriteLine("Список задач пуст.");
                 return;
             }
+
+            bool showAll = false;
+            bool showIndex = false;
+            bool showStatus = false;
+            bool showDate = false;
+
+            string[] flags = argument.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (string flag in flags)
+            {
+                if (flag == "--index") showIndex = true;
+                else if (flag == "--status") showStatus = true;
+                else if (flag == "--update-date") showDate = true;
+                else if (flag == "--all") showAll = true;
+                else if (flag.StartsWith("-") && !flag.StartsWith("--"))
+                {
+                    for (int j = 1; j < flag.Length; j++)
+                    {
+                        if (flag[j] == 'i') showIndex = true;
+                        else if (flag[j] == 's') showStatus = true;
+                        else if (flag[j] == 'd') showDate = true;
+                        else if (flag[j] == 'a') showAll = true;
+                    }
+                }
+            }
+
+            if (showAll)
+            {
+                showIndex = true;
+                showStatus = true;
+                showDate = true;
+            }
+
+            string header = "";
+            if (showIndex) header += $"{"Индекс",-8} | ";
+            if (showStatus) header += $"{"Статус",-14} | ";
+            if (showDate) header += $"{"Дата изменения",-18} | ";
+            header += $"{"Задачи",-34}";
+            
+            Console.WriteLine(header);
+            Console.WriteLine(new string('-', header.Length));
+
             for (int i = 0; i < taskCount; i++)
             {
-                string statusText = "не сделано";
-                if (statuses[i])
+                string row = "";
+                
+                if (showIndex) 
+                    row += $"{i + 1,-8} | ";
+                
+                if (showStatus) 
+                    row += $"{(statuses[i] ? "выполнена" : "не выполнена"),-14} | ";
+                
+                if (showDate) 
+                    row += $"{dates[i], -18:dd.MM.yyyy HH:mm} | "; 
+
+                string taskText = todos[i].Replace("\n", " ");
+                if (taskText.Length > 30) 
                 {
-                    statusText = "сделано";
+                    taskText = taskText.Substring(0, 30) + "...";
                 }
-                Console.WriteLine($"{i + 1}. {todos[i]} ({statusText}) - {dates[i]}");
+                
+                row += $"{taskText,-34}";
+                Console.WriteLine(row);
             }
         }
 
