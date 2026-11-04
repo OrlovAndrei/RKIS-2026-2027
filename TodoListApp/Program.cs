@@ -5,7 +5,7 @@ namespace TodoListApp
 {
     class Program
     {
-        static void Main(string[] args)
+        static void MainOld(string[] args)
         {
             // 1. Настраиваем кодировку, чтобы русские буквы корректно читались и выводились
             Console.InputEncoding = Encoding.UTF8;

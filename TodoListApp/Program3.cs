@@ -7,9 +7,11 @@ namespace TodoList
     {
         // Константы (убираем магические числа)
         private const int InitialCapacity = 2;
-        
+        private const string DateFormat = "dd.MM.yyyy HH:mm"; //формат даты
         // Массивы и счетчик вынесены на уровень класса для доступа из методов
         private static string[] todos = new string[InitialCapacity];
+        private static bool[] statuses = new bool[InitialCapacity];     // массив статусов
+        private static DateTime[] dates = new DateTime[InitialCapacity]; // массив дат
         private static int count = 0;
 
         // Данные пользователя
@@ -58,8 +60,8 @@ namespace TodoList
                 // Защита от пустого ввода (если пользователь просто нажал Enter)
                 if (string.IsNullOrWhiteSpace(input)) continue;
 
-                // Разделяем команду и аргументы (максимум на 3 части для update)
-                string[] parts = input.Trim().Split(new char[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
+                // Разделяем команду и аргументы
+                string[] parts = input.Trim().Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
                 string command = parts[0].ToLower();
 
                 switch (command)
@@ -103,9 +105,11 @@ namespace TodoList
                         
         private static void AddTask(string taskText)
         {
-            if (count >= todos.Length) ResizeArray();
+            if (count >= todos.Length) ResizeArrays();
 
             todos[count] = taskText;
+            statuses[count] = false;             // Новая задача по умолчанию не выполнена
+            dates[count] = DateTime.Now;         // Записываем текущие дату и время
             count++;
             Console.WriteLine("Задача добавлена!");
         }
@@ -121,19 +125,33 @@ namespace TodoList
             Console.WriteLine("Список задач:");
             for (int i = 0; i < count; i++)
             {
-                Console.WriteLine($"{i + 1}. {todos[i]}");
+                // Переводим bool в текст: если true - "сделано", иначе - "не сделано"
+                string statusStr = statuses[i] ? "сделано" : "не сделано";
+
+                // Формат: <индекс> <текст> <статус> <дата>
+                Console.WriteLine($"{i + 1}. {todos[i]} [{statusStr}] {dates[i].ToString(DateFormat)}");
             }
         }
       
-        private static void ResizeArray()
-        {
-            string[] newTodos = new string[todos.Length * 2];
+        private static void ResizeArrays()
+        {   
+            int newSize = todos.Length * 2;
+
+            string[] newTodos = new string[newSize];
+            bool[] newStatuses = new bool[newSize];
+            DateTime[] newDates = new DateTime[newSize];
+
             for (int i = 0; i < todos.Length; i++)
             {
                 newTodos[i] = todos[i];
+                newStatuses[i] = statuses[i];
+                newDates[i] = dates[i];
             }
             todos = newTodos;
-            Console.WriteLine($"[Массив расширен до {todos.Length} элементов]");
+            statuses = newStatuses;
+            dates = newDates;
+
+            Console.WriteLine($"[Массив расширен до {newSize} элементов]");
         }
     }
 }
