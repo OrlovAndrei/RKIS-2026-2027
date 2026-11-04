@@ -58,9 +58,9 @@ namespace TodoList
                 }
                  else if (command == "help") { Help(); }
                 else if (command == "profile") { Profile(); }
-                else if (command == "add") { AddTask(argsString); }
+                else if (command == "add") { Add(argsString); }
                 else if (command == "view") { View(argsString); }
-                else if (command == "read") { ReadTask(argsString); } 
+                else if (command == "read") { Read(argsString); } 
                 else if (command == "done") { Done(argsString); }
                 else if (command == "delete") { Delete(argsString); }
                 else if (command == "update") { Update(argsString); }
@@ -77,17 +77,18 @@ namespace TodoList
             Console.WriteLine("help - список команд");
             Console.WriteLine("profile - данные пользователя");
             Console.WriteLine("add \"текст\" - добавить задачу");
-            Console.WriteLine("add -m / --multiline - добавить задачу в несколько строк (завершение !end)");
             Console.WriteLine("done \"номер\" - пометить задачу выполненной");
             Console.WriteLine("update \"номер\" \"текст\" - обновляет текст задачи");
             Console.WriteLine("delete \"номер\" - удалить задачу");
-            Console.WriteLine("view [флаги] - показывать задачи");
-            Console.WriteLine("  -i, --index       - показать индекс");
-            Console.WriteLine("  -s, --status      - показать статус");
-            Console.WriteLine("  -d, --update-date - показать дату изменения");
-            Console.WriteLine("  -a, --all         - показать все данные");
+            Console.WriteLine("view - показывать задачи");
             Console.WriteLine("read <idx> - прочитать полный текст задачи");
             Console.WriteLine("exit - выход");
+            Console.WriteLine("\nДоступные флаги:");
+            Console.WriteLine("view -i / --index - показать индекс");
+            Console.WriteLine("view -s / --status - показать статус");
+            Console.WriteLine("view -d / --update-date - показать дату изменения");
+            Console.WriteLine("view -a / --all - показать все данные");
+            Console.WriteLine("add -m / --multiline - добавить задачу в несколько строк (завершение !end)");
         }
 
         static void Profile()
@@ -95,7 +96,7 @@ namespace TodoList
             Console.WriteLine($"{name1} {name2}, {year}");
         }
 
-                static void AddTask(string argsString)
+        static void Add(string argsString)
         {
             bool isMultiline = argsString.Contains("-m") || argsString.Contains("--multiline");
             string task = "";
@@ -140,22 +141,6 @@ namespace TodoList
             Console.WriteLine($"Задача добавлена: {task}");
         }
 
-                static bool HasFlag(string argsString, string shortName, string longName)
-        {
-            
-            if (argsString.Contains(longName)) return true;
-            
-            string[] words = argsString.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            foreach (string word in words)
-            {
-                if (word.StartsWith("-") && !word.StartsWith("--"))
-                {
-                    if (word.Contains(shortName)) return true;
-                }
-            }
-            return false;
-        }
-
         static void View(string argsString)
         {
             if (todoCount == 0)
@@ -168,29 +153,24 @@ namespace TodoList
             bool showStatus = HasFlag(argsString, "s", "--status") || HasFlag(argsString, "a", "--all");
             bool showDate = HasFlag(argsString, "d", "--update-date") || HasFlag(argsString, "a", "--all");
 
-            if (showIndex) Console.Write($"| {"ID",-4} ");
-            if (showStatus) Console.Write($"| {"Статус",-12} ");
-            if (showDate) Console.Write($"| {"Дата изменения",-16} ");
-            Console.WriteLine($"| {"Текст задачи",-30} |");
-
-            if (showIndex) Console.Write($"|{new string('-', 6)}");
-            if (showStatus) Console.Write($"|{new string('-', 14)}");
-            if (showDate) Console.Write($"|{new string('-', 18)}");
-            Console.WriteLine($"|{new string('-', 32)}|");
+            if (showIndex) Console.Write($" {"ID",-4} ");
+            if (showStatus) Console.Write($" {"Статус",-12} ");
+            if (showDate) Console.Write($" {"Дата изменения",-25} ");
+            Console.WriteLine($" {"Текст задачи",-30} ");
 
             for (int i = 0; i < todoCount; i++)
             {
-                if (showIndex) Console.Write($"| {i + 1,-4} ");
+                if (showIndex) Console.Write($" {i + 1,-4} ");
                 
                 if (showStatus) 
                 {
                     string st = statues[i] ? "выполнена" : "не выполнена";
-                    Console.Write($"| {st,-12} ");
+                    Console.Write($" {st,-12} ");
                 }
 
                 if (showDate) 
                 {
-                    Console.Write($"| {dates[i].ToString("dd.MM.yyyy HH:mm"),-16} ");
+                    Console.Write($" {dates[i],-10} ");
                 }
 
                 string text = todos[i].Replace("\n", " "); 
@@ -198,30 +178,9 @@ namespace TodoList
                 {
                     text = text.Substring(0, 27) + "...";
                 }
-                Console.WriteLine($"| {text,-30} |");
+                Console.WriteLine($" {text,-30} ");
             }
 
-        }
-
-        static void ReadTask(string argsString)
-        {
-            if (!int.TryParse(argsString, out int taskNumber))
-            {
-                Console.WriteLine("Номер задачи должен быть числом");
-                return;
-            }
-            int index = taskNumber - 1;
-            
-            if (index < 0 || index >= todoCount)
-            {
-                Console.WriteLine("Задачи с таким номером не существует");
-                return;
-            }
-
-            Console.WriteLine("Полный текст задачи:");
-            Console.WriteLine(todos[index]);
-            Console.WriteLine($"Статус: {(statues[index] ? "выполнена" : "не выполнена")}");
-            Console.WriteLine($"Дата последнего изменения: {dates[index]}");
         }
 
         static void Arr()
@@ -252,12 +211,7 @@ namespace TodoList
         //Практическая работа №4
         static void Done(String argsString)
         {
-            if (!int.TryParse(argsString, out int taskNumber))
-            {
-                Console.WriteLine("Номер задачи должен быть числом");
-                return;
-            }
-            int index = taskNumber - 1;
+            if (!TryGetIndex(argsString, out int index)) return;
             statues[index] = true;
             dates[index] = DateTime.Now;
             Console.WriteLine("Задача помечена, как выполненная");
@@ -265,12 +219,7 @@ namespace TodoList
 
         static void Delete(string argsString)
         {
-            if (!int.TryParse(argsString, out int taskNumber))
-            {
-                Console.WriteLine("Номер задачи должен быть числом");
-                return;
-            }
-            int index = taskNumber - 1;
+            if (!TryGetIndex(argsString, out int index)) return;
             for (int i = index; i < todoCount - 1; i++)
             {
                 todos[i] = todos[i+1];
@@ -281,7 +230,7 @@ namespace TodoList
             statues[todoCount - 1] = false;
             dates[todoCount - 1] = DateTime.MinValue;
             todoCount--;
-            Console.WriteLine($"Задача {taskNumber} удалена.");
+            Console.WriteLine($"Задача удалена.");
         }
 
         static void Update(string argsString)
@@ -292,24 +241,56 @@ namespace TodoList
                 Console.WriteLine("Укажите номер задачи и новый текст");
                 return;
             }
-            if (!int.TryParse(parts[0], out int taskNumber))
-            {
-                Console.WriteLine("Номер задачи должен быть числом");
-                return;
-            }
+            if (!TryGetIndex(parts[0], out int index)) return;
 
             string newText = parts[1].Trim('"');
-            int index = taskNumber - 1;
+            todos[index] = newText;
+            dates[index] = DateTime.Now;
+            Console.WriteLine($"Задача обновлена.");
+        }
+
+        static bool TryGetIndex(string argsString, out int index)
+        {
+            index = -1;
+            if (!int.TryParse(argsString, out int taskNumber))
+            {
+                Console.WriteLine("Номер задачи должен быть числом");
+                return false;
+            }
+            index = taskNumber - 1;
             if (index < 0 || index >= todoCount)
             {
                 Console.WriteLine("Задачи с таким номером не существует");
-                return;
+                return false;
             }
+            return true;
+        }
 
-            
-            todos[index] = newText;
-            dates[index] = DateTime.Now;
-            Console.WriteLine($"Задача {taskNumber} обновлена.");
+        //Практическая работа №5
+        static void Read(string argsString)
+        {
+            if (!TryGetIndex(argsString, out int index)) return;
+
+            Console.WriteLine("Полный текст задачи:");
+            Console.WriteLine(todos[index]);
+            Console.WriteLine($"Статус: {(statues[index] ? "выполнена" : "не выполнена")}");
+            Console.WriteLine($"Дата последнего изменения: {dates[index]}");
+        }
+
+        static bool HasFlag(string argsString, string shortName, string longName)
+        {
+
+            if (argsString.Contains(longName)) return true;
+
+            string[] words = argsString.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string word in words)
+            {
+                if (word.StartsWith("-") && !word.StartsWith("--"))
+                {
+                    if (word.Contains(shortName)) return true;
+                }
+            }
+            return false;
         }
     }
 }
