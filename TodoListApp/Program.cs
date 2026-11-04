@@ -62,6 +62,18 @@ namespace TodoList
                 {
                     View();
                 }
+                else if (inputLine.StartsWith("done "))
+                {
+                    Done(inputLine);
+                }
+                else if (inputLine.StartsWith("delete "))
+                {
+                    Delete(inputLine);
+                }
+                else if (inputLine.StartsWith("update "))
+                {
+                    Update(inputLine);
+                }
                 else
                 {
                     Console.WriteLine("Неизвестная команда. Введите help");
@@ -75,6 +87,8 @@ namespace TodoList
             Console.WriteLine("help - список команд");
             Console.WriteLine("profile - данные пользователя");
             Console.WriteLine("add \"текст\" - добавить задачу");
+            Console.WriteLine("done \"номер\" - пометить задачу выполненной");
+            Console.WriteLine("update \"номер\" \"текст\" - обновляет текст задачи");
             Console.WriteLine("view - показывать задачи");
             Console.WriteLine("exit - выход");
         }
@@ -90,7 +104,7 @@ namespace TodoList
             string task = parts[1].Trim('"');
             if (todoCount >= todos.Length)
             {
-                TodosArr();
+                Arr();
             }
             todos[todoCount] = task;
             statues[todoCount] = false;
@@ -108,11 +122,11 @@ namespace TodoList
             }
             for (int i = 0; i < todoCount; i++)
             {
-                Console.WriteLine($"Задача {i + 1}: {todos[i]}, статус: {statues[i]}, дата создания: {dates[i]}");
+                Console.WriteLine($"Задача {i + 1}: {todos[i]}, статус: {statues[i]}, дата изменения: {dates[i]}");
             }
         }
 
-        static void TodosArr()
+        static void Arr()
         {
             string[] newTodos = new string[todos.Length * 2];
             for (int i = 0; i < todos.Length; i++)
@@ -135,6 +149,70 @@ namespace TodoList
             }
             dates = newDates;
             Console.WriteLine("Массивы расширены");
+        }
+
+        //Практическая работа №4
+        static void Done(string inputLine)
+        {
+            string[] parts = inputLine.Split(' ', 2);
+            if (!int.TryParse(parts[1], out int taskNumber))
+            {
+                Console.WriteLine("Номер задачи должен быть числом");
+                return;
+            }
+            int index = taskNumber - 1;
+            statues[index] = true;
+            dates[index] = DateTime.Now;
+            Console.WriteLine("Задача помечена, как выполненная");
+        }
+
+        static void Delete(string inputLine)
+        {
+            string[] parts = inputLine.Split(' ', 2);
+            if (!int.TryParse(parts[1], out int taskNumber))
+            {
+                Console.WriteLine("Номер задачи должен быть числом");
+                return;
+            }
+            int index = taskNumber - 1;
+            for (int i = index; i < todoCount - 1; i++)
+            {
+                todos[i] = todos[i+1];
+                statues[i] = statues[i+1];
+                dates[i] = dates[i+1];
+            }
+            todos[todoCount - 1] = null;
+            statues[todoCount - 1] = false;
+            dates[todoCount - 1] = DateTime.MinValue;
+            todoCount--;
+            Console.WriteLine($"Задача {taskNumber} удалена.");
+        }
+
+        static void Update(string inputLine)
+        {
+            string[] parts = inputLine.Split(' ', 3);
+            if (parts.Length < 3)
+            {
+                Console.WriteLine("Укажите номер задачи и новый текст");
+                return;
+            }
+            if (!int.TryParse(parts[1], out int taskNumber))
+            {
+                Console.WriteLine("Номер задачи должен быть числом");
+                return;
+            }
+
+            int index = taskNumber - 1;
+            if (index < 0 || index >= todoCount)
+            {
+                Console.WriteLine("Задачи с таким номером не существует");
+                return;
+            }
+
+            string newText = parts[2].Trim('"');
+            todos[index] = newText;
+            dates[index] = DateTime.Now;
+            Console.WriteLine($"Задача {taskNumber} обновлена.");
         }
     }
 }
