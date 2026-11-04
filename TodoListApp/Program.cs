@@ -12,6 +12,7 @@ namespace TodoListApp
         const string CommandDone = "done";
         const string CommandDelete = "delete";
         const string CommandUpdate = "update";
+        const string CommandRead = "read";
         const string CommandExit = "exit";
         const int InitialSize = 2;
 
@@ -70,6 +71,9 @@ namespace TodoListApp
                     case CommandUpdate:
                         HandleUpdate(todos, dates, taskCount, argument);
                         break;
+                    case CommandRead:
+                        HandleRead(todos, statuses, dates, taskCount, argument);
+                        break;
                     case CommandExit:
                         Console.WriteLine("Завершение работы программы.");
                         return;
@@ -102,10 +106,16 @@ namespace TodoListApp
             Console.WriteLine("help - список команд");
             Console.WriteLine("profile - данные пользователя");
             Console.WriteLine("add \"текст задачи\" - добавить задачу");
-            Console.WriteLine("view - показать задачи");
+            Console.WriteLine("add --multiline или add -m - многострочная задача");
+            Console.WriteLine("view -i или --index - показать индекс в таблице");
+            Console.WriteLine("view -s или --status - показать статус в таблице");
+            Console.WriteLine("view -d или --update-date - показать дату изменения");
+            Console.WriteLine("view -a или --all - показать все данные в таблице");
+            Console.WriteLine("Флаги view можно комбинировать, например: view -is");
             Console.WriteLine("done <номер задачи> - отметить задачу как выполненную");
             Console.WriteLine("delete <номер задачи> - удалить задачу");
             Console.WriteLine("update <номер задачи> \"новый текст\" - обновить задачу");
+            Console.WriteLine("read <номер задачи> - прочитать полный текст задачи без обрезки");
             Console.WriteLine("exit - выход");
         }
 
@@ -335,6 +345,37 @@ namespace TodoListApp
             todos[index] = newText;
             dates[index] = DateTime.Now;
             Console.WriteLine($"Задача №{taskNumber} успешно обновлена.");
+        }
+
+        static void HandleRead(string[] todos, bool[] statuses, DateTime[] dates, int taskCount, string argument)
+        {
+            if (string.IsNullOrWhiteSpace(argument))
+            {
+                Console.WriteLine("Введите номер задачи.");
+                return;
+            }
+
+            string cleanArgument = argument.Trim('<', '>');
+            int taskNumber;
+            if (!int.TryParse(cleanArgument, out taskNumber))
+            {
+                Console.WriteLine("Некорректный номер задачи.");
+                return;
+            }
+
+            int index = taskNumber - 1;
+            if (index < 0 || index >= taskCount)
+            {
+                Console.WriteLine("Задача с таким номером не найдена.");
+                return;
+            }
+
+            string statusText = statuses[index] ? "выполнена" : "не выполнена";
+            
+            Console.WriteLine("Полный текст задачи:");
+            Console.WriteLine(todos[index]);
+            Console.WriteLine($"Статус: {statusText}");
+            Console.WriteLine($"Дата изменения: {dates[index]:dd.MM.yyyy HH:mm}");
         }
     }
 }
