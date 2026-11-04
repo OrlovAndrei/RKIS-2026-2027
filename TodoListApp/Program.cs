@@ -19,12 +19,35 @@ namespace TodoListApp
         static void Main(string[] args)
         {
             Console.WriteLine("Работу выполнили Катмаков и Науменко.");
+            
             Console.Write("Введите имя: ");
             string firstName = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(firstName)) 
+                firstName = "Неизвестно";
+
             Console.Write("Введите фамилию: ");
             string lastName = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(lastName)) 
+                lastName = "Неизвестно";
+            
             Console.Write("Введите год рождения: ");
-            int birthYear = Convert.ToInt32(Console.ReadLine());
+            int birthYear;
+            while (true)
+            {
+                string yearInput = Console.ReadLine();
+                
+                if (yearInput == null)
+                {
+                    Console.WriteLine("Завершение работы программы.");
+                    return;
+                }
+
+                if (int.TryParse(yearInput, out birthYear))
+                    break;
+
+                Console.Write("Ошибка! Введите корректный год (числом): ");
+            }
+
             int currentYear = DateTime.Now.Year;
             int age = currentYear - birthYear;
             Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}.");
@@ -40,6 +63,16 @@ namespace TodoListApp
             {
                 Console.Write("\n> ");
                 string input = Console.ReadLine();
+                
+                if (input == null)
+                {
+                    Console.WriteLine("Завершение работы программы.");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(input)) 
+                    continue;
+
                 string[] parts = input.Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
                 
                 if (parts.Length == 0)
