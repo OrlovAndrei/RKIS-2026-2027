@@ -10,6 +10,9 @@ namespace TodoList
         static string[] todos = new string[2];
         static int todoCount = 0;
 
+        static bool[] statues = new bool[2];
+        static DateTime[] dates = new DateTime[2];
+
         static void Main(string[] args)
         {
             Console.WriteLine("Работу выполнили Сипач и Пасалиди");
@@ -90,6 +93,8 @@ namespace TodoList
                 TodosArr();
             }
             todos[todoCount] = task;
+            statues[todoCount] = false;
+            dates[todoCount] = DateTime.Now;
             todoCount++;
             Console.WriteLine($"Задача добавлена: {task}");
         }
@@ -103,7 +108,7 @@ namespace TodoList
             }
             for (int i = 0; i < todoCount; i++)
             {
-                Console.WriteLine($"Задача {i + 1}: {todos[i]}");
+                Console.WriteLine($"Задача {i + 1}: {todos[i]}, статус: {statues[i]}, дата создания: {dates[i]}");
             }
         }
 
@@ -115,7 +120,21 @@ namespace TodoList
                 newTodos[i] = todos[i];
             }
             todos = newTodos;
-            Console.WriteLine("Массив расширен");
+
+            bool[] newStatues = new bool[statues.Length * 2];
+            for (int i = 0; i < statues.Length; i++)
+            {
+                newStatues[i] = statues[i];
+            }
+            statues = newStatues;
+
+            DateTime[] newDates = new DateTime[dates.Length * 2];
+            for (int i = 0; i < dates.Length; i++)
+            {
+                newDates[i] = dates[i];
+            }
+            dates = newDates;
+            Console.WriteLine("Массивы расширены");
         }
     }
 }
