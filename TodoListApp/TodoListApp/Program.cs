@@ -198,10 +198,11 @@ class Program
             string status = statuses[i] ? "сделано" : "не сделано";
 
             Console.WriteLine(
-                $"{i + 1}. {todos[i]} {status} {dates[i].ToString(DateFormat)}"
+                $"{i + 1} {todos[i]} {status} {dates[i].ToString(DateFormat)}"
             );
         }
     }
+
 
     static bool TryGetTaskIndex(
         string[] parts,
@@ -210,8 +211,19 @@ class Program
     {
         index = -1;
 
-        if (parts.Length < 2 ||
-            !int.TryParse(parts[1], out int userIndex))
+        if (parts.Length < 2)
+        {
+            Console.WriteLine("Укажите номер задачи.");
+            return false;
+        }
+
+        string[] arguments = parts[1].Split(
+            ' ',
+            2,
+            StringSplitOptions.RemoveEmptyEntries
+        );
+
+        if (!int.TryParse(arguments[0], out int userIndex))
         {
             Console.WriteLine("Укажите корректный номер задачи.");
             return false;
@@ -226,6 +238,7 @@ class Program
         index = userIndex - 1;
         return true;
     }
+
 
     static void MarkTaskDone(
         string[] parts,
