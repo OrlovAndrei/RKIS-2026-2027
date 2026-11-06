@@ -17,3 +17,37 @@ int currentYear = DateTime.Now.Year;
 int age = currentYear - birthYear;
 
 Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+
+// Практическое задание к Лекции 3 «Ветвление и циклы»
+
+Console.WriteLine();
+Console.WriteLine("Добро пожаловать в TodoList! Введите help для списка команд.");
+
+// бесконечный цикл: условие всегда истинно
+while (true)
+{
+    Console.Write("> ");
+    string? input = Console.ReadLine();
+
+    // выходим из цикла
+    if (input == null || input.Trim() == "exit")
+        break;
+
+    string command = input.Trim();
+
+    if (command == "help")
+    {
+        Console.WriteLine("Доступные команды:");
+        Console.WriteLine("  help    — список команд");
+        Console.WriteLine("  profile — данные пользователя");
+        Console.WriteLine("  view    — показать все задачи");
+        Console.WriteLine("  add \"текст задачи\" — добавить задачу");
+        Console.WriteLine("  exit    — выход из программы");
+    }
+    else
+    {
+        Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
+    }
+}
+
+Console.WriteLine("Программа завершена. До свидания!");
