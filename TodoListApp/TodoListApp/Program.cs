@@ -44,6 +44,11 @@ while (true)
         Console.WriteLine("  add \"текст задачи\" — добавить задачу");
         Console.WriteLine("  exit    — выход из программы");
     }
+    else if (command == "profile")
+    {
+        // Профиль: <Имя> <Фамилия>, <Год рождения>
+        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+    }
     else
     {
         Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
