@@ -77,6 +77,23 @@
    * `view` вызывает метод `View()` и выводит таблицу.
    * `profile` выводит данные через `Profile.GetInfo()`.
 
+### Занятие 7:
+
+1. Перевели обработку всех команд на паттерн «Команда» (Command).
+2. Создали интерфейс `ICommand` (файл `ICommand.cs`) с методом `Execute()`.
+3. Раскидали команды по отдельным классам, каждый класс реализует `ICommand`:
+   * `AddCommand` — добавление задачи (обычной или многострочной через флаг `IsMultiline`).
+   * `ViewCommand` — просмотр задач таблицей (флаги `ShowIndex`, `ShowStatus`, `ShowDate` вынесены в свойства).
+   * `DoneCommand`, `DeleteCommand`, `ReadCommand` — отметка выполнения, удаление и чтение задачи по номеру (свойство `Index`).
+   * `UpdateCommand` — обновление текста задачи (`Index` и `Text`).
+   * `ProfileCommand`, `HelpCommand`, `ExitCommand` — вывод профиля, справки и выход из приложения.
+   * `UnknownCommand` — вывод сообщения об ошибке при неверной команде или флагах.
+4. Создали статический класс `CommandParser` (файл `CommandParser.cs`):
+   * Метод `Parse` разбирает строку ввода, определяет команду, вытаскивает аргументы и флаги, инициализирует объект команды (`TodoList`, `Profile`) и возвращает его как `ICommand`.
+5. Разгрузили `Program.cs`:
+   * Убрали из `Main` огромную кучу условий `if/else` и старых методов.
+   * Теперь в цикле просто считываем строку, отдаем в `CommandParser.Parse` и вызываем `command.Execute()`.
+
 # RKIS-2026-2027
 
 [**Таблица с баллами**](https://docs.google.com/spreadsheets/d/1GvZhXuI4iQ64We3WBa1ldcjXab0o4kIvY8auF_z9FrM/edit?usp=sharing)
