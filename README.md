@@ -40,7 +40,7 @@ dotnet run --project TodoListApp/TodoListApp/TodoListApp.csproj
 
 ## Лабораторные и отчёты
 
-- [Лабораторная 1 — Git и GitHub](report.pdf); [чек-лист задания](Lab01_Git/README.md).
+- [Лабораторная 1 — Git и GitHub](reports/Lab01_Report.pdf); [чек-лист задания](Lab01_Git/README.md).
 - [Лабораторная 2 — профиль пользователя](reports/Lab02_Report.pdf).
 - [Лабораторная 3 — цикл команд и список задач](reports/Lab03_Report.pdf).
 - [Лабораторная 4 — рефакторинг и состояние задачи](reports/Lab04_Report.pdf).
