@@ -14,6 +14,7 @@ namespace TodoListApp
         private const string CommandDelete = "delete";
         private const string CommandUpdate = "update";
         private const string CommandExit = "exit";
+        private const string CommandStatus = "status";
 
         private const string FlagMultilineLong = "--multiline";
         private const string FlagMultilineShort = "-m";
@@ -36,6 +37,7 @@ namespace TodoListApp
         private const string DoneFormatMessage = "Формат: done <номер задачи>";
         private const string DeleteFormatMessage = "Формат: delete <номер задачи>";
         private const string UpdateFormatMessage = "Формат: update <номер задачи> \"новый текст\"";
+        private const string StatusFormatMessage = "Формат: status <номер задачи> <статус>. Статусы: notstarted, inprogress, completed, postponed, failed";
 
         public static ICommand Parse(string inputString, TodoList todoList, Profile profile)
         {
@@ -64,6 +66,8 @@ namespace TodoListApp
                     return ParseDelete(arguments, todoList);
                 case CommandUpdate:
                     return ParseUpdate(arguments, todoList);
+                case CommandStatus:
+                    return ParseStatus(arguments, todoList);
                 default:
                     return CreateError(UnknownCommandMessage);
             }
@@ -188,6 +192,20 @@ namespace TodoListApp
 
             return new DeleteCommand { Index = index, TodoList = todoList };
         }
+        private static ICommand ParseStatus(string arguments, TodoList todoList)
+        {
+            string[] parts = arguments.Split(ArgumentSeparator, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2
+                || !TryParseIndex(parts[0], out int index)
+                || !Enum.TryParse(parts[1], true, out TodoStatus status)
+                || !Enum.IsDefined(typeof(TodoStatus), status))
+            {
+                return CreateError(StatusFormatMessage);
+            }
+
+            return new StatusCommand { Index = index, Status = status, TodoList = todoList };
+        }
+
 
         private static ICommand ParseUpdate(string arguments, TodoList todoList)
         {
