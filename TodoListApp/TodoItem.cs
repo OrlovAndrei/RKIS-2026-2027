@@ -8,39 +8,54 @@ namespace TodoListApp
         private const string DateFormat = "dd.MM.yyyy HH:mm";
         private const string InfoSeparator = " | ";
 
-        private const string StatusDone = "сделано";
-        private const string StatusNotDone = "не сделано";
-        private const string FullStatusDone = "выполнена";
-        private const string FullStatusNotDone = "не выполнена";
+        private const string StatusNotStartedText = "не начато";
+        private const string StatusInProgressText = "в процессе";
+        private const string StatusCompletedText = "выполнено";
+        private const string StatusPostponedText = "отложено";
+        private const string StatusFailedText = "провалено";
 
         private string text;
-        private bool isDone;
+        private TodoStatus status;
         private DateTime lastUpdate;
 
         public TodoItem(string text)
         {
             this.text = text ?? "";
-            isDone = false;
+            status = TodoStatus.NotStarted;
             lastUpdate = DateTime.Now;
         }
-        
-	public TodoItem(string text, bool isDone, DateTime lastUpdate)
+
+        public TodoItem(string text, bool isDone, DateTime lastUpdate)
         {
             this.text = text ?? "";
-            this.isDone = isDone;
+            status = isDone ? TodoStatus.Completed : TodoStatus.NotStarted;
+            this.lastUpdate = lastUpdate;
+        }
+
+        public TodoItem(string text, TodoStatus status, DateTime lastUpdate)
+        {
+            this.text = text ?? "";
+            this.status = status;
             this.lastUpdate = lastUpdate;
         }
 
         public string Text => text;
 
-        public bool IsDone => isDone;
+        public TodoStatus Status => status;
+
+        public bool IsDone => status == TodoStatus.Completed;
 
         public DateTime LastUpdate => lastUpdate;
 
+        public void SetStatus(TodoStatus newStatus)
+        {
+            status = newStatus;
+            lastUpdate = DateTime.Now;
+        }
+
         public void MarkDone()
         {
-            isDone = true;
-            lastUpdate = DateTime.Now;
+            SetStatus(TodoStatus.Completed);
         }
 
         public void UpdateText(string newText)
@@ -62,7 +77,21 @@ namespace TodoListApp
 
         public string GetStatusText()
         {
-            return isDone ? StatusDone : StatusNotDone;
+            switch (status)
+            {
+                case TodoStatus.NotStarted:
+                    return StatusNotStartedText;
+                case TodoStatus.InProgress:
+                    return StatusInProgressText;
+                case TodoStatus.Completed:
+                    return StatusCompletedText;
+                case TodoStatus.Postponed:
+                    return StatusPostponedText;
+                case TodoStatus.Failed:
+                    return StatusFailedText;
+                default:
+                    return status.ToString();
+            }
         }
 
         public string GetDateText()
@@ -77,10 +106,8 @@ namespace TodoListApp
 
         public string GetFullInfo()
         {
-            string fullStatus = isDone ? FullStatusDone : FullStatusNotDone;
-
             return $"Задача: {text}{Environment.NewLine}"
-                + $"Статус: {fullStatus}{Environment.NewLine}"
+                + $"Статус: {GetStatusText()}{Environment.NewLine}"
                 + $"Дата последнего изменения: {GetDateText()}";
         }
     }
