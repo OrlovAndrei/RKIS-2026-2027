@@ -77,9 +77,10 @@ while (true)
 
     else if (command.StartsWith("add"))
     {
+      
         string[] parts = command.Split(' ', 2);
 
-        // Текст задачи: всё после слова add, без пробелов по краям и без кавычек
+        // Текст задачи
         string taskText = "";
         if (parts.Length > 1)
         {
@@ -92,6 +93,22 @@ while (true)
         }
         else
         {
+            // хватает ли места
+            if (todoCount == todos.Length)
+            {
+                // Новый массив в 2 раза длиннее
+                string[] bigger = new string[todos.Length * 2];
+
+                // переносим задачи в новый массив
+                for (int i = 0; i < todos.Length; i++)
+                {
+                    bigger[i] = todos[i];
+                }
+
+                todos = bigger;
+                Console.WriteLine($"(массив расширен до {todos.Length} элементов)");
+            }
+
             todos[todoCount] = taskText;
             todoCount++;
             Console.WriteLine($"Задача добавлена: {taskText}");
