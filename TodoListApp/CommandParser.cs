@@ -10,7 +10,6 @@ namespace TodoListApp
         private const string CommandAdd = "add";
         private const string CommandView = "view";
         private const string CommandRead = "read";
-        private const string CommandDone = "done";
         private const string CommandDelete = "delete";
         private const string CommandUpdate = "update";
         private const string CommandExit = "exit";
@@ -34,7 +33,6 @@ namespace TodoListApp
         private const string AddFormatMessage = "Формат: add \"текст задачи\" или add --multiline";
         private const string ViewFormatMessage = "Неизвестный флаг. Формат: view [--index|-i] [--status|-s] [--update-date|-d] [--all|-a]";
         private const string ReadFormatMessage = "Формат: read <номер задачи>";
-        private const string DoneFormatMessage = "Формат: done <номер задачи>";
         private const string DeleteFormatMessage = "Формат: delete <номер задачи>";
         private const string UpdateFormatMessage = "Формат: update <номер задачи> \"новый текст\"";
         private const string StatusFormatMessage = "Формат: status <номер задачи> <статус>. Статусы: notstarted, inprogress, completed, postponed, failed";
@@ -60,8 +58,6 @@ namespace TodoListApp
                     return ParseView(arguments, todoList);
                 case CommandRead:
                     return ParseRead(arguments, todoList);
-                case CommandDone:
-                    return ParseDone(arguments, todoList);
                 case CommandDelete:
                     return ParseDelete(arguments, todoList);
                 case CommandUpdate:
@@ -171,16 +167,6 @@ namespace TodoListApp
             }
 
             return new ReadCommand { Index = index, TodoList = todoList };
-        }
-
-        private static ICommand ParseDone(string arguments, TodoList todoList)
-        {
-            if (!TryParseIndex(arguments, out int index))
-            {
-                return CreateError(DoneFormatMessage);
-            }
-
-            return new DoneCommand { Index = index, TodoList = todoList };
         }
 
         private static ICommand ParseDelete(string arguments, TodoList todoList)
