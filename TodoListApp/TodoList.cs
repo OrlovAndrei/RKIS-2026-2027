@@ -72,11 +72,6 @@ namespace TodoListApp
             return true;
         }
 
-        public TodoItem? GetItem(int index)
-        {
-            return this[index];
-        }
-
         public void View(bool showIndex, bool showDone, bool showDate)
         {
             if (items.Count == 0)
