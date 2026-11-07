@@ -15,7 +15,7 @@ namespace TodoListApp
                 return;
             }
 
-            TodoItem? item = TodoList.GetItem(Index);
+            TodoItem? item = TodoList[Index];
             if (item == null)
             {
                 Console.WriteLine($"Задача №{Index + 1} не найдена.");
