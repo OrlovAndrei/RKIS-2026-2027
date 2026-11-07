@@ -4,6 +4,11 @@ namespace TodoListApp
 {
     class Program
     {
+        const int CurrentYear = 2026;
+        const int InitialCapacity = 2;
+        const int GrowthFactor = 2;
+        const string AddPrefix = "add ";
+
         static void Main(string[] args)
         {
             Console.WriteLine("Работу выполнили Сотник и Шпак");
@@ -12,10 +17,10 @@ namespace TodoListApp
             Console.WriteLine("Ведите свою фамилию пожалуйста: ");
             string surname = Console.ReadLine();
             Console.WriteLine("Ведите свой год рождения пожалуйста: ");
-            var year = int.Parse(Console.ReadLine());
-            Console.WriteLine($"Добавлен пользователь: {name} {surname} возраст: {2026-year}");
+            int birthYear = int.Parse(Console.ReadLine());
+            Console.WriteLine($"Добавлен пользователь: {name} {surname} возраст: {CurrentYear-birthYear}");
             
-            string[] todos = new string[2];
+            string[] todos = new string[InitialCapacity];
             int count = 0;
             while (true)
             {
@@ -28,14 +33,14 @@ namespace TodoListApp
                     Console.WriteLine("view -  выводит все задачи из массива");
                     Console.WriteLine("exit - завершает цикл и останавливает выполнение программы");
                 }
-                else if (command.StartsWith("add "))
+                else if (command.StartsWith(AddPrefix))
                 {
                     string[] parts = command.Split('"');
                     string task = parts[1];
 
                     if (count == todos.Length)
                     {
-                        string[] newTodos = new string[todos.Length * 2];
+                        string[] newTodos = new string[todos.Length * GrowthFactor];
                         for (int i = 0; i < count; i++)
                         {
                             newTodos[i] = todos[i];
@@ -50,7 +55,7 @@ namespace TodoListApp
                 {
                     Console.WriteLine($"Имя: {name}");
                     Console.WriteLine($"Фамилия: {surname}");
-                    Console.WriteLine($"Год: {year}");
+                    Console.WriteLine($"Год: {birthYear}");
                 }
                 else if (command == "view")
                 {
@@ -62,6 +67,7 @@ namespace TodoListApp
                 else if (command == "exit")
                 {
                     break;
+
                 }
             }
         }
