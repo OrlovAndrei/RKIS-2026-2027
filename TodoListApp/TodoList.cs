@@ -1,10 +1,7 @@
 namespace TodoListApp
 {
-    internal class TodoList
+    internal class TodoList : IEnumerable<TodoItem>
     {
-        private const int InitialCapacity = 2;
-        private const int CapacityGrowthFactor = 2;
-
         private const string ColumnSeparator = " | ";
         private const char HeaderLineChar = '-';
         private const string HeaderIndex = "№";
@@ -12,10 +9,35 @@ namespace TodoListApp
         private const string HeaderStatus = "Статус";
         private const string HeaderDate = "Дата изменения";
 
-        private TodoItem?[] items = new TodoItem?[InitialCapacity];
-        private int count = 0;
+        private readonly List<TodoItem> items = new List<TodoItem>();
 
-        public int Count => count;
+        public int Count => items.Count;
+
+        public TodoItem? this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= items.Count)
+                {
+                    return null;
+                }
+
+                return items[index];
+            }
+        }
+
+        public IEnumerator<TodoItem> GetEnumerator()
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                yield return items[i];
+            }
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         public void Add(TodoItem item)
         {
@@ -24,48 +46,28 @@ namespace TodoListApp
                 return;
             }
 
-            if (count == items.Length)
-            {
-                IncreaseArray(items, item);
-            }
-            else
-            {
-                items[count] = item;
-            }
-
-            count++;
+            items.Add(item);
         }
 
         public bool Delete(int index)
         {
-            if (index < 0 || index >= count)
+            if (index < 0 || index >= items.Count)
             {
                 return false;
             }
 
-            for (int i = index; i < count - 1; i++)
-            {
-                items[i] = items[i + 1];
-            }
-
-            items[count - 1] = null;
-            count--;
+            items.RemoveAt(index);
             return true;
         }
 
         public TodoItem? GetItem(int index)
         {
-            if (index < 0 || index >= count)
-            {
-                return null;
-            }
-
-            return items[index];
+            return this[index];
         }
 
         public void View(bool showIndex, bool showDone, bool showDate)
         {
-            if (count == 0)
+            if (items.Count == 0)
             {
                 Console.WriteLine("Список задач пуст.");
                 return;
@@ -90,14 +92,14 @@ namespace TodoListApp
             }
 
             List<List<string>> rows = new List<List<string>>();
-            for (int i = 0; i < count; i++)
+            int number = 1;
+            foreach (TodoItem item in this)
             {
-                TodoItem item = items[i]!;
                 List<string> cells = new List<string>();
 
                 if (showIndex)
                 {
-                    cells.Add((i + 1).ToString());
+                    cells.Add(number.ToString());
                 }
 
                 cells.Add(item.GetShortText());
@@ -113,21 +115,10 @@ namespace TodoListApp
                 }
 
                 rows.Add(cells);
+                number++;
             }
 
             PrintTable(headers, rows);
-        }
-
-        private void IncreaseArray(TodoItem?[] oldItems, TodoItem item)
-        {
-            TodoItem?[] newItems = new TodoItem?[oldItems.Length * CapacityGrowthFactor];
-            for (int i = 0; i < oldItems.Length; i++)
-            {
-                newItems[i] = oldItems[i];
-            }
-
-            newItems[count] = item;
-            items = newItems;
         }
 
         private static void PrintRow(List<string> cells, int[] widths)
