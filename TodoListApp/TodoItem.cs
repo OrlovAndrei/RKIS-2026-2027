@@ -25,13 +25,6 @@ namespace TodoListApp
             lastUpdate = DateTime.Now;
         }
 
-        public TodoItem(string text, bool isDone, DateTime lastUpdate)
-        {
-            this.text = text ?? "";
-            status = isDone ? TodoStatus.Completed : TodoStatus.NotStarted;
-            this.lastUpdate = lastUpdate;
-        }
-
         public TodoItem(string text, TodoStatus status, DateTime lastUpdate)
         {
             this.text = text ?? "";
@@ -43,7 +36,6 @@ namespace TodoListApp
 
         public TodoStatus Status => status;
 
-        public bool IsDone => status == TodoStatus.Completed;
 
         public DateTime LastUpdate => lastUpdate;
 
@@ -51,11 +43,6 @@ namespace TodoListApp
         {
             status = newStatus;
             lastUpdate = DateTime.Now;
-        }
-
-        public void MarkDone()
-        {
-            SetStatus(TodoStatus.Completed);
         }
 
         public void UpdateText(string newText)
