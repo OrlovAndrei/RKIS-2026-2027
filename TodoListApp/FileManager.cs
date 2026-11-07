@@ -70,19 +70,15 @@ namespace TodoListApp
             }
 
             List<string> lines = new List<string> { TodoHeader };
-            for (int i = 0; i < todos.Count; i++)
+            int index = 0;
+            foreach (TodoItem item in todos)
             {
-                TodoItem? item = todos.GetItem(i);
-                if (item == null)
-                {
-                    continue;
-                }
-
                 string text = item.Text.Replace(Quote, EscapedQuote).Replace(NewLine, EscapedNewLine);
                 string status = item.Status.ToString();
                 string lastUpdate = item.LastUpdate.ToString(DateTimeFormat, CultureInfo.InvariantCulture);
 
-                lines.Add($"{i}{FieldSeparator}{Quote}{text}{Quote}{FieldSeparator}{status}{FieldSeparator}{lastUpdate}");
+                lines.Add($"{index}{FieldSeparator}{Quote}{text}{Quote}{FieldSeparator}{status}{FieldSeparator}{lastUpdate}");
+                index++;
             }
 
             File.WriteAllLines(filePath, lines);
