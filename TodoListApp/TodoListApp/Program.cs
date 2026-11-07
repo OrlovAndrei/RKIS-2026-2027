@@ -22,6 +22,7 @@ Console.WriteLine($"Добавлен пользователь {firstName} {lastN
 
 // Массив для задач
 string[] todos = new string[2];
+int todoCount = 0;
 
 Console.WriteLine();
 Console.WriteLine("Добро пожаловать в TodoList! Введите help для списка команд.");
@@ -47,6 +48,7 @@ while (true)
         Console.WriteLine("  add \"текст задачи\" — добавить задачу");
         Console.WriteLine("  exit    — выход из программы");
     }
+
     else if (command == "profile")
     {
         // Профиль: <Имя> <Фамилия>, <Год рождения>
@@ -71,6 +73,29 @@ while (true)
 
         if (!hasTasks)
             Console.WriteLine("  (список пуст)");
+    }
+
+    else if (command.StartsWith("add"))
+    {
+        string[] parts = command.Split(' ', 2);
+
+        // Текст задачи: всё после слова add, без пробелов по краям и без кавычек
+        string taskText = "";
+        if (parts.Length > 1)
+        {
+            taskText = parts[1].Trim().Trim('"');
+        }
+
+        if (taskText == "")
+        {
+            Console.WriteLine("Использование: add \"текст задачи\"");
+        }
+        else
+        {
+            todos[todoCount] = taskText;
+            todoCount++;
+            Console.WriteLine($"Задача добавлена: {taskText}");
+        }
     }
 
     else
