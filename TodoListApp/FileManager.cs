@@ -9,7 +9,7 @@ namespace TodoListApp
         private const string TodoFileName = "todo.csv";
         private const int ProfileLinesCount = 3;
 
-        private const string TodoHeader = "Index;Text;IsDone;LastUpdate";
+        private const string TodoHeader = "Index;Text;Status;LastUpdate";
         private const int HeaderLinesCount = 1;
         private const char FieldSeparator = ';';
         private const string Quote = "\"";
@@ -17,6 +17,9 @@ namespace TodoListApp
         private const string NewLine = "\n";
         private const string EscapedNewLine = "\\n";
         private const string DateTimeFormat = "yyyy-MM-dd'T'HH:mm:ss";
+
+        private const string LegacyDoneValue = "true";
+        private const string LegacyNotDoneValue = "false";
 
         public static string DataDirectoryPath => Path.Combine(AppContext.BaseDirectory, DataDirectoryName);
 
@@ -76,10 +79,10 @@ namespace TodoListApp
                 }
 
                 string text = item.Text.Replace(Quote, EscapedQuote).Replace(NewLine, EscapedNewLine);
-                string isDone = item.IsDone.ToString().ToLowerInvariant();
+                string status = item.Status.ToString();
                 string lastUpdate = item.LastUpdate.ToString(DateTimeFormat, CultureInfo.InvariantCulture);
 
-                lines.Add($"{i}{FieldSeparator}{Quote}{text}{Quote}{FieldSeparator}{isDone}{FieldSeparator}{lastUpdate}");
+                lines.Add($"{i}{FieldSeparator}{Quote}{text}{Quote}{FieldSeparator}{status}{FieldSeparator}{lastUpdate}");
             }
 
             File.WriteAllLines(filePath, lines);
@@ -106,6 +109,37 @@ namespace TodoListApp
             return todos;
         }
 
+        private static bool TryParseStatus(string statusText, out TodoStatus status)
+        {
+            status = TodoStatus.NotStarted;
+
+            if (statusText == LegacyDoneValue)
+            {
+                status = TodoStatus.Completed;
+                return true;
+            }
+
+            if (statusText == LegacyNotDoneValue)
+            {
+                return true;
+            }
+
+            try
+            {
+                status = Enum.Parse<TodoStatus>(statusText);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+
+            return Enum.IsDefined(typeof(TodoStatus), status);
+        }
+
         private static TodoItem? ParseTodoLine(string line)
         {
             int firstSeparator = line.IndexOf(FieldSeparator);
@@ -122,7 +156,7 @@ namespace TodoListApp
             }
 
             string textPart = line.Substring(firstSeparator + 1, middleSeparator - firstSeparator - 1);
-            string isDonePart = line.Substring(middleSeparator + 1, lastSeparator - middleSeparator - 1);
+            string statusPart = line.Substring(middleSeparator + 1, lastSeparator - middleSeparator - 1);
             string datePart = line.Substring(lastSeparator + 1);
 
             if (textPart.Length < 2 || !textPart.StartsWith(Quote) || !textPart.EndsWith(Quote))
@@ -130,7 +164,7 @@ namespace TodoListApp
                 return null;
             }
 
-            if (!bool.TryParse(isDonePart, out bool isDone))
+            if (!TryParseStatus(statusPart, out TodoStatus status))
             {
                 return null;
             }
@@ -144,7 +178,7 @@ namespace TodoListApp
                 .Replace(EscapedQuote, Quote)
                 .Replace(EscapedNewLine, NewLine);
 
-            return new TodoItem(text, isDone, lastUpdate);
+            return new TodoItem(text, status, lastUpdate);
         }
     }
 }
