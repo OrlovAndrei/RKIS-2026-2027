@@ -60,6 +60,18 @@ namespace TodoListApp
             return true;
         }
 
+        public bool SetStatus(int index, TodoStatus status)
+        {
+            TodoItem? item = this[index];
+            if (item == null)
+            {
+                return false;
+            }
+
+            item.SetStatus(status);
+            return true;
+        }
+
         public TodoItem? GetItem(int index)
         {
             return this[index];
