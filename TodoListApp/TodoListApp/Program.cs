@@ -1,124 +1,122 @@
-﻿// TodoListApp — практическое задание к Лекции 2 «Введение в C# и .NET»
+﻿// TodoListApp — практические задания к Лекциям 2–4
 // Работу выполнили: Талаева и Хрустель, группа 2121у
 
-Console.WriteLine("Работу выполнили Талаева и Хрустель");
-Console.WriteLine();
-
-Console.Write("Введите имя: ");
-string? firstName = Console.ReadLine();
-
-Console.Write("Введите фамилию: ");
-string? lastName = Console.ReadLine();
-
-Console.Write("Введите год рождения: ");
-int birthYear = int.Parse(Console.ReadLine()!);
-
-int currentYear = DateTime.Now.Year;
-int age = currentYear - birthYear;
-
-Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
-
-// Практическое задание к Лекции 3 «Ветвление и циклы»
-
-// Массив для задач
-string[] todos = new string[2];
-int todoCount = 0;
-
-Console.WriteLine();
-Console.WriteLine("Добро пожаловать в TodoList! Введите help для списка команд.");
-
-// бесконечный цикл: условие всегда истинно
-while (true)
+class Program
 {
-    Console.Write("> ");
-    string? input = Console.ReadLine();
+    // ==================== Поля класса — видны всем методам ====================
 
-    // выходим из цикла
-    if (input == null || input.Trim() == "exit")
-        break;
+    static string? firstName;   // имя пользователя
+    static string? lastName;    // фамилия пользователя
+    static int birthYear;       // год рождения
 
-    string command = input.Trim(); 
+    static string[] todos = new string[2]; // тексты задач (ёмкость 2 — по заданию)
+    static int todoCount;       // сколько задач реально добавлено
 
-    if (command == "help")
+    // ==================== Точка входа ====================
+
+    static void Main()
     {
-        Console.WriteLine("Доступные команды:");
-        Console.WriteLine("  help    — список команд");
-        Console.WriteLine("  profile — данные пользователя");
-        Console.WriteLine("  view    — показать все задачи");
-        Console.WriteLine("  add \"текст задачи\" — добавить задачу");
-        Console.WriteLine("  exit    — выход из программы");
-    }
+        Console.WriteLine("Работу выполнили Талаева и Хрустель");
+        Console.WriteLine();
 
-    else if (command == "profile")
-    {
-        // Профиль: <Имя> <Фамилия>, <Год рождения>
-        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
-    }
+        // ---------- Данные пользователя (Лекция 2) ----------
+        Console.Write("Введите имя: ");
+        firstName = Console.ReadLine();
 
-    else if (command == "view")
-    {
-        Console.WriteLine("Ваши задачи:");
+        Console.Write("Введите фамилию: ");
+        lastName = Console.ReadLine();
 
-        bool hasTasks = false; // встретили ли хоть одну задачу
+        Console.Write("Введите год рождения: ");
+        birthYear = int.Parse(Console.ReadLine()!);
 
-        for (int i = 0; i < todos.Length; i++)
+        int age = DateTime.Now.Year - birthYear;
+        Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+
+        Console.WriteLine();
+        Console.WriteLine("Добро пожаловать в TodoList! Введите help для списка команд.");
+
+        // ---------- Бесконечный цикл обработки команд ----------
+        while (true)
         {
-            // Пустые ячейки массива пропускаем
-            if (string.IsNullOrEmpty(todos[i]))
-                continue;
+            Console.Write("> ");
+            string? input = Console.ReadLine();
 
-            Console.WriteLine($"  {i + 1}. {todos[i]}");
-            hasTasks = true;
-        }
+            if (input == null || input.Trim() == "exit")
+                break;
 
-        if (!hasTasks)
-            Console.WriteLine("  (список пуст)");
-    }
+            string command = input.Trim();
 
-    else if (command.StartsWith("add"))
-    {
-      
-        string[] parts = command.Split(' ', 2);
-
-        // Текст задачи
-        string taskText = "";
-        if (parts.Length > 1)
-        {
-            taskText = parts[1].Trim().Trim('"');
-        }
-
-        if (taskText == "")
-        {
-            Console.WriteLine("Использование: add \"текст задачи\"");
-        }
-        else
-        {
-            // хватает ли места
-            if (todoCount == todos.Length)
+            if (command == "help")
             {
-                // Новый массив в 2 раза длиннее
-                string[] bigger = new string[todos.Length * 2];
+                Console.WriteLine("Доступные команды:");
+                Console.WriteLine("  help    — список команд");
+                Console.WriteLine("  profile — данные пользователя");
+                Console.WriteLine("  view    — показать все задачи");
+                Console.WriteLine("  add \"текст задачи\" — добавить задачу");
+                Console.WriteLine("  exit    — выход из программы");
+            }
+            else if (command == "profile")
+            {
+                Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+            }
+            else if (command == "view")
+            {
+                Console.WriteLine("Ваши задачи:");
 
-                // переносим задачи в новый массив
+                bool hasTasks = false;
+
                 for (int i = 0; i < todos.Length; i++)
                 {
-                    bigger[i] = todos[i];
+                    if (string.IsNullOrEmpty(todos[i]))
+                        continue;
+
+                    Console.WriteLine($"  {i + 1}. {todos[i]}");
+                    hasTasks = true;
                 }
 
-                todos = bigger;
-                Console.WriteLine($"(массив расширен до {todos.Length} элементов)");
+                if (!hasTasks)
+                    Console.WriteLine("  (список пуст)");
             }
+            else if (command.StartsWith("add"))
+            {
+                string[] parts = command.Split(' ', 2);
 
-            todos[todoCount] = taskText;
-            todoCount++;
-            Console.WriteLine($"Задача добавлена: {taskText}");
+                string taskText = "";
+                if (parts.Length > 1)
+                {
+                    taskText = parts[1].Trim().Trim('"');
+                }
+
+                if (taskText == "")
+                {
+                    Console.WriteLine("Использование: add \"текст задачи\"");
+                }
+                else
+                {
+                    if (todoCount == todos.Length)
+                    {
+                        string[] bigger = new string[todos.Length * 2];
+
+                        for (int i = 0; i < todos.Length; i++)
+                        {
+                            bigger[i] = todos[i];
+                        }
+
+                        todos = bigger;
+                        Console.WriteLine($"(массив расширен до {todos.Length} элементов)");
+                    }
+
+                    todos[todoCount] = taskText;
+                    todoCount++;
+                    Console.WriteLine($"Задача добавлена: {taskText}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
+            }
         }
-    }
 
-    else
-    {
-        Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
+        Console.WriteLine("Программа завершена. До свидания!");
     }
 }
-
-Console.WriteLine("Программа завершена. До свидания!");
