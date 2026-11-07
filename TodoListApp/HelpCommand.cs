@@ -16,7 +16,7 @@ namespace TodoListApp
             Console.WriteLine("  --update-date, -d - показать дату последнего изменения");
             Console.WriteLine("  --all, -a - показать все данные");
             Console.WriteLine("read <номер> - показать полный текст задачи, статус и дату");
-            Console.WriteLine("done <номер> - отметить задачу выполненной");
+            Console.WriteLine("status <номер> <статус> - изменить статус задачи (notstarted, inprogress, completed, postponed, failed)");
             Console.WriteLine("delete <номер> - удалить задачу");
             Console.WriteLine("update <номер> \"новый текст\" - изменить текст задачи");
             Console.WriteLine("exit - завершить программу");
