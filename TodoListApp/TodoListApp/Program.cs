@@ -20,6 +20,9 @@ Console.WriteLine($"Добавлен пользователь {firstName} {lastN
 
 // Практическое задание к Лекции 3 «Ветвление и циклы»
 
+// Массив для задач
+string[] todos = new string[2];
+
 Console.WriteLine();
 Console.WriteLine("Добро пожаловать в TodoList! Введите help для списка команд.");
 
@@ -49,6 +52,27 @@ while (true)
         // Профиль: <Имя> <Фамилия>, <Год рождения>
         Console.WriteLine($"{firstName} {lastName}, {birthYear}");
     }
+
+    else if (command == "view")
+    {
+        Console.WriteLine("Ваши задачи:");
+
+        bool hasTasks = false; // встретили ли хоть одну задачу
+
+        for (int i = 0; i < todos.Length; i++)
+        {
+            // Пустые ячейки массива пропускаем
+            if (string.IsNullOrEmpty(todos[i]))
+                continue;
+
+            Console.WriteLine($"  {i + 1}. {todos[i]}");
+            hasTasks = true;
+        }
+
+        if (!hasTasks)
+            Console.WriteLine("  (список пуст)");
+    }
+
     else
     {
         Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
