@@ -33,7 +33,7 @@ while (true)
     if (input == null || input.Trim() == "exit")
         break;
 
-    string command = input.Trim();
+    string command = input.Trim(); 
 
     if (command == "help")
     {
