@@ -1,1 +1,44 @@
-﻿Console.WriteLine("Hello, World!");
+﻿using System;
+
+namespace TodoListApp
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            // Вывод измененного текста из шага 7
+            Console.WriteLine("Работу выполнили: Кудрявцев и Гапченко");
+            Console.WriteLine(); // Пустая строка для красоты
+
+            // Запрос имени
+            Console.Write("Введите ваше имя: ");
+            string firstName = Console.ReadLine() ?? string.Empty;
+
+            // Запрос фамилии
+            Console.Write("Введите вашу фамилию: ");
+            string lastName = Console.ReadLine() ?? string.Empty;
+
+            // Запрос года рождения
+            Console.Write("Введите год рождения: ");
+            string yearInput = Console.ReadLine() ?? string.Empty;
+
+            // Преобразование года рождения в целое число и вычисление возраста
+            if (int.TryParse(yearInput, out int birthYear))
+            {
+                int currentYear = DateTime.Now.Year; // Текущий год
+                int age = currentYear - birthYear;   // Вычисление возраста
+
+                // Вывод итогового сообщения
+                Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+            }
+            else
+            {
+                Console.WriteLine("Ошибка: год рождения должен быть числом.");
+            }
+
+            // Чтобы консоль не закрывалась сразу
+            Console.WriteLine("Нажмите любую клавишу для выхода...");
+            Console.ReadKey();
+        }
+    }
+}
