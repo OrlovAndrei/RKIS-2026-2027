@@ -115,8 +115,16 @@ class Program
 
         Console.WriteLine("Ваши задачи:");
         for (int i = 0; i < todoCount; i++)
-            Console.WriteLine($"  {i + 1}. {todos[i]}");
-    }
+        {
+            // Тернарный оператор: statuses[i] == true -> "сделано", иначе "не сделано"
+            string statusText = statuses[i] ? "сделано" : "не сделано";
+
+            string dateText = dates[i].ToString("dd.MM.yyyy");
+
+            // Формат по заданию
+            Console.WriteLine($"  {i + 1}. {todos[i]} [{statusText}] ({dateText})");
+        }
+    } 
 
     // Разбирает команду add и добавляет задачу во все три массива
     static void HandleAdd(string command)
