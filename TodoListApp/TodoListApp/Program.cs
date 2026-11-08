@@ -1,20 +1,33 @@
 ﻿// TodoListApp — практические задания к Лекциям 2–4
+// Лекция 4 «Методы, принципы проектирования и рефакторинг»
 // Работу выполнили: Талаева и Хрустель, группа 2121у
 
 class Program
 {
-    // ==================== Константы (вместо магических значений) ====================
+    // ==================== Константы ====================
 
-    const int StartCapacity = 2;   // начальная ёмкость массива задач
+    const int StartCapacity = 2; 
 
-    // ==================== Поля класса — видны всем методам ====================
+    // ==================== Поля класса ====================
 
-    static string? firstName;   // имя пользователя
-    static string? lastName;    // фамилия пользователя
-    static int birthYear;       // год рождения
+    // Данные пользователя
+    static string firstName = "";
+    static string lastName = "";
+    static int birthYear = 0;
 
-    static string[] todos = new string[StartCapacity]; // тексты задач
-    static int todoCount;       // сколько задач реально добавлено
+    // ==================== Три параллельных массива задач ====================
+
+    // Тексты задач
+    static string[] todos = new string[StartCapacity];
+
+    // Выполнена ли задача
+    static bool[] statuses = new bool[StartCapacity];
+
+    // Дата создания / последнего изменения задачи
+    static DateTime[] dates = new DateTime[StartCapacity];
+
+    // Сколько задач реально добавлено
+    static int todoCount = 0;
 
     // ==================== Точка входа ====================
 
@@ -28,7 +41,7 @@ class Program
         Console.WriteLine();
         Console.WriteLine("Добро пожаловать в TodoList! Введите help для списка команд.");
 
-        // ---------- Диспетчер команд ----------
+        // Бесконечный цикл обработки команд
         while (true)
         {
             Console.Write("> ");
@@ -39,65 +52,48 @@ class Program
 
             string command = input.Trim();
 
+            // Диспетчер: каждая команда — отдельный метод
             if (command == "help")
-            {
                 ShowHelp();
-            }
             else if (command == "profile")
-            {
                 ShowProfile();
-            }
             else if (command == "view")
-            {
                 ShowTasks();
-            }
-            else if (command.StartsWith("add"))
-            {
-                string[] parts = command.Split(' ', 2);
-
-                string taskText = "";
-                if (parts.Length > 1)
-                {
-                    taskText = parts[1].Trim().Trim('"');
-                }
-
-                if (taskText == "")
-                {
-                    Console.WriteLine("Использование: add \"текст задачи\"");
-                }
-                else
-                {
-                    AddTask(taskText);
-                }
-            }
+            else if (command == "add" || command.StartsWith("add "))
+                HandleAdd(command);
             else
-            {
                 Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
-            }
         }
 
         Console.WriteLine("Программа завершена. До свидания!");
     }
 
-    // ==================== Методы ====================
+    // ==================== Пользователь ====================
 
-    // Читает данные пользователя (Лекция 2)
+    // Читает данные пользователя при старте
     static void ReadUserInfo()
     {
         Console.Write("Введите имя: ");
-        firstName = Console.ReadLine();
+        firstName = Console.ReadLine()!;
 
         Console.Write("Введите фамилию: ");
-        lastName = Console.ReadLine();
+        lastName = Console.ReadLine()!;
 
         Console.Write("Введите год рождения: ");
         birthYear = int.Parse(Console.ReadLine()!);
 
-        Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {CalculateAge()}");
+        Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {CalculateAge(birthYear)}");
     }
 
-    // Сокращённый синтаксис => : метод сразу возвращает выражение
-    static int CalculateAge() => DateTime.Now.Year - birthYear;
+    // Сокращённый синтаксис => метод из одной строки, сразу возвращает результат
+    static int CalculateAge(int year) => DateTime.Now.Year - year;
+
+    static void ShowProfile()
+    {
+        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+    }
+
+    // ==================== Команды ====================
 
     static void ShowHelp()
     {
@@ -109,54 +105,69 @@ class Program
         Console.WriteLine("  exit    — выход из программы");
     }
 
-    static void ShowProfile()
-    {
-        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
-    }
-
     static void ShowTasks()
     {
-        Console.WriteLine("Ваши задачи:");
-
-        bool hasTasks = false;
-
-        for (int i = 0; i < todos.Length; i++)
+        if (todoCount == 0)
         {
-            if (string.IsNullOrEmpty(todos[i]))
-                continue;
-
-            Console.WriteLine($"  {i + 1}. {todos[i]}");
-            hasTasks = true;
+            Console.WriteLine("Список задач пуст.");
+            return;
         }
 
-        if (!hasTasks)
-            Console.WriteLine("  (список пуст)");
+        Console.WriteLine("Ваши задачи:");
+        for (int i = 0; i < todoCount; i++)
+            Console.WriteLine($"  {i + 1}. {todos[i]}");
     }
 
-    // Добавляет задачу, при нехватке места сначала расширяет массив
-    static void AddTask(string taskText)
+    // Разбирает команду add и добавляет задачу во все три массива
+    static void HandleAdd(string command)
     {
-        if (todoCount == todos.Length)
+        // parts[0] — слово add, parts[1] — весь остальной текст задачи
+        string[] parts = command.Split(' ', 2);
+        string taskText = parts.Length > 1 ? parts[1].Trim().Trim('"') : "";
+
+        if (taskText == "")
         {
-            ExpandArrays();
-            Console.WriteLine($"(массив расширен до {todos.Length} элементов)");
+            Console.WriteLine("Использование: add \"текст задачи\"");
+            return;
         }
 
-        todos[todoCount] = taskText;
+        // Убедиться, что во всех трёх массивах есть место
+        EnsureCapacity();
+
+        // Записываем задачу синхронно во все массивы под одним индексом
+        todos[todoCount] = taskText;     // текст
+        statuses[todoCount] = false;     // новая задача — не выполнена
+        dates[todoCount] = DateTime.Now; // дата создания
+
         todoCount++;
         Console.WriteLine($"Задача добавлена: {taskText}");
     }
 
-    // Создаёт новый массив в 2 раза длиннее и переносит данные циклом
-    static void ExpandArrays()
+    // ==================== Расширение массивов ====================
+
+    // Расширяет ВСЕ три массива в 2 раза, когда места не хватает.
+    static void EnsureCapacity()
     {
-        string[] bigger = new string[todos.Length * 2];
+        if (todoCount < todos.Length)
+            return; 
+
+        int newCapacity = todos.Length * 2;
+        Console.WriteLine($"(массивы расширены до {newCapacity} элементов)");
+
+        // Создаём новые, более длинные массивы и копируем старые значения
+        string[] biggerTodos = new string[newCapacity];
+        bool[] biggerStatuses = new bool[newCapacity];
+        DateTime[] biggerDates = new DateTime[newCapacity];
 
         for (int i = 0; i < todos.Length; i++)
         {
-            bigger[i] = todos[i];
+            biggerTodos[i] = todos[i];
+            biggerStatuses[i] = statuses[i];
+            biggerDates[i] = dates[i];
         }
 
-        todos = bigger;
+        todos = biggerTodos;
+        statuses = biggerStatuses;
+        dates = biggerDates;
     }
-}
+} 
