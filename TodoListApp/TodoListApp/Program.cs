@@ -66,6 +66,8 @@ class Program
                 HandleAdd(command);
             else if (command == "done" || command.StartsWith("done "))
                 HandleDone(command);
+            else if (command == "update" || command.StartsWith("update "))
+                HandleUpdate(command);
             else
                 Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
         }
@@ -108,6 +110,7 @@ class Program
         Console.WriteLine("  view    — показать все задачи");
         Console.WriteLine("  add \"текст задачи\" — добавить задачу");
         Console.WriteLine("  done <номер> — отметить задачу выполненной");
+        Console.WriteLine("  update <номер> \"новый текст\" — изменить текст задачи");
         Console.WriteLine("  exit    — выход из программы");
     }
 
@@ -180,6 +183,39 @@ class Program
         statuses[index] = true;      // отмечаем выполненной
         dates[index] = DateTime.Now; // дата последнего изменения
         Console.WriteLine($"Задача отмечена выполненной: {todos[index]}");
+    }
+
+    // Обновляет текст задачи: update <номер> "новый текст"
+    static void HandleUpdate(string command)
+    {
+        // Лимит 3: parts[0] — update, parts[1] — номер, parts[2] — весь новый текст
+        string[] parts = command.Split(' ', 3);
+
+        if (parts.Length < 3)
+        {
+            Console.WriteLine("Использование: update <номер> \"новый текст\"");
+            return;
+        }
+
+        int index = GetTaskIndex(parts[1]);
+
+        if (index == -1)
+        {
+            Console.WriteLine("Задача с таким номером не найдена.");
+            return;
+        }
+
+        string newText = parts[2].Trim().Trim('"');
+
+        if (newText == "")
+        {
+            Console.WriteLine("Использование: update <номер> \"новый текст\"");
+            return;
+        }
+
+        todos[index] = newText;      // новый текст
+        dates[index] = DateTime.Now; // дата последнего изменения
+        Console.WriteLine($"Задача обновлена: {todos[index]}");
     }
 
     // ==================== Расширение массивов ====================
