@@ -80,7 +80,7 @@ const string CommandHelp = "help"; // Название команды справ
 const string CommandProfile = "profile"; // Название команды просмотра профиля
 const string CommandAdd = "add"; // Название команды добавления задачи
 const string CommandView = "view"; // Название команды просмотра списка
-const string CommandDone = "done"; // Название команды отметки о выполнении
+const string CommandStatus = "status"; // Название команды изменения статуса
 const string CommandDelete = "delete"; // Название команды удаления задачи
 const string CommandUpdate = "update"; // Название команды изменения текста задачи
 const string CommandRead = "read"; // Название команды чтения полной информации
@@ -97,7 +97,7 @@ void ShowHelp() // Локальный метод без параметров и 
     Console.WriteLine("view --index/-i --status/-s --update-date/-d"); // Флаги столбцов для view
     Console.WriteLine("view --all/-a - показать все столбцы"); // Флаг показа всех столбцов
     Console.WriteLine("read <номер> - полная информация о задаче"); // Описание команды read
-    Console.WriteLine("done <номер> - выполнить задачу"); // Описание команды done
+    Console.WriteLine("status <номер> <статус> - изменить статус (notstarted, inprogress, completed, postponed, failed)");
     Console.WriteLine("update <номер> \"новый текст\" - изменить задачу"); // Описание команды update
     Console.WriteLine("delete <номер> - удалить задачу"); // Описание команды delete
     Console.WriteLine("exit - завершить программу"); // Описание команды exit
@@ -219,24 +219,42 @@ TodoItem? GetTask(string commandArgs) // Возвращает задачу ил�
     return todoList.GetItem(index); // Возвращаем задачу с этим номером из списка
 } // Конец метода GetTask
 
-// Метод отмечает задачу выполненной.
-void DoneTask(string commandArgs) // Принимает аргументы команды done
+// Метод разбирает команду status и меняет статус задачи.
+void StatusTask(string commandArgs)
 {
-    TodoItem? item = GetTask(commandArgs); // Получаем задачу по номеру (может быть null)
+    // Делим аргументы на номер и статус.
+    string[] parts = commandArgs.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-    if (item == null) // Если задача не найдена
+    if (parts.Length < 2)
     {
-        return; // Прекращаем выполнение метода
+        Console.WriteLine("Формат: status <номер> <статус>");
+        return;
     }
 
-    // Меняем статус задачи.
-    item.MarkDone(); // Отмечаем задачу выполненной и обновляем дату изменения
+    if (!int.TryParse(parts[0], out int index))
+    {
+        Console.WriteLine("Ошибка. Укажите номер задачи.");
+        return;
+    }
 
-    // Сохраняем изменения.
-    FileManager.SaveTodos(todoList, todoFilePath); // Записываем список в файл
+    // Преобразуем строку в enum без учёта регистра.
+    if (!Enum.TryParse<TodoStatus>(parts[1], true, out TodoStatus status) || !Enum.IsDefined(status))
+    {
+        Console.WriteLine("Неизвестный статус. Доступны: notstarted, inprogress, completed, postponed, failed.");
+        return;
+    }
 
-    Console.WriteLine("Задача отмечена выполненной."); // Подтверждаем действие
-} // Конец метода DoneTask
+    StatusCommand command = new StatusCommand
+    {
+        TodoList = todoList,
+        Index = index,
+        Status = status
+    };
+
+    command.Execute();
+
+    FileManager.SaveTodos(todoList, todoFilePath); // Сохраняем изменения.
+}
 
 // Метод изменяет текст существующей задачи.
 void UpdateTask(string commandArgs) // Принимает аргументы команды update
@@ -358,8 +376,8 @@ while (true) // Бесконечный цикл: программа работа
             ViewTasks(commandArgs); // Показываем таблицу задач
             break; // Выходим из switch
 
-        case CommandDone: // Если введено done
-            DoneTask(commandArgs); // Отмечаем задачу выполненной
+        case CommandStatus: // Если введено status
+            StatusTask(commandArgs); // Меняем статус задачи
             break; // Выходим из switch
 
         case CommandDelete: // Если введено delete
