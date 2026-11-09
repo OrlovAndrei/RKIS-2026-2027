@@ -61,6 +61,19 @@ public class TodoList // Класс для управления списком �
         return this[index - 1]; // Используем индексатор.
     }
 
+    public bool SetStatus(int index, TodoStatus status) // Меняет статус задачи по номеру.
+    {
+        TodoItem? item = GetItem(index); // Сам сообщит об ошибке номера.
+
+        if (item == null)
+        {
+            return false;
+        }
+
+        item.SetStatus(status);
+        return true;
+    }
+
     public void View(bool showIndex, bool showDone, bool showDate) // Выводит таблицу задач.
     {
         if (Count == 0)
@@ -108,7 +121,7 @@ public class TodoList // Класс для управления списком �
                 shortText = shortText.Substring(0, 30) + "...";
             }
 
-            string status = item.IsDone ? "сделано" : "не сделано";
+            string status = item.GetStatusText();
             string date = item.LastUpdate.ToString("dd.MM.yyyy HH:mm");
 
             Console.WriteLine(BuildRow(number.ToString(), shortText, status, date));
