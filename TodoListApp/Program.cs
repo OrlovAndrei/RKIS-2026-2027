@@ -56,6 +56,7 @@ while (true)
             Console.WriteLine("     exit — выход");
             Console.WriteLine("     done < idx > — отмечает задачу выполненной");
             Console.WriteLine("     update < idx > \"new_text\" обновляет текст задачи");
+            Console.WriteLine("     delete < idx > — удаление задачи");
             break;
 
         case "add":
