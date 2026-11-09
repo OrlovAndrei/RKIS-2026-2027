@@ -71,26 +71,27 @@ public static class FileManager // Статический: экземпляры 
         // Добавляем заголовок таблицы.
         lines.Add("Index;Text;IsDone;LastUpdate"); // Первая строка CSV — названия столбцов, разделённые «;»
 
-        // Перебираем все задачи списка.
-        for (int i = 1; i <= todos.Count; i++) // Номера задач в списке начинаются с 1, поэтому идём от 1 до Count включительно
-        {
-            TodoItem item = todos.GetItem(i); // Получаем задачу по номеру
+                // Перебираем все задачи списка через итератор.
+        int index = 0; // Индекс в файле начинается с 0.
 
+        foreach (TodoItem item in todos)
+        {
             // Заменяем реальные переносы строк специальной последовательностью.
-            string text = item.Text // Берём текст задачи
-                .Replace("\r\n", "\n") // Переносы Windows (\r\n) приводим к одному символу \n
-                .Replace("\r", "\n") // Одиночные \r (старый Mac) тоже заменяем на \n
-                .Replace("\n", "\\n"); // Каждый перенос строки заменяем на текст «\n», чтобы задача занимала одну строку файла
+            string text = item.Text
+                .Replace("\r\n", "\n")
+                .Replace("\r", "\n")
+                .Replace("\n", "\\n");
 
             // Удваиваем кавычки для корректной записи в CSV.
-            text = text.Replace("\"", "\"\""); // По правилам CSV кавычка внутри поля записывается как две подряд
+            text = text.Replace("\"", "\"\"");
 
             // Формируем строку: индекс, текст, статус, дата изменения.
-            string line = // Переменная для готовой строки CSV
-                $"{i - 1};\"{text}\";{item.IsDone.ToString().ToLowerInvariant()};{item.LastUpdate.ToString("O", CultureInfo.InvariantCulture)}"; // Индекс с 0, текст в кавычках, статус true/false, дата в формате ISO 8601 ("O")
+            string line =
+                $"{index};\"{text}\";{item.IsDone.ToString().ToLowerInvariant()};{item.LastUpdate.ToString("O", CultureInfo.InvariantCulture)}";
 
-            lines.Add(line); // Добавляем строку задачи в список
-        } // Конец цикла по задачам
+            lines.Add(line);
+            index++;
+        }
 
         // Записываем заголовок и задачи в файл.
         File.WriteAllLines(filePath, lines); // Записываем все строки в файл (перезаписывая его)
