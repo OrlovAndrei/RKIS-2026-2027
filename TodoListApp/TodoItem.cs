@@ -1,60 +1,67 @@
-using System; // Подключаем работу с датой и временем.
+using System; // Работа с датой и временем.
 
 public class TodoItem // Класс одной задачи.
 {
-    public string Text { get; private set; } // Текст задачи: изменяется только внутри класса.
-    public bool IsDone { get; private set; } // Статус выполнения задачи.
-    public DateTime LastUpdate { get; private set; } // Дата создания или изменения задачи.
+    public string Text { get; private set; } // Текст задачи.
+    public TodoStatus Status { get; private set; } // Статус задачи.
+    public DateTime LastUpdate { get; private set; } // Дата создания или изменения.
 
-    public TodoItem(string text) // Конструктор получает текст новой задачи.
+    public TodoItem(string text) // Новая задача.
     {
-        Text = text; // Сохраняем текст задачи.
-        IsDone = false; // Новая задача ещё не выполнена.
-        LastUpdate = DateTime.Now; // Запоминаем текущую дату и время.
-    }
-    // Создаёт задачу с восстановленными данными из файла.
-    public TodoItem(string text, bool isDone, DateTime lastUpdate)
-    {
-        // Восстанавливаем текст задачи.
         Text = text;
-        // Восстанавливаем статус выполнения.
-        IsDone = isDone;
-        // Восстанавливаем дату последнего изменения.
+        Status = TodoStatus.NotStarted; // По умолчанию — не начато.
+        LastUpdate = DateTime.Now;
+    }
+
+    // Задача с данными, восстановленными из файла.
+    public TodoItem(string text, TodoStatus status, DateTime lastUpdate)
+    {
+        Text = text;
+        Status = status;
         LastUpdate = lastUpdate;
     }
-    
-    public void MarkDone() // Метод отмечает задачу выполненной.
+
+    public void SetStatus(TodoStatus newStatus) // Меняет статус и обновляет дату.
     {
-        IsDone = true; // Меняем статус задачи.
-        LastUpdate = DateTime.Now; // Обновляем дату изменения.
+        Status = newStatus;
+        LastUpdate = DateTime.Now;
     }
 
-    public void UpdateText(string newText) // Метод изменяет текст задачи.
+    public void UpdateText(string newText) // Меняет текст и обновляет дату.
     {
-        Text = newText; // Сохраняем новый текст.
-        LastUpdate = DateTime.Now; // Обновляем дату изменения.
+        Text = newText;
+        LastUpdate = DateTime.Now;
     }
 
-    public string GetShortInfo() // Метод возвращает краткую информацию о задаче.
+    public string GetStatusText() // Текстовое описание статуса.
     {
-        string shortText = Text.Replace("\n", " "); // Заменяем переносы строк пробелами.
-
-        if (shortText.Length > 30) // Проверяем, превышает ли текст 30 символов.
+        return Status switch
         {
-            shortText = shortText.Substring(0, 30) + "..."; // Оставляем первые 30 символов.
+            TodoStatus.NotStarted => "не начато",
+            TodoStatus.InProgress => "в процессе",
+            TodoStatus.Completed => "выполнено",
+            TodoStatus.Postponed => "отложено",
+            TodoStatus.Failed => "провалено",
+            _ => "неизвестно"
+        };
+    }
+
+    public string GetShortInfo() // Краткая информация о задаче.
+    {
+        string shortText = Text.Replace("\n", " ");
+
+        if (shortText.Length > 30)
+        {
+            shortText = shortText.Substring(0, 30) + "...";
         }
 
-        string status = IsDone ? "сделано" : "не сделано"; // Получаем текстовый статус.
-
-        return $"{shortText} | {status} | {LastUpdate:dd.MM.yyyy HH:mm}"; // Возвращаем краткую информацию.
+        return $"{shortText} | {GetStatusText()} | {LastUpdate:dd.MM.yyyy HH:mm}";
     }
 
-    public string GetFullInfo() // Метод возвращает полную информацию о задаче.
+    public string GetFullInfo() // Полная информация о задаче.
     {
-        string status = IsDone ? "выполнена" : "не выполнена"; // Формируем описание статуса.
-
-        return $"Текст: {Text}\n" + // Добавляем полный текст задачи.
-               $"Статус: {status}\n" + // Добавляем статус выполнения.
-               $"Последнее изменение: {LastUpdate:dd.MM.yyyy HH:mm}"; // Добавляем дату изменения.
+        return $"Текст: {Text}\n" +
+               $"Статус: {GetStatusText()}\n" +
+               $"Последнее изменение: {LastUpdate:dd.MM.yyyy HH:mm}";
     }
 }
