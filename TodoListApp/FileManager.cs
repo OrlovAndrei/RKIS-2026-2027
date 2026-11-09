@@ -69,7 +69,7 @@ public static class FileManager // Статический: экземпляры 
         List<string> lines = new List<string>(); // Список строк будущего файла
 
         // Добавляем заголовок таблицы.
-        lines.Add("Index;Text;IsDone;LastUpdate"); // Первая строка CSV — названия столбцов, разделённые «;»
+        lines.Add("Index;Text;Status;LastUpdate"); // Первая строка CSV — названия столбцов, разделённые «;»
 
                 // Перебираем все задачи списка через итератор.
         int index = 0; // Индекс в файле начинается с 0.
@@ -87,7 +87,7 @@ public static class FileManager // Статический: экземпляры 
 
             // Формируем строку: индекс, текст, статус, дата изменения.
             string line =
-                $"{index};\"{text}\";{item.IsDone.ToString().ToLowerInvariant()};{item.LastUpdate.ToString("O", CultureInfo.InvariantCulture)}";
+                $"{index};\"{text}\";{item.Status};{item.LastUpdate.ToString("O", CultureInfo.InvariantCulture)}";
 
             lines.Add(line);
             index++;
@@ -118,7 +118,7 @@ public static class FileManager // Статический: экземпляры 
         }
 
         // Проверяем заголовок CSV-файла.
-        if (lines[0] != "Index;Text;IsDone;LastUpdate") // Первая строка должна точно совпадать с ожидаемым заголовком
+        if (lines[0] != "Index;Text;Status;LastUpdate") // Первая строка должна точно совпадать с ожидаемым заголовком
         {
             throw new InvalidDataException( // Иначе файл не нашего формата — выбрасываем исключение
                 "Некорректный заголовок файла todo.csv." // Текст сообщения об ошибке
@@ -156,12 +156,12 @@ public static class FileManager // Статический: экземпляры 
             // Восстанавливаем переносы строк в тексте задачи.
             string text = fields[1].Replace("\\n", "\n"); // Заменяем текст «\n» обратно на настоящий перенос строки
 
-            // Проверяем статус выполнения задачи.
-            if (!bool.TryParse(fields[2], out bool isDone)) // Пробуем превратить «true»/«false» в bool
+            // Восстанавливаем статус задачи из текста.
+            if (!Enum.TryParse<TodoStatus>(fields[2], out TodoStatus status) || !Enum.IsDefined(status))
             {
-                throw new InvalidDataException( // Если не получилось — выбрасываем исключение
-                    $"Некорректный статус в строке {i + 1}." // Сообщение с номером строки
-                ); // Конец создания исключения
+                throw new InvalidDataException(
+                    $"Некорректный статус в строке {i + 1}."
+                );
             }
 
             // Восстанавливаем дату последнего изменения.
@@ -177,7 +177,7 @@ public static class FileManager // Статический: экземпляры 
             }
 
             // Создаём задачу со всеми сохранёнными данными.
-            TodoItem item = new TodoItem(text, isDone, lastUpdate); // Конструктор с текстом, статусом и датой (не текущей)
+            TodoItem item = new TodoItem(text, status, lastUpdate);
 
             // Добавляем задачу в список.
             todos.Add(item); // Кладём задачу в список
