@@ -507,3 +507,44 @@ Index;Text;IsDone;LastUpdate
 
 Гонтарева Юлия и Рыжих Вероника.  
 Группа 2122.
+
+
+---
+
+## Задание № 9. Списки, индексатор, итератор, enum статусов
+
+### Описание выполненных изменений
+
+В `TodoList` массив заменён на приватный `List<TodoItem>`, добавлены индексатор и итератор. Булево поле `IsDone` заменено на перечисление `TodoStatus`, добавлена команда `status`.
+
+### Реализованные возможности
+
+- Задачи хранятся в `List<TodoItem>`, метод `IncreaseArray` удалён.
+- Добавлен индексатор `this[int index]` для доступа к задачам.
+- Добавлен метод-итератор `GetEnumerator()` с `yield return`, список можно перебирать через `foreach`.
+- В `TodoItem` вместо `IsDone` добавлено свойство `Status` типа `TodoStatus`.
+- Перечисление `TodoStatus`: `NotStarted`, `InProgress`, `Completed`, `Postponed`, `Failed`.
+- `TodoList.Done` заменён на `SetStatus(int index, TodoStatus status)`.
+- Добавлена команда `status` (класс `StatusCommand`), команда `done` удалена.
+- `view` и `read` выводят текстовый статус.
+- В CSV статус сохраняется через `ToString()` и читается через `Enum.TryParse`. Заголовок: `Index;Text;Status;LastUpdate`.
+
+### Команда status
+
+| Команда | Описание |
+|---|---|
+| `status <номер> <статус>` | Изменить статус задачи |
+
+Допустимые статусы: `notstarted`, `inprogress`, `completed`, `postponed`, `failed`.
+
+```text
+> status 1 inprogress
+Статус задачи изменён.
+> status 2 completed
+Статус задачи изменён.
+```
+
+### Авторы
+
+Гонтарева Юлия и Рыжих Вероника.  
+Группа 2122.
