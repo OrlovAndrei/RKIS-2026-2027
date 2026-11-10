@@ -50,13 +50,17 @@
                             Console.WriteLine("view - показать все задачи");
                             Console.WriteLine("exit - выход");
                         }
+                        else if (command == "profile")
+                        {
+                            Console.WriteLine(firstName + " " + lastName + ", " + birthYear);
+                        }
                     }
                 }
                 else
                 {
                     Console.WriteLine("Ошибка: год рождения должен быть числом.");
                 }
-    
+
                 // Чтобы консоль не закрывалась сразу
                 Console.WriteLine("Нажмите любую клавишу для выхода...");
                 Console.ReadKey();
