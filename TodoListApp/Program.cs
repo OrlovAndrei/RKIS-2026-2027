@@ -31,6 +31,18 @@
                     // Вывод итогового сообщения
                     Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
                     string[] todos = new string[2];
+                    
+                while (true)
+                {
+                    Console.Write("> ");
+                    string input = Console.ReadLine() ?? string.Empty;
+                    string command = input.Split(' ')[0];
+
+                    if (command == "exit")
+                    {
+                        break;
+                    }
+                }
                 }
                 else
                 {
