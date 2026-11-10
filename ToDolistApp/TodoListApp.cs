@@ -8,9 +8,12 @@ partial class Program
     private const int CurrentYear = 2026;
 
     private static string[] _todos = new string[InitialCapacity];
+    private static bool[] _statuses = new bool[InitialCapacity];
+    private static DateTime[] _dates = new DateTime[InitialCapacity];
+
     private static int _todoCount = 0;
 
-    static void Main(string[] args)
+    static void Main(string[] args) 
     {
         Console.WriteLine("Работу выполнил Вахрамеев");
         
@@ -113,12 +116,23 @@ partial class Program
 
     private static void ResizeArrays()
     {
-        string[] newTodos = new string[_todos.Length * 2];
+        int newLength = _todos.Length * 2;
+        string[] newTodos = new string[newLength];
+        bool[] newStatuses = new bool[newLength];
+        DateTime[] newDates = new DateTime[newLength];
+
         for (int i = 0; i < _todos.Length; i++)
         {
             newTodos[i] = _todos[i];
+            newStatuses[i] = _statuses[i];
+            newDates[i] = _dates[i];
         }
+
         _todos = newTodos;
-        Console.WriteLine($"[Система]: Массив увеличен до {_todos.Length} элементов.");
+        _statuses = newStatuses;
+        _dates = newDates;
+
+        Console.WriteLine($"Все массивы расширены до {_todos.Length} элементов.");
     }
 }
+ 
