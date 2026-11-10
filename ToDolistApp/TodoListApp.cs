@@ -66,6 +66,18 @@ partial class Program
                 default:
                     Console.WriteLine("Неизвестная команда. Введите 'help' для списка команд.");
                     break;
+                case "done":
+                    HandleDone(input);
+                    break;
+
+                case "delete":
+                    HandleDelete(input);
+                    break;
+
+                case "update":
+                    HandleUpdate(input);
+                    break;
+
             }
         }
     }
@@ -74,12 +86,16 @@ partial class Program
     private static void HandleHelp()
     {
         Console.WriteLine(@"Доступные команды:
-  help    - список команд
-  profile - данные пользователя
-  add     - добавить новую задачу
-  view    - показать все задачи
-  exit    - выход");
+  help                    - список команд
+  profile                 - данные пользователя
+  add <текст>             - добавить новую задачу
+  view                    - показать список всех задач
+  done <индекс>           - отметить задачу выполненной
+  delete <индекс>         - удалить задачу по индексу
+  update <индекс> <текст> - обновить текст задачи
+  exit                    - выход");
     }
+
 
     private static void HandleAdd(string input)
     {
@@ -99,6 +115,7 @@ partial class Program
         _todos[_todoCount] = taskText;
         _statuses[_todoCount] = false;  
         _dates[_todoCount] = DateTime.Now;
+        _todoCount++; 
 
         Console.WriteLine("Задача успешно добавлена!");
     }
@@ -117,7 +134,78 @@ partial class Program
              Console.WriteLine($"{i + 1}. {_todos[i]} <{statusText}> <{_dates[i]:dd.MM.yyyy HH:mm:ss}>");
         }
     }
+    private static void HandleDone(string input)
+    {
+        string[] parts = input.Split(' ');
+        if (parts.Length < 2 || !int.TryParse(parts[1], out int index))
+        {
+            Console.WriteLine("Ошибка: укажите числовой индекс. Пример: done 1");
+            return;
+        }
 
+        int actualIndex = index - 1;
+        if (actualIndex < 0 || actualIndex >= _todoCount)
+        {
+            Console.WriteLine("Ошибка: неверный индекс задачи.");
+            return;
+        }
+
+        _statuses[actualIndex] = true; 
+        _dates[actualIndex] = DateTime.Now; 
+        Console.WriteLine($"Задача №{index} отмечена выполненной.");
+    }
+    private static void HandleDelete(string input)
+    {
+        string[] parts = input.Split(' ');
+        if (parts.Length < 2 || !int.TryParse(parts[1], out int index))
+        {
+            Console.WriteLine("Ошибка: укажите числовой индекс. Пример: delete 1");
+            return;
+        }
+
+        int actualIndex = index - 1;
+        if (actualIndex < 0 || actualIndex >= _todoCount)
+        {
+            Console.WriteLine("Ошибка: неверный индекс задачи.");
+            return;
+        }
+
+        for (int i = actualIndex; i < _todoCount - 1; i++)
+        {
+            _todos[i] = _todos[i + 1];
+            _statuses[i] = _statuses[i + 1];
+            _dates[i] = _dates[i + 1];
+        }
+
+        _todoCount--;
+        _todos[_todoCount] = null!;
+        _statuses[_todoCount] = false;
+        _dates[_todoCount] = default;
+
+        Console.WriteLine($"Задача №{index} успешно удалена со сдвигом.");
+    }
+     private static void HandleUpdate(string input)
+    {
+        string[] parts = input.Split(' ', 3);
+        if (parts.Length < 3 || !int.TryParse(parts[1], out int index))
+        {
+            Console.WriteLine("Ошибка: формат команды: update <idx> \"new_text\"");
+            return;
+        }
+
+        int actualIndex = index - 1;
+        if (actualIndex < 0 || actualIndex >= _todoCount)
+        {
+            Console.WriteLine("Ошибка: неверный индекс задачи.");
+            return;
+        }
+
+        string newText = parts[2].Trim('"');
+        _todos[actualIndex] = newText; // В todos записывается новый текст
+        _dates[actualIndex] = DateTime.Now; // В dates обновляется текущая дата
+
+        Console.WriteLine($"Задача №{index} успешно обновлена.");
+    }
     private static void ResizeArrays()
     {
         int newLength = _todos.Length * 2;
