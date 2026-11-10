@@ -96,7 +96,10 @@ partial class Program
             ResizeArrays();
         }
 
-        _todos[_todoCount++] = taskText;
+        _todos[_todoCount] = taskText;
+        _statuses[_todoCount] = false;  
+        _dates[_todoCount] = DateTime.Now;
+
         Console.WriteLine("Задача успешно добавлена!");
     }
 
@@ -110,7 +113,8 @@ partial class Program
 
         for (int i = 0; i < _todoCount; i++)
         {
-            Console.WriteLine($"{i + 1}. {_todos[i]}");
+            string statusText = _statuses[i] ? "сделано" : "не сделано";
+             Console.WriteLine($"{i + 1}. {_todos[i]} <{statusText}> <{_dates[i]:dd.MM.yyyy HH:mm:ss}>");
         }
     }
 
