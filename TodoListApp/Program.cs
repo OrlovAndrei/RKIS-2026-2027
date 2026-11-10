@@ -68,6 +68,16 @@
                                 }
                             }
                         }
+                        else if (command == "view")
+                        {
+                            for (int i = 0; i < todos.Length; i++)
+                            {
+                                if (todos[i] != null)
+                                {
+                                    Console.WriteLine(todos[i]);
+                                }
+                            }
+                        }
                     }
                 }
                 else
