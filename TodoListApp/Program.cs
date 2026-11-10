@@ -54,6 +54,20 @@
                         {
                             Console.WriteLine(firstName + " " + lastName + ", " + birthYear);
                         }
+                        else if (command == "add")
+                        {
+                            string[] parts = input.Split('"');
+                            string task = parts[1];
+
+                            for (int i = 0; i < todos.Length; i++)
+                            {
+                                if (todos[i] == null)
+                                {
+                                    todos[i] = task;    
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
                 else
