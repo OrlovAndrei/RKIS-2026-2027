@@ -32,23 +32,31 @@
                     Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
                     string[] todos = new string[2];
                     
-                while (true)
-                {
-                    Console.Write("> ");
-                    string input = Console.ReadLine() ?? string.Empty;
-                    string command = input.Split(' ')[0];
-
-                    if (command == "exit")
+                    while (true)
                     {
-                        break;
+                        Console.Write("> ");
+                        string input = Console.ReadLine() ?? string.Empty;
+                        string command = input.Split(' ')[0];
+
+                        if (command == "exit")
+                        {
+                            break;
+                        }
+                        else if (command == "help")
+                        {
+                            Console.WriteLine("help - список команд");
+                            Console.WriteLine("profile - данные пользователя");
+                            Console.WriteLine("add \"текст задачи\" - добавить задачу");
+                            Console.WriteLine("view - показать все задачи");
+                            Console.WriteLine("exit - выход");
+                        }
                     }
-                }
                 }
                 else
                 {
                     Console.WriteLine("Ошибка: год рождения должен быть числом.");
                 }
-
+    
                 // Чтобы консоль не закрывалась сразу
                 Console.WriteLine("Нажмите любую клавишу для выхода...");
                 Console.ReadKey();
