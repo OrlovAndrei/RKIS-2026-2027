@@ -108,6 +108,14 @@ namespace TodoListApp
             }
 
             break;
+
+             case "exit":
+            Console.WriteLine("Выход из программы.");
+            return;
+
+        default:
+            Console.WriteLine("Неизвестная команда. Введите help для просмотра команд.");
+            break;
         }
     }
 }  
