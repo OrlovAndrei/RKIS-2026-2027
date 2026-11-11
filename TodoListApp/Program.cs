@@ -44,11 +44,51 @@ namespace TodoListApp
                     case "profile":
                         Console.WriteLine($"{firstName} {secondName}, {birthYear}.");
                         break;
-                     case "add":
-                        if (commandParts.Length < 2)
-                        {
-                            Console.WriteLine("Используйте: add \"текст задачи\"");
-                            break;
+                      case "add":
+            if (commandParts.Length < 2)
+            {
+                Console.WriteLine("Используйте: add \"текст задачи\"");
+                break;
+            }
+
+            string taskWithQuotes = commandParts[1].Trim();
+
+            if (taskWithQuotes.Length < 2 ||
+                taskWithQuotes[0] != '"' ||
+                taskWithQuotes[taskWithQuotes.Length - 1] != '"')
+            {
+                Console.WriteLine("Заключите задачу в кавычки.");
+                break;
+            }
+
+            string task = taskWithQuotes.Substring(
+                1,
+                taskWithQuotes.Length - 2
+            ).Trim();
+
+            if (string.IsNullOrWhiteSpace(task))
+            {
+                Console.WriteLine("Задача не может быть пустой.");
+                break;
+            }
+
+            if (todoCount >= todos.Length)
+            {
+                string[] newTodos = new string[todos.Length * 2];
+
+                for (int i = 0; i < todos.Length; i++)
+                {
+                    newTodos[i] = todos[i];
+                }
+
+                todos = newTodos;
+            }
+
+            todos[todoCount] = task;
+            todoCount++;
+
+            Console.WriteLine("Задача добавлена!");
+            break;
         }
     }
 }  
