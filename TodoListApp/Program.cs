@@ -21,6 +21,8 @@ namespace TodoListApp
             
             Console.WriteLine($"Добавлен новый пользователь {firstName} {secondName}, возраст - {age}");
 
+            string[] todos = new string[2];
+            int todoCount = 0;
         }
     }
 }  
