@@ -41,6 +41,9 @@ namespace TodoListApp
                         Console.WriteLine("view - показать задачи");
                         Console.WriteLine("exit - выход");
                         break;
+                    case "profile":
+                        Console.WriteLine($"{firstName} {secondName}, {birthYear}.");
+                        break;
         }
     }
 }  
