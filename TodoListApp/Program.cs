@@ -44,6 +44,11 @@ namespace TodoListApp
                     case "profile":
                         Console.WriteLine($"{firstName} {secondName}, {birthYear}.");
                         break;
+                     case "add":
+                        if (commandParts.Length < 2)
+                        {
+                            Console.WriteLine("Используйте: add \"текст задачи\"");
+                            break;
         }
     }
 }  
