@@ -30,6 +30,17 @@ namespace TodoListApp
                 var line = Console.ReadLine();
                 if (line == null || line == "exit") break;
                 Console.WriteLine("Echo: " + line);
+            
+                switch (command)
+                {
+                    case "help":
+                        Console.WriteLine("Доступные команды:");
+                        Console.WriteLine("help - список команд");
+                        Console.WriteLine("profile - данные пользователя");
+                        Console.WriteLine("add \"текст задачи\" - добавить задачу");
+                        Console.WriteLine("view - показать задачи");
+                        Console.WriteLine("exit - выход");
+                        break;
         }
     }
 }  
