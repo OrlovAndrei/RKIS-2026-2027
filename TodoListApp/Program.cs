@@ -23,6 +23,13 @@ namespace TodoListApp
 
             string[] todos = new string[2];
             int todoCount = 0;
+
+            while (true)
+            {   
+                Console.Write("> ");
+                var line = Console.ReadLine();
+                if (line == null || line == "exit") break;
+                Console.WriteLine("Echo: " + line);
         }
     }
 }  
