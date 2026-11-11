@@ -89,6 +89,25 @@ namespace TodoListApp
 
             Console.WriteLine("Задача добавлена!");
             break;
+            
+             case "view":
+            if (todoCount == 0)
+            {
+                Console.WriteLine("Список задач пуст.");
+                break;
+            }
+
+            Console.WriteLine("Список задач:");
+
+            for (int i = 0; i < todos.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(todos[i]))
+                {
+                    Console.WriteLine($"{i + 1}. {todos[i]}");
+                }
+            }
+
+            break;
         }
     }
 }  
