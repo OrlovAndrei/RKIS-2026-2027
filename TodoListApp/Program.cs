@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Text; // Для работы с кодировками
 
 namespace TodoList
 {
-    class Program3
+    class Program
     {
         // Константы (убираем магические числа)
         private const int InitialCapacity = 2;
