@@ -37,15 +37,19 @@ namespace TodoList
 
         public string GetShortInfo()
         {
-            string shortText = _text.Length > 30 ? _text.Substring(0, 30) + "..." : _text;
-            string status = _isDone ? "[V] Выполнено" : "[ ] В процессе";
+            // Заменяем переносы строк на пробелы, чтобы таблица не сломалась
+            string cleanText = _text.Replace("\n", " ");
+            string shortText = cleanText.Length > 30 ? cleanText.Substring(0, 30) + "..." : cleanText;
+            string status = _isDone ? "[V] Выполнено" : "[ ] Не выполнено";
             return $"{shortText,-35} | {status} | {_lastUpdate:dd.MM.yyyy HH:mm}";
         }
 
         public string GetFullInfo()
         {
             string status = _isDone ? "Выполнено" : "Не выполнено";
-            return $"Задача: {_text}\nСтатус: {status}\nПоследнее изменение: {_lastUpdate}";
+            return $"=== Полный текст задачи ===\n{_text}\n===========================\n" +
+                   $"Статус: {status}\n" +
+                   $"Дата изменения: {_lastUpdate:dd.MM.yyyy HH:mm}";
         }
     }
 }
