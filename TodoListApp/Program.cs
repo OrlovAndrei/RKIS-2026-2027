@@ -32,8 +32,33 @@ namespace TodoListApp
                 Console.WriteLine("Ошибка: год рождения должен быть числом!");
             }
             
+            Console.WriteLine("\nДобро пожаловать в менеджер задач! Введите 'help' для списка команд.\n");
 
+            string[] todos = new string[2];
 
+            while (true)
+            {
+                Console.Write("> ");
+                string input = Console.ReadLine();
+
+                string[] parts = input.Split(new char[] { ' ' }, 2);
+                string command = parts[0].ToLower();
+
+                if (command == "help")
+                {
+                    Console.WriteLine("Доступные команды:");
+                    Console.WriteLine("  help    - Список команд");
+                    Console.WriteLine("  profile - Данные пользователя");
+                    Console.WriteLine("  add     - Добавить задачу (add \"текст\")");
+                    Console.WriteLine("  view    - Показать задачи");
+                    Console.WriteLine("  exit    - Выход");
+                }
+                else if (command == "exit")
+                {
+                    break;
+                }
+
+            }
         }
     } 
 }
