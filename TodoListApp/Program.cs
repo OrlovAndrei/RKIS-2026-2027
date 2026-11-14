@@ -4,6 +4,10 @@ namespace TodoListApp
 {
    public class Program
     {
+        static string name = "";
+        static string last_name = "";
+        static string BirthYear = "";
+
         public static void Main()
         {
             Console.WriteLine("Работу выполнили Мищенко и Крымова\n");
@@ -27,7 +31,7 @@ namespace TodoListApp
             {
                 Console.WriteLine("Ошибка: год рождения должен быть числом!");
             }
-
+            
 
 
         }
