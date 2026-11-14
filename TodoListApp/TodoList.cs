@@ -13,23 +13,13 @@ namespace TodoList
             _items = new TodoItem[2]; // Начальный размер для теста IncreaseArray
             _count = 0;
         }
-
-        // Приватный метод для увеличения массива
-        private TodoItem[] IncreaseArray(TodoItem[] items)
-        {
-            TodoItem[] newItems = new TodoItem[items.Length * 2];
-            for (int i = 0; i < items.Length; i++)
-            {
-                newItems[i] = items[i];
-            }
-            return newItems;
-        }
-
+        public int Count => _count; // свойство для получения количества задач
+        
         public void Add(TodoItem item)
         {
             if (_count >= _items.Length)
             {
-                _items = IncreaseArray(_items); // Вызов приватного метода
+                _items = IncreaseArray(_items, item);
             }
             _items[_count] = item;
             _count++;
@@ -52,11 +42,6 @@ namespace TodoList
 
         public TodoItem GetItem(int index)
         {
-            if (index < 0 || index >= _count)
-            {
-                Console.WriteLine("Ошибка: Задачи с таким индексом не существует.");
-                return null;
-            }
             return _items[index];
         }
 
@@ -67,23 +52,63 @@ namespace TodoList
                 Console.WriteLine("Список задач пуст.");
                 return;
             }
+            
+            // Формируем заголовок таблицы
+            string header = "";
+            if (showIndex) header += "| " + "№".PadRight(3) + " ";
+            header += "| " + "Текст задачи".PadRight(33) + " ";
+            if (showDone) header += "| " + "Статус".PadRight(12) + " ";
+            if (showDate) header += "| " + "Дата изменения".PadRight(16) + " ";
+            header += "|";
 
+            string separator = new string('-', header.Length);
+            Console.WriteLine(separator);
+            Console.WriteLine(header);
+            Console.WriteLine(separator);
+
+            // выводим строки
             for (int i = 0; i < _count; i++)
             {
-                string output = "";
-                if (showIndex) output += $"{i}. ";
+                string row = "";
                 
-                string shortText = _items[i].Text.Length > 30 
-                    ? _items[i].Text.Substring(0, 30) + "..." 
-                    : _items[i].Text;
+                if (showIndex) 
+                    row += "| " + (i + 1).ToString().PadRight(3) + " ";
 
-                output += $"{shortText,-35}";
+                // Заменяем перенос строки на пробел, чтобы не ломать таблицу
+                string displayText = _items[i].Text.Replace("\n", " ");
+                if (displayText.Length > 30) 
+                    displayText = displayText.Substring(0, 30) + "...";
+                
+                row += "| " + displayText.PadRight(33) + " ";
 
-                if (showDone) output += $" | {(_items[i].IsDone ? "[V]" : "[ ]")}";
-                if (showDate) output += $" | {_items[i].LastUpdate:dd.MM.yyyy HH:mm}";
-
-                Console.WriteLine(output);
+                if (showDone) 
+                {
+                    string status = _items[i].IsDone ? "[V] Выполнено" : "[ ] Не выполнено";
+                    row += "| " + status.PadRight(15) + " ";
+                }
+                
+                if (showDate) 
+                {
+                    row += "| " + _items[i].LastUpdate.ToString("dd.MM.yyyy HH:mm").PadRight(16) + " ";
+                }
+                
+                row += "|";
+                Console.WriteLine(row);
             }
+            Console.WriteLine(separator);
         }
+        
+        // метод для увеличения массива
+        private TodoItem[] IncreaseArray(TodoItem[] items, TodoItem item)
+        {
+            TodoItem[] newItems = new TodoItem[items.Length * 2];
+            for (int i = 0; i < items.Length; i++)
+            {
+                newItems[i] = items[i];
+            }
+            Console.WriteLine($"[Массив расширен до {newItems.Length} элементов]");
+            return newItems;
+        }
+        
     }
 }
