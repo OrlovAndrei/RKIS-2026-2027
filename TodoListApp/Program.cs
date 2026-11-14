@@ -76,7 +76,47 @@ namespace TodoListApp
                     }
                     if (isEmpty) Console.WriteLine("  (Список пуст)");
                 }
+                else if (command == "add")
+                {
+                    if (parts.Length > 1)
+                    {
+                        string taskText = parts[1].Trim('"'); 
 
+                        int freeIndex = -1;
+                        for (int i = 0; i < todos.Length; i++)
+                        {
+                            if (todos[i] == null || todos[i] == "")
+                            {
+                                freeIndex = i;
+                                break;
+                            }
+                        }
+
+                        if (freeIndex == -1)
+                        {
+                            Console.WriteLine(" Массив заполнен, расширяем...");
+                            
+                            string[] newTodos = new string[todos.Length * 2];
+                        
+                            for (int i = 0; i < todos.Length; i++)
+                            {
+                                newTodos[i] = todos[i];
+                            }
+                            
+                            todos = newTodos; 
+                            
+                            freeIndex = todos.Length / 2; 
+                        }
+
+                        todos[freeIndex] = taskText;
+                        Console.WriteLine($" Задача \"{taskText}\" добавлена.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Введите текст. Пример: add \"Купить хлеб\"");
+                    }
+                }
+                
             }
         }
     } 
