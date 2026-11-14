@@ -72,11 +72,30 @@ namespace TodoList
                         else Console.WriteLine("Ошибка! Используйте: add \"текст\" или add -m");
                         break;
                     case "view":
-                        // Парсим флаги
-                        bool showIndex = input.Contains("-i") || input.Contains("-a");
-                        bool showDone = input.Contains("-s") || input.Contains("-a");
-                        bool showDate = input.Contains("-d") || input.Contains("-a");
-                        // Вызываем метод View у нашего списка
+                        string[] viewArgs = parts.Length > 1 ? parts[1].Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries) : new string[0];
+                        
+                        bool showIndex = false;
+                        bool showDone = false;
+                        bool showDate = false;
+
+                        foreach (string arg in viewArgs)
+                        {
+                            if (arg == "-a" || arg == "--all") 
+                            { 
+                                showIndex = true; showDone = true; showDate = true; 
+                            }
+                            if (arg == "-i" || arg == "--index") showIndex = true;
+                            if (arg == "-s" || arg == "--status") showDone = true;
+                            if (arg == "-d" || arg == "--update-date") showDate = true;
+
+                            if (arg.StartsWith("-") && !arg.StartsWith("--") && arg.Length > 2)
+                            {
+                                if (arg.Contains('i')) showIndex = true;
+                                if (arg.Contains('s')) showDone = true;
+                                if (arg.Contains('d')) showDate = true;
+                            }
+                        }
+                        
                         todoList.View(showIndex, showDone, showDate);
                         break;
                     case "done":

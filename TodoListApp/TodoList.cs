@@ -36,7 +36,7 @@ namespace TodoList
             {
                 _items[i] = _items[i + 1];
             }
-            _items[_count - 1] = null;
+            _items[_count - 1] = null!;
             _count--;
         }
 
@@ -57,7 +57,7 @@ namespace TodoList
             string header = "";
             if (showIndex) header += "| " + "№".PadRight(3) + " ";
             header += "| " + "Текст задачи".PadRight(33) + " ";
-            if (showDone) header += "| " + "Статус".PadRight(12) + " ";
+            if (showDone) header += "| " + "Статус".PadRight(17) + " ";
             if (showDate) header += "| " + "Дата изменения".PadRight(16) + " ";
             header += "|";
 
@@ -84,7 +84,7 @@ namespace TodoList
                 if (showDone) 
                 {
                     string status = _items[i].IsDone ? "[V] Выполнено" : "[ ] Не выполнено";
-                    row += "| " + status.PadRight(15) + " ";
+                    row += "| " + status.PadRight(17) + " ";
                 }
                 
                 if (showDate) 
