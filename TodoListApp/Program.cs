@@ -5,50 +5,35 @@ namespace TodoList
 {
     class Program
     {
-        // Константы (убираем магические числа)
-        private const int InitialCapacity = 2;
-        private const string DateFormat = "dd.MM.yyyy HH:mm"; //формат даты
-        // Массивы и счетчик вынесены на уровень класса для доступа из методов
-        private static string[] todos = new string[InitialCapacity];
-        private static bool[] statuses = new bool[InitialCapacity];     // массив статусов
-        private static DateTime[] dates = new DateTime[InitialCapacity]; // массив дат
-        private static int count = 0;
-
-        // Данные пользователя
-        private static string firstName = "";
-        private static string lastName = "";
-        private static string birthYearStr = "";
-        private static int age = 0;
+        // Вместо массивов теперь используем объекты классов
+        private static TodoList todoList = new TodoList();
+        private static Profile? userProfile;
 
         static void Main(string[] args)
         {
-            // 1. Настраиваем кодировку, чтобы русские буквы корректно читались и выводились
+            // Настраиваем кодировку, чтобы русские буквы корректно читались и выводились
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
 
-            // 2. Приветствие
+            // Приветствие
             Console.WriteLine("Работу выполнили: Осинцева и Малюкова");
 
-            // 3. Запрос имени
+            // Запрос имени
             Console.Write("Введите имя: ");
             // Читаем данные пользователя. Конструкция ?? "" защищает от null 
             // (если пользователь нажмет Ctrl+Z, программа не остановится, а запишет пустую строку).
-            firstName = Console.ReadLine() ?? "";
+            string firstName = Console.ReadLine() ?? "";
 
-            // 4. Запрос фамилии
+            // Запрос фамилии
             Console.Write("Введите фамилию: ");
-            lastName = Console.ReadLine() ?? "";
+            string lastName = Console.ReadLine() ?? "";
 
-            // 5. Запрос года рождения
+            // Запрос года рождения
             Console.Write("Введите год рождения: ");
-            birthYearStr = Console.ReadLine() ?? "";
-
-            if (int.TryParse(birthYearStr, out int birthYear))
-            {
-                age = DateTime.Now.Year - birthYear;
-                Console.WriteLine($"\nДобавлен пользователь {firstName} {lastName}, возраст - {age}");
-            }
-
+            int.TryParse(Console.ReadLine(), out int birthYear);
+            userProfile = new Profile(firstName, lastName, birthYear);
+            
+            Console.WriteLine($"\nДобавлен пользователь {firstName} {lastName}");
             Console.WriteLine($"\nДобро пожаловать, {firstName} {lastName}! Введите 'help'.");
 
             bool isRunning = true;
@@ -70,7 +55,7 @@ namespace TodoList
                         ShowHelp(); // Вызов метода
                         break;
                     case "profile":
-                        Console.WriteLine($"{firstName} {lastName}, {birthYearStr} (возраст: {age})");
+                        Console.WriteLine(userProfile?.GetInfo());
                         break;
                     case "add":
                         // Проверяем, что флаг передан именно как аргумент, а не внутри текста
@@ -78,23 +63,37 @@ namespace TodoList
                         {
                             AddMultilineTask();
                         }
-                        else
+                        else if (parts.Length > 1)
                         {
-                            if (parts.Length > 1) AddTask(parts[1].Trim('"'));
-                            else Console.WriteLine("Ошибка! Используйте: add \"текст\" или add -m");
+                            // Создаем объект TodoItem и добавляем в TodoList
+                            todoList.Add(new TodoItem(parts[1].Trim('"')));
+                            Console.WriteLine("Задача добавлена!");
                         }
+                        else Console.WriteLine("Ошибка! Используйте: add \"текст\" или add -m");
                         break;
                     case "view":
-                        ShowTasks(input); // Передаем строку ввода для анализа флагов
+                        // Парсим флаги
+                        bool showIndex = input.Contains("-i") || input.Contains("-a");
+                        bool showDone = input.Contains("-s") || input.Contains("-a");
+                        bool showDate = input.Contains("-d") || input.Contains("-a");
+                        // Вызываем метод View у нашего списка
+                        todoList.View(showIndex, showDone, showDate);
                         break;
                     case "done":
                         // Проверяем правильность индекса и вызываем метод
                         if (TryParseIndex(parts, out int doneIdx)) 
-                            MarkAsDone(doneIdx);
+                        {
+                            // Берем задачу из списка и просим её саму стать выполненной
+                            todoList.GetItem(doneIdx).MarkDone();
+                            Console.WriteLine($"Задача #{doneIdx + 1} отмечена выполненной.");
+                        }    
                         break;
                     case "delete":
                         if (TryParseIndex(parts, out int delIdx)) 
-                            DeleteTask(delIdx);
+                        {
+                            todoList.Delete(delIdx);
+                            Console.WriteLine($"Задача #{delIdx + 1} удалена.");
+                        }    
                         break;
                     case "update":
                         // Для update парсим строку отдельно, так как нужно отделить индекс от текста
@@ -104,25 +103,24 @@ namespace TodoList
                             if (updateArgs.Length == 2 && int.TryParse(updateArgs[0], out int updIdx))
                             {
                                 int realIndex = updIdx - 1;
-                                if (realIndex >= 0 && realIndex < count)
-                                    UpdateTask(realIndex, updateArgs[1].Trim('"'));
+                                if (realIndex >= 0 && realIndex < todoList.Count)
+                                {
+                                    // Получаем задачу и обновляем её текст
+                                    todoList.GetItem(realIndex).UpdateText(updateArgs[1].Trim('"'));
+                                    Console.WriteLine($"Задача #{updIdx} обновлена.");
+                                }
                                 else
                                     Console.WriteLine("Ошибка! Задачи с таким номером не существует.");
                             }
-                            else
-                            {
-                                Console.WriteLine("Ошибка! Используйте: update <индекс> \"новый текст\"");
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Ошибка! Используйте: update <индекс> \"новый текст\"");
                         }
                         break;
                     case "read":
                         // Используем метод проверки индекса
-                        if (TryParseIndex(parts, out int readIdx)) 
-                            ReadTask(readIdx);
+                        if (TryParseIndex(parts, out int readIdx))
+                        { 
+                            // Вызываем метод GetFullInfo у самой задачи
+                            Console.WriteLine(todoList.GetItem(readIdx).GetFullInfo());
+                        }    
                         break;
                     case "exit":
                         isRunning = false;
@@ -165,44 +163,12 @@ namespace TodoList
                 return false;
             }
             index = userIdx - 1; // Перевод в 0-индексацию (пользователь вводит с 1)
-            if (index < 0 || index >= count)
+            if (index < 0 || index >= todoList.Count)
             {
                 Console.WriteLine("Ошибка! Задачи с таким номером не существует.");
                 return false;
             }
             return true;
-        }
-
-         private static void ResizeArrays()
-        {   
-            int newSize = todos.Length * 2;
-
-            string[] newTodos = new string[newSize];
-            bool[] newStatuses = new bool[newSize];
-            DateTime[] newDates = new DateTime[newSize];
-
-            for (int i = 0; i < todos.Length; i++)
-            {
-                newTodos[i] = todos[i];
-                newStatuses[i] = statuses[i];
-                newDates[i] = dates[i];
-            }
-            todos = newTodos;
-            statuses = newStatuses;
-            dates = newDates;
-
-            Console.WriteLine($"[Массив расширен до {newSize} элементов]");
-        }
-         
-        private static void AddTask(string taskText)
-        {
-            if (count >= todos.Length) ResizeArrays();
-
-            todos[count] = taskText;
-            statuses[count] = false;             // Новая задача по умолчанию не выполнена
-            dates[count] = DateTime.Now;         // Записываем текущие дату и время
-            count++;
-            Console.WriteLine("Задача добавлена!");
         }
 
         private static void AddMultilineTask()
@@ -224,124 +190,13 @@ namespace TodoList
         }
 
         if (sb.Length > 0)
-            AddTask(sb.ToString());
+        {
+            // Создаем TodoItem и добавляем в TodoList
+            todoList.Add(new TodoItem(sb.ToString()));
+            Console.WriteLine("Задача добавлена!");
+        }
         else
             Console.WriteLine("Задача не добавлена (пустой текст).");
-        }
-
-        private static void ShowTasks(string input)
-        {
-            if (count == 0)
-            {
-                Console.WriteLine("(Список пуст)");
-                return;
-            }
-
-            // Определяем, какие флаги включены. 
-            // Метод Contains найдет флаг, даже если он в комбинации (например, в "-is" он найдет "-i")
-            // Разбиваем ввод на отдельные слова, чтобы проверять флаги точно
-            string[] words = input.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            
-            bool showIndex = false;
-            bool showStatus = false;
-            bool showDate = false;
-
-            foreach (string word in words)
-            {
-                // Проверяем длинные флаги
-                if (word == "-a" || word == "--all") { showIndex = true; showStatus = true; showDate = true; }
-                if (word == "-i" || word == "--index") showIndex = true;
-                if (word == "-s" || word == "--status") showStatus = true;
-                if (word == "-d" || word == "--update-date") showDate = true;
-
-                // Проверяем короткие комбинированные флаги (например, -is или -si)
-                if (word.StartsWith("-") && !word.StartsWith("--") && word.Length > 2)
-                {
-                    if (word.Contains('i')) showIndex = true;
-                    if (word.Contains('s')) showStatus = true;
-                    if (word.Contains('d')) showDate = true;
-                }
-            }
-
-            // Формируем заголовок таблицы
-            string header = "";
-            if (showIndex) header += "| " + "№".PadRight(3) + " ";
-            header += "| " + "Текст задачи".PadRight(33) + " "; // 30 символов текста + 3 точки
-            if (showStatus) header += "| " + "Статус".PadRight(12) + " ";
-            if (showDate) header += "| " + "Дата изменения".PadRight(16) + " ";
-            header += "|";
-
-            string separator = new string('-', header.Length);
-            Console.WriteLine(separator);
-            Console.WriteLine(header);
-            Console.WriteLine(separator);
-
-            // Выводим строки с данными
-            for (int i = 0; i < count; i++)
-            {
-                string row = "";
-
-                // 1. Индекс
-                if (showIndex) 
-                    row += "| " + (i + 1).ToString().PadRight(3) + " ";
-
-                // 2. Текст задачи
-                // Заменяем переносы строк на пробелы, чтобы таблица не поехала
-                string displayText = todos[i].Replace("\n", " ");
-                // Обрезаем текст до 30 символов
-                if (displayText.Length > 30) 
-                    displayText = displayText.Substring(0, 30) + "...";
-                row += "| " + displayText.PadRight(33) + " ";
-
-                // 3. Статус
-                if (showStatus) 
-                {
-                    string statusStr = statuses[i] ? "сделано" : "не сделано";
-                    row += "| " + statusStr.PadRight(12) + " ";
-                }
-
-                // 4. Дата
-                if (showDate) 
-                    row += "| " + dates[i].ToString(DateFormat).PadRight(16) + " ";
-
-                row += "|";
-                Console.WriteLine(row);
-            }
-            Console.WriteLine(separator);
-        }
-
-        private static void MarkAsDone(int index)
-        {
-            statuses[index] = true;          
-            dates[index] = DateTime.Now;     
-            Console.WriteLine($"Задача #{index + 1} отмечена выполненной.");
-        }
-
-        private static void DeleteTask(int index)
-        {
-            for (int i = index; i < count - 1; i++)
-            {
-                todos[i] = todos[i + 1];
-                statuses[i] = statuses[i + 1];
-                dates[i] = dates[i + 1];
-            }
-            count--; 
-            Console.WriteLine($"Задача #{index + 1} удалена.");
-        }
-
-        private static void UpdateTask(int index, string newText)
-        {
-            todos[index] = newText;          // Меняем текст
-            dates[index] = DateTime.Now;     // Обновляем дату изменения
-            Console.WriteLine($"Задача #{index + 1} обновлена.");
-        }
-        private static void ReadTask(int index)
-        {
-            Console.WriteLine("=== Полный текст задачи ===");
-            Console.WriteLine(todos[index]); // Выводим текст как есть, с переносами строк
-            Console.WriteLine("===========================");
-            Console.WriteLine($"Статус: {(statuses[index] ? "выполнена" : "не выполнена")}");
-            Console.WriteLine($"Дата изменения: {dates[index].ToString(DateFormat)}");
         }
     }
 }
