@@ -96,7 +96,7 @@ while (true)
                     break;
                 }
 
-                task = "\n" + string.Join("\n", lines); // склеиваем строки через \n
+                task = "\n" + string.Join("\n", lines) + "\n";
             }
             else
             {
@@ -123,6 +123,7 @@ while (true)
         case "profile":
             Console.WriteLine($"{firstName} {secondName} возраст: {age}");
             break;
+
         case "done":
             if (parts.Length < 2)
             {
@@ -148,7 +149,7 @@ while (true)
             {
                 for (int i = 0; i < taskCount; i++)
                 {
-                    Console.WriteLine($"{i + 1}. {todos[i]} {statuses[i]} {dates[i]}");
+                    Console.WriteLine($"{todos[i]}");
                 }
             }
             break;
@@ -156,6 +157,7 @@ while (true)
         case "exit":
             Console.WriteLine("Завершение программы...");
             return;
+
         case "delete":
             if (parts.Length < 2)
             {
@@ -167,7 +169,6 @@ while (true)
                 Console.WriteLine("Ошибка: номер задачи должен быть числом.");
                 break;
             }
-            
            
             if (!int.TryParse(parts[1], out  id))
             {
@@ -184,6 +185,7 @@ while (true)
             } 
             taskCount--;
                 break;
+
         case "update":
             if (parts.Length < 3)
             {
@@ -205,6 +207,25 @@ while (true)
             todos[indexUpdate] = parts[2];
             dates[indexUpdate] = DateTime.Now;
             break;
+
+        case "read":
+            if (parts.Length < 2)
+            {
+                Console.WriteLine("Индекс не введен");
+                break;
+            }
+
+            int num1 = int.Parse(parts[1]);
+
+            if (num1 > todos.Length)
+            {
+                Console.WriteLine("Задачи под данным индексом не найдено.");
+                break;
+            }
+            
+            Console.WriteLine($"{todos[num1-1]} {statuses[num1-1]} {dates[num1-1]}");
+            break;
+
         default:
             Console.WriteLine("Неизвестная комманда. Введите help, для отображения списка команд");
             break;
