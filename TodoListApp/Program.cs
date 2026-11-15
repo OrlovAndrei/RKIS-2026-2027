@@ -8,7 +8,7 @@ Console.WriteLine("Введите ваше имя");
 String secondName = Console.ReadLine();
 Console.WriteLine("Введите год рождения");
 int year = int.Parse(Console.ReadLine());
-int number = (int)2026;
+int number = 2026;
 int age = number - year;
 Console.WriteLine($"{firstName} {secondName} возраст: {age}");
 
@@ -61,15 +61,55 @@ while (true)
 
         case "add":
             if (parts.Length < 2)
+            {
+                Console.WriteLine("Ошибка: укажите текст задачи в кавычках. Формат: add \"текст задачи\"");
+                break;
+            }
+            string raw = input.Substring(4).Trim('"');
+            bool multiline = raw.Contains("--multiline") || raw.Contains("-m");
+
+            if (multiline)
+                raw = raw.Replace("--multiline", "").Replace("-m", "").Trim();
+
+            string task;
+
+            if (multiline)
+            {
+                Console.WriteLine("Многострочный режим. Вводите строки, для завершения введите !end");
+
+                List<string> lines = new List<string>();
+                while (true)
+                {
+                    Console.Write("> ");
+                    string line = Console.ReadLine();
+
+                    if (line == "!end")
+                        break;
+
+                    if (!string.IsNullOrWhiteSpace(line))
+                        lines.Add(line);
+                }
+
+                if (lines.Count == 0)
+                {
+                    Console.WriteLine("Ошибка: задача не может быть пустой.");
+                    break;
+                }
+
+                task = "\n" + string.Join("\n", lines); // склеиваем строки через \n
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(raw))
                 {
                     Console.WriteLine("Ошибка: укажите текст задачи в кавычках. Формат: add \"текст задачи\"");
                     break;
                 }
-                string task = input.Substring(4).Trim('"');
+                task = raw.Trim('"');
+            }
 
             if (taskCount >= todos.Length)
-                {
-
+            {
                 ExtendArrays(todos, statuses, dates, out todos, out statuses, out dates);
             }
 
