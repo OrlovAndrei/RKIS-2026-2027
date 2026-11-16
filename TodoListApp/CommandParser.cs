@@ -4,7 +4,7 @@ namespace TodoList
 {
     public static class CommandParser
     {
-        public static ICommand Parse(string inputString, TodoList todoList, Profile profile)
+        public static ICommand? Parse(string inputString, TodoList todoList, Profile profile)
         {
             if (string.IsNullOrWhiteSpace(inputString)) return null;
 
@@ -68,8 +68,7 @@ namespace TodoList
                     return new ExitCommand();
 
                 case "help":
-                    Console.WriteLine("Команды: add <текст>, add --multiline, done <idx>, update <idx> <текст>, delete <idx>, view, read <idx>, profile, exit");
-                    return null;
+                    return new HelpCommand();
 
                 default:
                     Console.WriteLine("Неизвестная команда. Введите 'help'.");

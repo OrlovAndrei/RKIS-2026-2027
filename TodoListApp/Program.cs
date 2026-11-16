@@ -41,7 +41,7 @@ namespace TodoList
                 if (string.IsNullOrWhiteSpace(input)) continue;
 
                 // Отдаем строку парсеру (передаем туда созданные профиль и список задач)
-                ICommand command = CommandParser.Parse(input, myTodoList, userProfile);
+                ICommand? command = CommandParser.Parse(input, myTodoList, userProfile);
                 
                 // Если команда распознана - выполняем
                 if (command != null)

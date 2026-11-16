@@ -7,7 +7,7 @@ namespace TodoList
     {
         public string Text { get; set; } = "";
         public bool Multiline { get; set; } = false;
-        public TodoList TodoList { get; set; }
+        public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
         {
@@ -17,7 +17,7 @@ namespace TodoList
                 string fullText = "";
                 while (true)
                 {
-                    string line = Console.ReadLine();
+                    string? line = Console.ReadLine();
                     if (string.IsNullOrEmpty(line)) break;
                     fullText += line + "\n";
                 }
@@ -39,7 +39,7 @@ namespace TodoList
     // 2. Команда просмотра
     public class ViewCommand : ICommand
     {
-        public TodoList TodoList { get; set; }
+        public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
         {
@@ -52,7 +52,7 @@ namespace TodoList
     public class DoneCommand : ICommand
     {
         public int Index { get; set; }
-        public TodoList TodoList { get; set; }
+        public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
         {
@@ -70,7 +70,7 @@ namespace TodoList
     {
         public int Index { get; set; }
         public string Text { get; set; } = "";
-        public TodoList TodoList { get; set; }
+        public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
         {
@@ -87,7 +87,7 @@ namespace TodoList
     public class DeleteCommand : ICommand
     {
         public int Index { get; set; }
-        public TodoList TodoList { get; set; }
+        public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
         {
@@ -100,7 +100,7 @@ namespace TodoList
     public class ReadCommand : ICommand
     {
         public int Index { get; set; }
-        public TodoList TodoList { get; set; }
+        public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
         {
@@ -115,7 +115,7 @@ namespace TodoList
     // 7. Команда профиля
     public class ProfileCommand : ICommand
     {
-        public Profile Profile { get; set; }
+        public Profile Profile { get; set; } = null!;
 
         public void Execute()
         {
@@ -129,6 +129,27 @@ namespace TodoList
         public void Execute()
         {
             Environment.Exit(0);
+        }
+    }
+    // 9. Команда помощи (вывод красивого списка команд)
+    public class HelpCommand : ICommand
+    {
+        public void Execute()
+        {
+            Console.WriteLine("  help - список команд");
+            Console.WriteLine("  profile - данные пользователя");
+            Console.WriteLine("  add \"текст\" - добавить задачу");
+            Console.WriteLine("  add -m , --multiline - добавить задачу в несколько строк");
+            Console.WriteLine("  view [флаги] - показать задачи в виде таблицы");
+            Console.WriteLine("         -i, --index       показать индексы");
+            Console.WriteLine("         -s, --status      показать статусы");
+            Console.WriteLine("         -d, --update-date показать даты изменения");
+            Console.WriteLine("         -a, --all         показать все данные");
+            Console.WriteLine("  read <idx> - прочитать полный текст задачи");
+            Console.WriteLine("  done <idx> - отметить задачу выполненной");
+            Console.WriteLine("  delete <idx> - удалить задачу");
+            Console.WriteLine("  update <idx> \"текст\" - обновить текст задачи");
+            Console.WriteLine("  exit - выйти");
         }
     }
 }
