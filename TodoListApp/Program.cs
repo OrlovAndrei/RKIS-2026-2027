@@ -53,6 +53,7 @@ while (true)
             Console.WriteLine("     profile — данные пользователя");
             Console.WriteLine("     add \"задача\" — добавить задачу");
             Console.WriteLine("     view — показать задачи");
+            Console.WriteLine("     read < idx > — показать полный тект задачи");
             Console.WriteLine("     exit — выход");
             Console.WriteLine("     done < idx > — отмечает задачу выполненной");
             Console.WriteLine("     update < idx > \"new_text\" обновляет текст задачи");
@@ -141,18 +142,98 @@ while (true)
             break;
 
         case "view":
+
             if (taskCount == 0)
             {
                 Console.WriteLine("Список задач пуст.");
             }
-            else
+
+            string[] flags = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            bool showIndex = false, showStatus = false, showDate = false;
+
+            for (int f = 1; f < flags.Length; f++)
             {
-                for (int i = 0; i < taskCount; i++)
+                string flag = flags[f];
+
+                if (flag.StartsWith("--"))
                 {
-                    Console.WriteLine($"{todos[i]}");
+                    // длинная форма
+                    switch (flag.ToLower())
+                    {
+                        case "--index":       showIndex = true; break;
+                        case "--status":      showStatus = true; break;
+                        case "--update-date": showDate = true; break;
+                        case "--all":         showIndex = true; showStatus = true; showDate = true; break;
+                        default: Console.WriteLine($"Неизвестный флаг: {flag}"); break;
+                    }
+                }
+                else if (flag.StartsWith("-") && flag.Length > 1)
+                {
+                    // короткая форма: каждый символ после '-' — отдельный флаг
+                    for (int c = 1; c < flag.Length; c++)
+                    {
+                        switch (flag[c])
+                        {
+                            case 'i': showIndex = true; break;
+                            case 's': showStatus = true; break;
+                            case 'd': showDate = true; break;
+                            case 'a': showIndex = true; showStatus = true; showDate = true; break;
+                            default: Console.WriteLine($"Неизвестный флаг: -{flag[c]}"); break;
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Неизвестный флаг: {flag}");
                 }
             }
+            string[] numbers = new string[taskCount];
+            string[] texts   = new string[taskCount];
+            string[] states  = new string[taskCount];
+            string[] datesStr = new string[taskCount];
+
+            for (int i = 0; i < taskCount; i++)
+            {
+                numbers[i] = (i + 1).ToString();
+
+                // однострочный текст: переносы заменяем пробелами
+                string t = todos[i].Replace("\r", "").Replace("\n", " ").Trim();
+                texts[i] = t.Length > 30 ? t.Substring(0, 30) + "..." : t;
+
+                states[i]  = statuses[i] ? "выполнена" : "не выполнена";
+                datesStr[i] = dates[i].ToString("dd.MM.yyyy HH:mm");
+            }
+
+            // вычисляем ширины колонок (без LINQ)
+            int wNum = 1, wText = 6, wState = 6, wDate = 14;
+            for (int i = 0; i < taskCount; i++)
+            {
+                if (numbers[i].Length > wNum) wNum = numbers[i].Length;
+                if (texts[i].Length > wText) wText = texts[i].Length;
+                if (states[i].Length > wState) wState = states[i].Length;
+            }
+
+            string header = "";
+            if (showIndex) header += "№".PadRight(wNum) + "  ";
+            header += "Задача".PadRight(wText);
+            if (showStatus) header += "  " + "Статус".PadRight(wState);
+            if (showDate)   header += "  " + "Дата изменения".PadRight(wDate);
+
+            Console.WriteLine(header);
+            Console.WriteLine(new string('-', header.Length));
+
+            for (int i = 0; i < taskCount; i++)
+            {
+                string row = "";
+                if (showIndex)  row += numbers[i].PadRight(wNum) + "  ";
+                row += texts[i].PadRight(wText);
+                if (showStatus) row += "  " + states[i].PadRight(wState);
+                if (showDate)   row += "  " + datesStr[i].PadRight(wDate);
+                Console.WriteLine(row);
+            }
             break;
+
+
         
         case "exit":
             Console.WriteLine("Завершение программы...");
@@ -219,7 +300,7 @@ while (true)
 
             if (num1 > todos.Length)
             {
-                Console.WriteLine("Задачи под данным индексом не найдено.");
+                Console.WriteLine("Задачи под данным индексом не найдено. Проверить список команд: help");
                 break;
             }
             
