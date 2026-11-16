@@ -16,22 +16,46 @@ namespace TodoList
             {
                 case "add":
                     var addCmd = new AddCommand { TodoList = todoList };
-                    if (args.Trim() == "--multiline")
+                    // проверка на -m
+                    if (args.Trim() == "--multiline" || args.Trim() == "-m") 
                     {
                         addCmd.Multiline = true;
                     }
                     else
                     {
-                        addCmd.Text = args;
+                        // Trim('"') уберет кавычки, если ввели add "Задача"
+                        addCmd.Text = args.Trim('"'); 
                     }
                     return addCmd;
 
                 case "view":
-                    return new ViewCommand { TodoList = todoList };
+                    var viewCmd = new ViewCommand { TodoList = todoList };
+                    string[] viewArgs = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var arg in viewArgs)
+                    {
+                        if (arg == "-a" || arg == "--all")
+                        {
+                            viewCmd.ShowIndex = true; 
+                            viewCmd.ShowDone = true; 
+                            viewCmd.ShowDate = true;
+                        }
+                        else if (arg == "-i" || arg == "--index") viewCmd.ShowIndex = true;
+                        else if (arg == "-s" || arg == "--status") viewCmd.ShowDone = true;
+                        else if (arg == "-d" || arg == "--update-date") viewCmd.ShowDate = true;
+                        else if (arg.StartsWith("-") && !arg.StartsWith("--") && arg.Length > 2)
+                        {
+                            // Поддержка склеенных флагов типа -is
+                            if (arg.Contains('i')) viewCmd.ShowIndex = true;
+                            if (arg.Contains('s')) viewCmd.ShowDone = true;
+                            if (arg.Contains('d')) viewCmd.ShowDate = true;
+                        }
+                    }
+                    return viewCmd;
 
                 case "done":
                     if (int.TryParse(args, out int doneIdx))
-                        return new DoneCommand { TodoList = todoList, Index = doneIdx };
+                        return new DoneCommand { TodoList = todoList, Index = doneIdx - 1 };
                     Console.WriteLine("Ошибка: укажите номер задачи.");
                     return null;
 
@@ -42,8 +66,8 @@ namespace TodoList
                         return new UpdateCommand 
                         { 
                             TodoList = todoList, 
-                            Index = updateIdx, 
-                            Text = updateParts[1] 
+                            Index = updateIdx - 1, 
+                            Text = updateParts[1].Trim('"') // Убираем кавычки, если они есть 
                         };
                     }
                     Console.WriteLine("Ошибка: формат 'update <номер> <новый текст>'");
@@ -51,13 +75,13 @@ namespace TodoList
 
                 case "delete":
                     if (int.TryParse(args, out int delIdx))
-                        return new DeleteCommand { TodoList = todoList, Index = delIdx };
+                        return new DeleteCommand { TodoList = todoList, Index = delIdx - 1 };
                     Console.WriteLine("Ошибка: укажите номер задачи.");
                     return null;
 
                 case "read":
                     if (int.TryParse(args, out int readIdx))
-                        return new ReadCommand { TodoList = todoList, Index = readIdx };
+                        return new ReadCommand { TodoList = todoList, Index = readIdx - 1 };
                     Console.WriteLine("Ошибка: укажите номер задачи.");
                     return null;
 

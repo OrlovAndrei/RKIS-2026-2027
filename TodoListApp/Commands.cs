@@ -40,11 +40,15 @@ namespace TodoList
     public class ViewCommand : ICommand
     {
         public TodoList TodoList { get; set; } = null!;
+        
+        public bool ShowIndex { get; set; } = false;
+        public bool ShowDone { get; set; } = false;
+        public bool ShowDate { get; set; } = false;
 
         public void Execute()
         {
-            // По заданию выводим с индексами, статусами и датами
-            TodoList.View(true, true, true);
+            // Передаем флаги, которые пришли из парсера
+            TodoList.View(ShowIndex, ShowDone, ShowDate);
         }
     }
 
@@ -90,10 +94,15 @@ namespace TodoList
         public TodoList TodoList { get; set; } = null!;
 
         public void Execute()
-        {
-            TodoList.Delete(Index);
-            Console.WriteLine("Задача удалена.");
-        }
+        {   
+            // Проверяем, существует ли задача перед удалением
+            var item = TodoList.GetItem(Index); 
+            if (item != null)
+            {
+                TodoList.Delete(Index);
+                Console.WriteLine("Задача удалена.");
+            }
+        }       
     }
 
     // 6. Команда чтения подробной информации
