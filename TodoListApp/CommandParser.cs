@@ -26,9 +26,9 @@ static class CommandParser
         {
             return ParseView(input, todoList);
         }
-        else if (input.StartsWith("done"))
+        else if (input == "status" || input.StartsWith("status "))
         {
-            return ParseDone(input, todoList, todoFilePath);
+            return ParseStatus(input, todoList, todoFilePath);
         }
         else if (input.StartsWith("delete"))
         {
@@ -148,20 +148,24 @@ static class CommandParser
         };
     }
 
-    private static ICommand ParseDone(string input, TodoList todoList, string todoFilePath)
+    private static ICommand ParseStatus(string input, TodoList todoList, string todoFilePath)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2 && int.TryParse(parts[1], out int number))
+        if (parts.Length >= 3 &&
+            int.TryParse(parts[1], out int number) &&
+            !int.TryParse(parts[2], out _) &&
+            Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus status))
         {
-            return new DoneCommand
+            return new StatusCommand
             {
                 TodoList = todoList,
                 Index = number - 1,
+                Status = status,
                 TodoFilePath = todoFilePath
             };
         }
 
-        return new UnknownCommand("Неверный номер задачи. Используйте: done <номер>");
+        return new UnknownCommand("Неверный формат или статус. Используйте: status <номер> <notstarted|inprogress|completed|postponed|failed>");
     }
 
     private static ICommand ParseDelete(string input, TodoList todoList, string todoFilePath)
