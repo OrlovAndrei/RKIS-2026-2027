@@ -40,8 +40,13 @@ namespace TodoList
             _count--;
         }
 
-        public TodoItem GetItem(int index)
+        public TodoItem? GetItem(int index)
         {
+            // Проверка: если индекс меньше 0 или больше/равен количеству задач
+            if (index < 0 || index >= _count)
+            {
+                return null; // Возвращаем null, если задачи нет
+            }
             return _items[index];
         }
 
