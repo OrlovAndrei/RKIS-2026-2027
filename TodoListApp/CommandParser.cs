@@ -4,7 +4,7 @@ namespace TodoList
 {
     public static class CommandParser
     {
-        public static ICommand? Parse(string inputString, TodoList todoList, Profile profile)
+        public static ICommand? Parse(string inputString, TodoList todoList, Profile profile, string todoPath, string profilePath)
         {
             if (string.IsNullOrWhiteSpace(inputString)) return null;
 
@@ -15,7 +15,7 @@ namespace TodoList
             switch (commandName)
             {
                 case "add":
-                    var addCmd = new AddCommand { TodoList = todoList };
+                    var addCmd = new AddCommand { TodoList = todoList, FilePath = todoPath };
                     // проверка на -m
                     if (args.Trim() == "--multiline" || args.Trim() == "-m") 
                     {
@@ -55,7 +55,7 @@ namespace TodoList
 
                 case "done":
                     if (int.TryParse(args, out int doneIdx))
-                        return new DoneCommand { TodoList = todoList, Index = doneIdx - 1 };
+                        return new DoneCommand { TodoList = todoList, Index = doneIdx - 1, FilePath = todoPath  };
                     Console.WriteLine("Ошибка: укажите номер задачи.");
                     return null;
 
@@ -63,11 +63,12 @@ namespace TodoList
                     string[] updateParts = args.Split(' ', 2);
                     if (updateParts.Length == 2 && int.TryParse(updateParts[0], out int updateIdx))
                     {
-                        return new UpdateCommand 
+                        return new UpdateCommand
                         { 
                             TodoList = todoList, 
                             Index = updateIdx - 1, 
-                            Text = updateParts[1].Trim('"') // Убираем кавычки, если они есть 
+                            Text = updateParts[1].Trim('"'),// Убираем кавычки, если они есть
+                            FilePath = todoPath  
                         };
                     }
                     Console.WriteLine("Ошибка: формат 'update <номер> <новый текст>'");
@@ -75,7 +76,7 @@ namespace TodoList
 
                 case "delete":
                     if (int.TryParse(args, out int delIdx))
-                        return new DeleteCommand { TodoList = todoList, Index = delIdx - 1 };
+                        return new DeleteCommand { TodoList = todoList, Index = delIdx - 1, FilePath = todoPath };
                     Console.WriteLine("Ошибка: укажите номер задачи.");
                     return null;
 
@@ -86,7 +87,7 @@ namespace TodoList
                     return null;
 
                 case "profile":
-                    return new ProfileCommand { Profile = profile };
+                    return new ProfileCommand { Profile = profile, FilePath = profilePath  };
 
                 case "exit":
                     return new ExitCommand();
