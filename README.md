@@ -108,6 +108,24 @@
    * Пути к папке `data` и файлам формируются через `Path.Combine`.
    * При старте проверяется наличие файлов через `File.Exists`: существующие данные загружаются, а при отсутствии создаются новые файлы.
 
+### Занятие 9:
+
+1. Обновили класс `TodoList` (`TodoList.cs`):
+   * Заменили массив задач и ручное расширение `IncreaseArray()` на приватный список `List<TodoItem>`.
+   * Добавили индексатор `this[int index]` для доступа к задачам по индексу.
+   * Реализовали `IEnumerable<TodoItem>` и метод-итератор `GetEnumerator()` через `yield return` для перебора задач в `foreach`.
+   * Заменили отметку выполнения на метод `SetStatus(int index, TodoStatus status)`.
+2. Расширили статусы задач:
+   * Создали перечисление `TodoStatus` (`NotStarted`, `InProgress`, `Completed`, `Postponed`, `Failed`) в файле `TodoStatus.cs`.
+   * В `TodoItem` заменили булево свойство `IsDone` на `Status` типа `TodoStatus`, обновили `GetStatusText()` и заменили `MarkDone()` на `SetStatus()`.
+3. Обновили команды и парсер:
+   * Создали класс `StatusCommand` (файл `StatusCommand.cs`) для смены статуса через `status <номер> <статус>`.
+   * Удалили устаревшую команду `DoneCommand` (`DoneCommand.cs`) и её упоминания.
+   * В `CommandParser.cs` добавили разбор команды `status` с преобразованием строки в `TodoStatus`.
+   * В `HelpCommand.cs` обновили справку с описанием команды `status`.
+4. Обновили `FileManager.cs`:
+   * Сохранение и загрузка статусов в `todo.csv` теперь работают через `status.ToString()` и `Enum.Parse<TodoStatus>()`.
+
 # RKIS-2026-2027
 
 [**Таблица с баллами**](https://docs.google.com/spreadsheets/d/1GvZhXuI4iQ64We3WBa1ldcjXab0o4kIvY8auF_z9FrM/edit?usp=sharing)
