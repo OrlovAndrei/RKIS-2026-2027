@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 
 namespace TodoList
@@ -13,22 +14,42 @@ namespace TodoList
 
             Console.WriteLine("Работу выполнили: Осинцева и Малюкова");
 
-            // === ШАГ 1: Ввод профиля при старте ===
-            Console.Write("Введите имя: ");
-            string firstName = Console.ReadLine() ?? "";
+            // === 1. НАСТРОЙКА ПУТЕЙ (Лекция 8) ===
+            // Создаем папку data рядом с .exe файлом (используем Path.Combine)
+            string dataDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
+            FileManager.EnsureDataDirectory(dataDir);
+            
+            string profilePath = Path.Combine(dataDir, "profile.txt");
+            string todoPath = Path.Combine(dataDir, "todo.csv");
 
-            Console.Write("Введите фамилию: ");
-            string lastName = Console.ReadLine() ?? "";
+            // === 2. ЗАГРУЗКА ПРОФИЛЯ ===
+            // Пытаемся загрузить профиль
+            Profile? userProfile = FileManager.LoadProfile(profilePath);
+            
+            // Если профиля нет (LoadProfile вернул null), спрашиваем данные
+            if (userProfile == null)
+            {
+               // === ШАГ 1: Ввод профиля при старте ===
+               Console.Write("Введите имя: ");
+               string firstName = Console.ReadLine() ?? "";
 
-            Console.Write("Введите год рождения: ");
-            int.TryParse(Console.ReadLine(), out int birthYear);
+               Console.Write("Введите фамилию: ");
+               string lastName = Console.ReadLine() ?? "";
 
-            // Создаем объект профиля с введенными данными
-            Profile userProfile = new Profile(firstName, lastName, birthYear);
-            Console.WriteLine($"\nДобро пожаловать, {firstName} {lastName}!");
+               Console.Write("Введите год рождения: ");
+               int.TryParse(Console.ReadLine(), out int birthYear);
 
-            // Создаем объект списка задач
-            TodoList myTodoList = new TodoList();
+               // Создаем объект профиля с введенными данными
+               userProfile = new Profile(firstName, lastName, birthYear);
+               // Сразу сохраняем созданный профиль в файл
+               FileManager.SaveProfile(userProfile, profilePath);
+            } 
+            
+            Console.WriteLine($"\nДобро пожаловать, {userProfile.FirstName} {userProfile.LastName}!");
+
+            // === 3. ЗАГРУЗКА ЗАДАЧ ===
+            // Загружаем задачи из CSV-файла
+            TodoList myTodoList = FileManager.LoadTodos(todoPath);
 
             Console.WriteLine("Введите 'help' для списка команд.\n");
 
@@ -40,8 +61,8 @@ namespace TodoList
 
                 if (string.IsNullOrWhiteSpace(input)) continue;
 
-                // Отдаем строку парсеру (передаем туда созданные профиль и список задач)
-                ICommand? command = CommandParser.Parse(input, myTodoList, userProfile);
+                // Отдаем строку парсеру (передаем туда созданные профиль, список задач и т.д.)
+                ICommand? command = CommandParser.Parse(input, myTodoList, userProfile, todoPath, profilePath);
                 
                 // Если команда распознана - выполняем
                 if (command != null)
