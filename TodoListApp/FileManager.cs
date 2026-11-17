@@ -75,21 +75,16 @@ static class FileManager
         }
 
         string[] lines = new string[todos.Count + 1];
-        lines[0] = "Index;Text;IsDone;LastUpdate";
+        lines[0] = "Index;Text;Status;LastUpdate";
 
-        for (int i = 0; i < todos.Count; i++)
+        int index = 0;
+        foreach (TodoItem item in todos)
         {
-            TodoItem? item = todos.GetItem(i);
-            if (item == null)
-            {
-                lines[i + 1] = "";
-                continue;
-            }
-
             string escapedText = EscapeCsv(item.Text);
-            string isDone = item.IsDone ? "true" : "false";
+            string status = item.Status.ToString();
             string date = item.LastUpdate.ToString("yyyy-MM-ddTHH:mm:ss");
-            lines[i + 1] = $"{i};{escapedText};{isDone};{date}";
+            lines[index + 1] = $"{index};{escapedText};{status};{date}";
+            index++;
         }
 
         File.WriteAllLines(filePath, lines);
@@ -119,12 +114,20 @@ static class FileManager
             }
 
             string text = UnescapeCsv(parts[1]);
-            bool isDone = bool.TryParse(parts[2], out bool parsedDone) && parsedDone;
+            TodoStatus status = TodoStatus.NotStarted;
+            try
+            {
+                status = Enum.Parse<TodoStatus>(parts[2], true);
+            }
+            catch
+            {
+                status = TodoStatus.NotStarted;
+            }
             DateTime lastUpdate = DateTime.TryParse(parts[3], out DateTime parsedDate)
                 ? parsedDate
                 : DateTime.Now;
 
-            todos.Add(new TodoItem(text, isDone, lastUpdate));
+            todos.Add(new TodoItem(text, status, lastUpdate));
         }
 
         return todos;
