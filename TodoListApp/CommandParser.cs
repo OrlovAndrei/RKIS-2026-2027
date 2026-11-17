@@ -2,7 +2,7 @@ using System;
 
 static class CommandParser
 {
-    public static ICommand Parse(string inputString, TodoList todoList, Profile? profile)
+    public static ICommand Parse(string inputString, TodoList todoList, Profile? profile, string todoFilePath, string profileFilePath)
     {
         string input = inputString.Trim();
 
@@ -12,7 +12,7 @@ static class CommandParser
         }
         else if (input == "profile")
         {
-            return new ProfileCommand { Profile = profile };
+            return new ProfileCommand { Profile = profile, ProfileFilePath = profileFilePath };
         }
         else if (input == "exit")
         {
@@ -20,7 +20,7 @@ static class CommandParser
         }
         else if (input.StartsWith("add"))
         {
-            return ParseAdd(input, todoList);
+            return ParseAdd(input, todoList, todoFilePath);
         }
         else if (input == "view" || input.StartsWith("view "))
         {
@@ -28,15 +28,15 @@ static class CommandParser
         }
         else if (input.StartsWith("done"))
         {
-            return ParseDone(input, todoList);
+            return ParseDone(input, todoList, todoFilePath);
         }
         else if (input.StartsWith("delete"))
         {
-            return ParseDelete(input, todoList);
+            return ParseDelete(input, todoList, todoFilePath);
         }
         else if (input.StartsWith("update"))
         {
-            return ParseUpdate(input, todoList);
+            return ParseUpdate(input, todoList, todoFilePath);
         }
         else if (input.StartsWith("read"))
         {
@@ -46,7 +46,7 @@ static class CommandParser
         return new UnknownCommand("Неизвестная команда. Введите help для списка команд.");
     }
 
-    private static ICommand ParseAdd(string input, TodoList todoList)
+    private static ICommand ParseAdd(string input, TodoList todoList, string todoFilePath)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
@@ -55,7 +55,8 @@ static class CommandParser
             return new AddCommand
             {
                 TodoList = todoList,
-                IsMultiline = true
+                IsMultiline = true,
+                TodoFilePath = todoFilePath
             };
         }
 
@@ -66,7 +67,8 @@ static class CommandParser
             {
                 TodoList = todoList,
                 Text = task,
-                IsMultiline = false
+                IsMultiline = false,
+                TodoFilePath = todoFilePath
             };
         }
 
@@ -146,7 +148,7 @@ static class CommandParser
         };
     }
 
-    private static ICommand ParseDone(string input, TodoList todoList)
+    private static ICommand ParseDone(string input, TodoList todoList, string todoFilePath)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length >= 2 && int.TryParse(parts[1], out int number))
@@ -154,14 +156,15 @@ static class CommandParser
             return new DoneCommand
             {
                 TodoList = todoList,
-                Index = number - 1
+                Index = number - 1,
+                TodoFilePath = todoFilePath
             };
         }
 
         return new UnknownCommand("Неверный номер задачи. Используйте: done <номер>");
     }
 
-    private static ICommand ParseDelete(string input, TodoList todoList)
+    private static ICommand ParseDelete(string input, TodoList todoList, string todoFilePath)
     {
         string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length >= 2 && int.TryParse(parts[1], out int number))
@@ -169,14 +172,15 @@ static class CommandParser
             return new DeleteCommand
             {
                 TodoList = todoList,
-                Index = number - 1
+                Index = number - 1,
+                TodoFilePath = todoFilePath
             };
         }
 
         return new UnknownCommand("Неверный номер задачи. Используйте: delete <номер>");
     }
 
-    private static ICommand ParseUpdate(string input, TodoList todoList)
+    private static ICommand ParseUpdate(string input, TodoList todoList, string todoFilePath)
     {
         string[] quoteParts = input.Split('"');
         if (quoteParts.Length >= 2 && !string.IsNullOrWhiteSpace(quoteParts[1]))
@@ -188,7 +192,8 @@ static class CommandParser
                 {
                     TodoList = todoList,
                     Index = number - 1,
-                    Text = quoteParts[1]
+                    Text = quoteParts[1],
+                    TodoFilePath = todoFilePath
                 };
             }
         }
