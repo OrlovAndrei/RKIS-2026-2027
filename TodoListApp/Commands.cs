@@ -8,6 +8,7 @@ namespace TodoList
         public string Text { get; set; } = "";
         public bool Multiline { get; set; } = false;
         public TodoList TodoList { get; set; } = null!;
+        public string FilePath { get; set; } = "";
 
         public void Execute()
         {
@@ -27,6 +28,7 @@ namespace TodoList
             if (!string.IsNullOrEmpty(Text))
             {
                 TodoList.Add(new TodoItem(Text));
+                FileManager.SaveTodos(TodoList, FilePath);
                 Console.WriteLine("Задача добавлена.");
             }
             else
@@ -57,6 +59,7 @@ namespace TodoList
     {
         public int Index { get; set; }
         public TodoList TodoList { get; set; } = null!;
+        public string FilePath { get; set; } = "";
 
         public void Execute()
         {
@@ -64,6 +67,7 @@ namespace TodoList
             if (item != null)
             {
                 item.MarkDone();
+                FileManager.SaveTodos(TodoList, FilePath);
                 Console.WriteLine("Задача выполнена.");
             }
         }
@@ -75,6 +79,7 @@ namespace TodoList
         public int Index { get; set; }
         public string Text { get; set; } = "";
         public TodoList TodoList { get; set; } = null!;
+        public string FilePath { get; set; } = "";
 
         public void Execute()
         {
@@ -82,6 +87,7 @@ namespace TodoList
             if (item != null)
             {
                 item.UpdateText(Text);
+                FileManager.SaveTodos(TodoList, FilePath);
                 Console.WriteLine("Текст обновлен.");
             }
         }
@@ -92,6 +98,7 @@ namespace TodoList
     {
         public int Index { get; set; }
         public TodoList TodoList { get; set; } = null!;
+        public string FilePath { get; set; } = "";
 
         public void Execute()
         {   
@@ -100,6 +107,7 @@ namespace TodoList
             if (item != null)
             {
                 TodoList.Delete(Index);
+                FileManager.SaveTodos(TodoList, FilePath);
                 Console.WriteLine("Задача удалена.");
             }
         }       
@@ -125,10 +133,12 @@ namespace TodoList
     public class ProfileCommand : ICommand
     {
         public Profile Profile { get; set; } = null!;
+        public string FilePath { get; set; } = "";
 
         public void Execute()
         {
             Console.WriteLine(Profile.GetInfo());
+            FileManager.SaveProfile(Profile, FilePath);
         }
     }
 
