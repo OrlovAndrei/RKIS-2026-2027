@@ -4,6 +4,7 @@ class DeleteCommand : ICommand
 {
     public TodoList? TodoList { get; set; }
     public int Index { get; set; }
+    public string? TodoFilePath { get; set; }
 
     public void Execute()
     {
@@ -15,6 +16,10 @@ class DeleteCommand : ICommand
         TodoItem? item = TodoList.GetItem(Index);
         if (item != null && TodoList.Delete(Index))
         {
+            if (!string.IsNullOrEmpty(TodoFilePath))
+            {
+                FileManager.SaveTodos(TodoList, TodoFilePath);
+            }
             Console.WriteLine($"Задача \"{item.GetShortText()}\" успешно удалена!");
         }
         else
