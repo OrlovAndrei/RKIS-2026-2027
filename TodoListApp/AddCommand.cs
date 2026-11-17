@@ -6,6 +6,7 @@ class AddCommand : ICommand
     public TodoList? TodoList { get; set; }
     public string? Text { get; set; }
     public bool IsMultiline { get; set; }
+    public string? TodoFilePath { get; set; }
 
     public void Execute()
     {
@@ -28,6 +29,10 @@ class AddCommand : ICommand
         }
 
         TodoList.Add(new TodoItem(task));
+        if (!string.IsNullOrEmpty(TodoFilePath))
+        {
+            FileManager.SaveTodos(TodoList, TodoFilePath);
+        }
         Console.WriteLine("Задача успешно добавлена!");
     }
 
