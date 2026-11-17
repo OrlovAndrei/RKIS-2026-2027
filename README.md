@@ -94,6 +94,20 @@
    * Убрали из `Main` огромную кучу условий `if/else` и старых методов.
    * Теперь в цикле просто считываем строку, отдаем в `CommandParser.Parse` и вызываем `command.Execute()`.
 
+### Занятие 8:
+
+1. Добавили сохранение состояния программы между запусками с помощью `File`, `Directory` и `Path`.
+2. Создали статический класс `FileManager` (файл `FileManager.cs`):
+   * `EnsureDataDirectory()` — проверяет и создаёт папку `data` через `Directory.CreateDirectory`.
+   * `SaveProfile()` и `LoadProfile()` — сохранение и загрузка данных пользователя в файл `profile.txt`.
+   * `SaveTodos()` и `LoadTodos()` — сохранение и загрузка задач в CSV-файл `todo.csv` в формате `Index;Text;IsDone;LastUpdate` с экранированием кавычек и переносов строк (`\n` ↔ `\\n`).
+3. Интегрировали автосохранение в команды:
+   * `AddCommand`, `DoneCommand`, `UpdateCommand`, `DeleteCommand` вызывают `FileManager.SaveTodos()` после изменения задач.
+   * `ProfileCommand` и регистрация при запуске сохраняют профиль через `FileManager.SaveProfile()`.
+4. Обновили `Program.cs` и `CommandParser.cs`:
+   * Пути к папке `data` и файлам формируются через `Path.Combine`.
+   * При старте проверяется наличие файлов через `File.Exists`: существующие данные загружаются, а при отсутствии создаются новые файлы.
+
 # RKIS-2026-2027
 
 [**Таблица с баллами**](https://docs.google.com/spreadsheets/d/1GvZhXuI4iQ64We3WBa1ldcjXab0o4kIvY8auF_z9FrM/edit?usp=sharing)
