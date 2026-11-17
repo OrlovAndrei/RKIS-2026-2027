@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 class Program
 {
@@ -8,7 +9,41 @@ class Program
     static void Main()
     {
         PrintHeader();
-        RegisterUser();
+
+        string dataDirPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
+        string profileFilePath = Path.Combine(dataDirPath, "profile.txt");
+        string todoFilePath = Path.Combine(dataDirPath, "todo.csv");
+
+        FileManager.EnsureDataDirectory(dataDirPath);
+
+        if (File.Exists(profileFilePath))
+        {
+            profile = FileManager.LoadProfile(profileFilePath);
+        }
+        else
+        {
+            File.WriteAllText(profileFilePath, "");
+        }
+
+        if (profile == null)
+        {
+            RegisterUser();
+            FileManager.SaveProfile(profile, profileFilePath);
+        }
+        else
+        {
+            Console.WriteLine($"С возвращением, {profile.GetInfo()}!");
+        }
+
+        if (File.Exists(todoFilePath))
+        {
+            todoList = FileManager.LoadTodos(todoFilePath);
+        }
+        else
+        {
+            todoList = new TodoList();
+            File.WriteAllText(todoFilePath, "");
+        }
 
         Console.WriteLine("\nВведите команду (для справки введите help):");
 
@@ -22,7 +57,7 @@ class Program
                 continue;
             }
 
-            ICommand command = CommandParser.Parse(input, todoList, profile);
+            ICommand command = CommandParser.Parse(input, todoList, profile, todoFilePath, profileFilePath);
             command.Execute();
         }
     }
