@@ -1,63 +1,69 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
-class TodoList
+class TodoList : IEnumerable<TodoItem>
 {
-    private TodoItem?[] items;
-    private int count;
+    private List<TodoItem> items;
 
-    public int Count
-    {
-        get { return count; }
-    }
+    public int Count => items.Count;
 
     public TodoList()
     {
-        items = new TodoItem?[2];
-        count = 0;
+        items = new List<TodoItem>();
+    }
+
+    public TodoItem this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= items.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+            return items[index];
+        }
     }
 
     public void Add(TodoItem item)
     {
-        if (count == items.Length)
-        {
-            items = IncreaseArray(items, item);
-        }
-        else
-        {
-            items[count] = item;
-        }
-        count++;
+        items.Add(item);
     }
 
     public bool Delete(int index)
     {
-        if (index < 0 || index >= count)
+        if (index < 0 || index >= items.Count)
         {
             return false;
         }
 
-        for (int i = index; i < count - 1; i++)
+        items.RemoveAt(index);
+        return true;
+    }
+
+    public bool SetStatus(int index, TodoStatus status)
+    {
+        if (index < 0 || index >= items.Count)
         {
-            items[i] = items[i + 1];
+            return false;
         }
 
-        items[count - 1] = null;
-        count--;
+        items[index].SetStatus(status);
         return true;
     }
 
     public TodoItem? GetItem(int index)
     {
-        if (index < 0 || index >= count)
+        if (index < 0 || index >= items.Count)
         {
             return null;
         }
         return items[index];
     }
 
-    public void View(bool showIndex, bool showDone, bool showDate)
+    public void View(bool showIndex, bool showStatus, bool showDate)
     {
-        if (count == 0)
+        if (items.Count == 0)
         {
             Console.WriteLine("Задач пока нет.");
             return;
@@ -69,7 +75,7 @@ class TodoList
             header += $"{"№",-4} | ";
         }
         header += $"{"Задача",-33}";
-        if (showDone)
+        if (showStatus)
         {
             header += $" | {"Статус",-12}";
         }
@@ -81,21 +87,16 @@ class TodoList
         Console.WriteLine(header);
         Console.WriteLine(new string('-', header.Length));
 
-        for (int i = 0; i < count; i++)
+        int index = 0;
+        foreach (TodoItem item in this)
         {
-            TodoItem? item = items[i];
-            if (item == null)
-            {
-                continue;
-            }
-
             string row = "";
             if (showIndex)
             {
-                row += $"{i + 1,-4} | ";
+                row += $"{index + 1,-4} | ";
             }
             row += $"{item.GetShortText(),-33}";
-            if (showDone)
+            if (showStatus)
             {
                 row += $" | {item.GetStatusText(),-12}";
             }
@@ -104,17 +105,20 @@ class TodoList
                 row += $" | {item.LastUpdate:dd.MM.yyyy HH:mm:ss}";
             }
             Console.WriteLine(row);
+            index++;
         }
     }
 
-    private TodoItem?[] IncreaseArray(TodoItem?[] items, TodoItem item)
+    public IEnumerator<TodoItem> GetEnumerator()
     {
-        TodoItem?[] newItems = new TodoItem?[items.Length * 2];
-        for (int i = 0; i < items.Length; i++)
+        for (int i = 0; i < items.Count; i++)
         {
-            newItems[i] = items[i];
+            yield return items[i];
         }
-        newItems[items.Length] = item;
-        return newItems;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
