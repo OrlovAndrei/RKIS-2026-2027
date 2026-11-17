@@ -15,7 +15,7 @@ class HelpCommand : ICommand
         Console.WriteLine("      --update-date (-d) - показывать дату изменения");
         Console.WriteLine("      --all (-a) - показывать все данные");
         Console.WriteLine("      короткие флаги можно объединять, например: view -is");
-        Console.WriteLine("  done <номер> - отметить задачу выполненной");
+        Console.WriteLine("  status <номер> <статус> - изменить статус задачи (notstarted, inprogress, completed, postponed, failed)");
         Console.WriteLine("  delete <номер> - удалить задачу");
         Console.WriteLine("  update <номер> \"текст\" - изменить задачу");
         Console.WriteLine("  read <номер> - показать полный текст задачи, статус и дату изменения");
