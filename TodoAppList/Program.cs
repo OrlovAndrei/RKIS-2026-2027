@@ -31,7 +31,7 @@ namespace TodoListApp
                     continue;
                 } 
                 string[] parsed_command = command.Split();
-                switch (parsed_command[0])
+                switch (parsed_command[0].ToLower())
                 {
                     case "help":
                         Console.WriteLine("Доступные команды:");
