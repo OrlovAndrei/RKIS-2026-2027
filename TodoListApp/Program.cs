@@ -88,13 +88,19 @@ namespace TodoList
 
                 static void AddTask(TodoList list, string argsString)
         {
-            bool isMultiline = argsString.Contains("-m") || argsString.Contains("--multiline");
+            bool isMultiline = argsString.Contains("-m") || argsString.Contains("--multiline")
+            argsString = argsString.Replace("-m", "").Replace("--multiline", "").Trim();
             string task = "";
 
             if (isMultiline)
             {
                 Console.WriteLine("Введите текст задачи (для завершения введите !end):");
                 StringBuilder sb = new StringBuilder();
+
+                if (!string.IsNullOrWhiteSpace(argsString))
+                {
+                    sb.Append(argsString.Trim('"'));
+                }
                 
                 while (true)
                 {
