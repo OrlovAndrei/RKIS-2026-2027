@@ -2,7 +2,7 @@
 using System.Text;
 using TodoListApp;
 
-namespace TodoList
+namespace TodoListApp
 {
     class Program
     {
@@ -10,24 +10,23 @@ namespace TodoList
         {
             Console.WriteLine("Работу выполнили Сипач и Пасалиди");
 
-            //Практическая работа №2
             Console.Write("Введите имя: ");
-            name1 = Console.ReadLine();
+            string name1 = Console.ReadLine();
 
             Console.Write("Введите фамилию: ");
-            name2 = Console.ReadLine();
+            string name2 = Console.ReadLine();
 
             Console.Write("Введите год рождения: ");
             string yearInput = Console.ReadLine();
-            year = int.Parse(yearInput);
 
-            int curYear = DateTime.Now.Year;
-            int age = curYear - year;
-            Console.WriteLine($"Добавлен пользователь {name2} {name1}, возраст - {age}");
-            Console.WriteLine();
+            if (!int.TryParse(yearInput, out int year))
+            {
+                Console.WriteLine("Некорректный год. Использован 2000.");
+                year = 2000;
+            }
 
             Profile user = new Profile(name1, name2, year);
-            Console.WriteLine($"Добавлен пользователь {user.FirstName} {user.LastName}");
+            Console.WriteLine("Добавлен пользователь " + user.GetInfo());
             Console.WriteLine();
 
             TodoList myList = new TodoList();
@@ -86,9 +85,9 @@ namespace TodoList
 
         
 
-                static void AddTask(TodoList list, string argsString)
+        static void AddTask(TodoList list, string argsString)
         {
-            bool isMultiline = argsString.Contains("-m") || argsString.Contains("--multiline")
+            bool isMultiline = argsString.Contains("-m") || argsString.Contains("--multiline");
             argsString = argsString.Replace("-m", "").Replace("--multiline", "").Trim();
             string task = "";
 
@@ -126,9 +125,9 @@ namespace TodoList
                 return;
             }
 
-            TodoItem newItem = new TodoItem(taskText);
+            TodoItem newItem = new TodoItem(task);
             list.Add(newItem);
-            Console.WriteLine($"Задача добавлена: {taskText}");
+            Console.WriteLine($"Задача добавлена");
         }
 
          static void View(TodoList list, string argsString)
@@ -149,7 +148,7 @@ namespace TodoList
             Console.WriteLine(item.GetFullInfo());
         }
         
-        static void Done(String argsString)
+        static void Done(TodoList list, string argsString)
         {
             if (!TryGetIndex(argsString, list, out int index)) return;
             
@@ -158,7 +157,7 @@ namespace TodoList
             Console.WriteLine("Задача помечена, как выполненная");
         }
 
-        static void Delete(string argsString)
+        static void Delete(TodoList list, string argsString)
         {
             if (!TryGetIndex(argsString, list, out int index)) return;
             

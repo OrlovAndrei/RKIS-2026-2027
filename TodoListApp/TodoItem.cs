@@ -52,8 +52,7 @@ namespace TodoListApp
             {
                 shortText = shortText.Substring(0, 27) + "...";
             }
-            string status = _isDone ? "Выполнена" : "Не выполнена";
-            return $"{shortText}   {status}   {_lastUpdate:dd.MM.yyyy HH.mm}";
+            return $"{shortText}";
         }
 
         public string GetFullInfo()

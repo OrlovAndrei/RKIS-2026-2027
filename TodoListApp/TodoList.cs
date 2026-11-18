@@ -44,7 +44,7 @@ namespace TodoListApp
 
             if (showIndex) Console.Write($" {"ID",-4} ");
             if (showStatus) Console.Write($" {"Статус",-12} ");
-            if (showDate) Console.Write($" {"Дата изменения",-25} ");
+            if (showDate) Console.Write($" {"Дата изменения",-16} ");
             Console.WriteLine($" {"Текст задачи",-30} ");
 
             for (int i = 0; i < _count;  i++)
@@ -59,7 +59,7 @@ namespace TodoListApp
 
                 if (showDate)
                 {
-                    Console.Write($" {_items[i].LastUpdate,-10} ");
+                    Console.Write($" {_items[i].LastUpdate,-16:dd.MM.yyyy HH:mm} ");
                 }
 
                 string shortInfo = _items[i].GetShortInfo();
@@ -80,7 +80,7 @@ namespace TodoListApp
         private void IncreaseArray()
         {
             TodoItem[] newItems = new TodoItem[_items.Length * 2];
-            for (int i = 0; i < newItems.Length; i++)
+            for (int i = 0; i < _items.Length; i++)
             {
                 newItems[i] = _items[i];
             }
