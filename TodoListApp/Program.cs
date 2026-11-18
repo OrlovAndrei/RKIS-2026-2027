@@ -9,5 +9,4 @@ string lastName = Console.ReadLine()!;
 Console.Write("Введите год рождения: ");
 int birthYear = int.Parse(Console.ReadLine()!);
 
-int age = DateTime.Now.Year - birthYear;
-Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+string[] todos = new string[2];
