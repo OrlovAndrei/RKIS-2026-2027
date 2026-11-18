@@ -41,22 +41,37 @@ namespace TodoListApp
                         Console.WriteLine("view - посмотреть текущие задачи");
                         Console.WriteLine("exit - выход");
                     break;
+
                     case "add":
                         if (parsed_command.Length == 1)
                         {
                             Console.WriteLine("Использование: add \"Текст задачи\"");
                             continue;
                         }
+                        if (todos.Length == task_amount)
+                        {
+                            string[] todos_backup = new string[todos.Length];
+                            for(int i = 0;i< todos.Length; i++)
+                            {
+                                todos_backup[i] = todos[i];
+                            }
+                            todos = new string[todos.Length * 2];
+                            for(int i = 0;i< todos_backup.Length; i++)
+                            {
+                                todos[i] = todos_backup[i];
+                            }
+                        }
                         todos[task_amount] = parsed_command[1].Trim('"');
-                        Console.WriteLine($"Задача под номером {task_amount + 1} добавлена!");
                         task_amount++;
+                        Console.WriteLine($"Задача под номером {task_amount} добавлена!");
                         break;
+
                     case "view":
                         Console.WriteLine("Текущие задачи:");
                         int count = 1;
                         foreach(string task in todos)
                         {
-                            if (task != ""){
+                            if (task != "" && task != null){
                             Console.WriteLine($"{count} - {task}");
                             count++;
                             }
