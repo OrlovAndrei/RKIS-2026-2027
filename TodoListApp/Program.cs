@@ -21,6 +21,9 @@ namespace TodoListApp
             Console.WriteLine($"Добавлен пользователь: {name} {surname} возраст: {CurrentYear-birthYear}");
             
             string[] todos = new string[InitialCapacity];
+            bool[] statuses = new bool[InitialCapacity];
+            DateTime[] dates = new;
+            DateTime[InitialCapacity];
             int count = 0;
             while (true)
             {
@@ -69,6 +72,7 @@ namespace TodoListApp
                     break;
 
                 }
+
             }
         }
     }
