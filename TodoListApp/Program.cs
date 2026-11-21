@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO; // Обязательно для работы с файлами
 using System.Linq;
 using System.Text;
 
@@ -7,10 +8,26 @@ namespace TodoListApp;
 
 public class Program
 {
+    // Переменная для хранения пути к файлу задач
+    private static string _todoPath = "";
     private static readonly List<TodoItem> _tasks = new List<TodoItem>();
 
     public static void Main(string[] args)
     {
+        // --- ИНИЦИАЛИЗАЦИЯ ПАПКИ И ФАЙЛОВ (Лекция 8) ---
+        string dataDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data");
+        FileManager.EnsureDataDirectory(dataDir);
+        
+        _todoPath = Path.Combine(dataDir, "todo.csv");
+        string profilePath = Path.Combine(dataDir, "profile.txt");
+
+        if (!File.Exists(_todoPath)) File.WriteAllText(_todoPath, "");
+        if (!File.Exists(profilePath)) File.WriteAllText(profilePath, "");
+
+        // Загружаем сохраненные задачи при запуске
+        var loadedTasks = FileManager.LoadTodos(_todoPath);
+        _tasks.AddRange(loadedTasks);
+
         // Ваша регистрация
         Console.WriteLine("Работу выполнили Илиадис и Дедкова");
         Console.Write("Введите имя: ");
@@ -19,6 +36,9 @@ public class Program
         string? lastName = Console.ReadLine();
         Console.Write("Введите год рождения: ");
         string? year = Console.ReadLine();
+
+        // Сохраняем профиль
+        FileManager.SaveProfile($"{name} {lastName}, {year}", profilePath);
 
         Console.WriteLine("\nДобро пожаловать в TodoList!");
         Console.WriteLine("Введите help для списка команд.");
@@ -45,6 +65,9 @@ public class Program
             {
                 case "add": 
                     HandleAdd(flags, positionalArgs); 
+                    break;
+                case "done": // НОВАЯ КОМАНДА: отметить выполненным
+                    HandleDone(positionalArgs);
                     break;
                 case "view": 
                     HandleView(flags); 
@@ -129,8 +152,9 @@ public class Program
 
             if (lines.Count > 0)
             {
-                _tasks.Add(new TodoItem { Text = string.Join("\n", lines) });
-                Console.WriteLine("Многострочная задача добавлена.");
+                _tasks.Add(new TodoItem { Text = string.Join("\n", lines), LastModified = DateTime.Now });
+                FileManager.SaveTodos(_tasks, _todoPath); // СОХРАНЕНИЕ
+                Console.WriteLine("Многострочная задача добавлена и сохранена.");
             }
         }
         else
@@ -144,10 +168,34 @@ public class Program
             
             if (!string.IsNullOrWhiteSpace(text))
             {
-                _tasks.Add(new TodoItem { Text = text.Trim() });
-                Console.WriteLine("Задача добавлена.");
+                _tasks.Add(new TodoItem { Text = text.Trim(), LastModified = DateTime.Now });
+                FileManager.SaveTodos(_tasks, _todoPath); // СОХРАНЕНИЕ
+                Console.WriteLine("Задача добавлена и сохранена.");
             }
         }
+    }
+
+    // НОВЫЙ МЕТОД для команды done
+    private static void HandleDone(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Console.WriteLine("Укажите ID: done <idx>");
+            return;
+        }
+
+        if (!int.TryParse(args[0], out int index) || index < 1 || index > _tasks.Count)
+        {
+            Console.WriteLine($"Ошибка: укажите число от 1 до {_tasks.Count}.");
+            return;
+        }
+
+        var task = _tasks[index - 1];
+        task.IsCompleted = true;
+        task.LastModified = DateTime.Now;
+
+        FileManager.SaveTodos(_tasks, _todoPath); // СОХРАНЕНИЕ
+        Console.WriteLine($"Задача #{index} отмечена выполненной и сохранена.");
     }
 
     private static void HandleView(Dictionary<string, bool> flags)
@@ -238,6 +286,7 @@ public class Program
         Console.WriteLine("Доступные команды:");
         Console.WriteLine("  add [текст]             - добавить задачу");
         Console.WriteLine("  add --multiline (-m)    - добавить многострочную задачу (ввод до !end)");
+        Console.WriteLine("  done <idx>              - отметить задачу выполненной");
         Console.WriteLine("  view                    - показать задачи");
         Console.WriteLine("  view --index (-i)       - показать ID");
         Console.WriteLine("  view --status (-s)      - показать статус");
