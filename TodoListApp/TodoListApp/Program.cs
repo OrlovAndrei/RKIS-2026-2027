@@ -63,6 +63,8 @@ class Program
                 ShowProfile();
             else if (command == "view" || command.StartsWith("view "))
                 HandleView(command);
+            else if (command == "add --multiline" || command == "add -m")
+                HandleAddMultiline();
             else if (command == "add" || command.StartsWith("add "))
                 HandleAdd(command);
             else if (command == "done" || command.StartsWith("done "))
@@ -112,6 +114,7 @@ class Program
         Console.WriteLine("  profile — данные пользователя");
         Console.WriteLine("  view [флаги] — показать задачи (-i индекс, -s статус, -d дата, -a всё)");
         Console.WriteLine("  add \"текст задачи\" — добавить задачу");
+        Console.WriteLine("  add --multiline (или add -m) — многострочная задача, ввод до строки !end");
         Console.WriteLine("  done <номер> — отметить задачу выполненной");
         Console.WriteLine("  update <номер> \"новый текст\" — изменить текст задачи");
         Console.WriteLine("  delete <номер> — удалить задачу");
@@ -221,7 +224,6 @@ class Program
 
     // Обрезает текст задачи для таблицы: первые 30 символов + "...".
     // Переводы строк (\n) заменяет пробелами — иначе многострочная задача
-    // сломает таблицу (пригодится для add --multiline в следующем шаге).
     static string TruncateText(string text)
     {
         string flat = text.Replace('\n', ' ');
@@ -255,6 +257,47 @@ class Program
 
         todoCount++;
         Console.WriteLine($"Задача добавлена: {taskText}");
+    }
+
+    // Многострочный режим (add --multiline / add -m): строки вводятся до команды !end,
+    // затем склеиваются в один текст через \n и сохраняются как ОДНА задача.
+    static void HandleAddMultiline()
+    {
+        Console.WriteLine("Многострочный режим: вводите строки задачи. Для завершения введите !end");
+
+        string result = "";
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? line = Console.ReadLine();
+
+            // Пустой поток или команда завершения — заканчиваем ввод.
+            if (line == null || line.Trim() == "!end")
+                break;
+
+            // Перед каждой новой строкой добавляем перевод строки \n
+            // (кроме самой первой — она идёт без разделителя).
+            if (result != "")
+                result += "\n";
+
+            result += line;
+        }
+
+        if (result == "")
+        {
+            Console.WriteLine("Задача не добавлена: текст пустой.");
+            return;
+        }
+
+        EnsureCapacity();
+
+        todos[todoCount] = result;
+        statuses[todoCount] = false;
+        dates[todoCount] = DateTime.Now;
+
+        todoCount++;
+        Console.WriteLine($"Задача добавлена: {result}");
     }
 
     // Отмечает задачу выполненной: done <номер>
