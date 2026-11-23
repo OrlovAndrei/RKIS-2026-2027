@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace TodoListApp;
 
@@ -63,9 +64,6 @@ partial class Program
                     Console.WriteLine("Программа завершена. До свидания!");
                     return;
 
-                default:
-                    Console.WriteLine("Неизвестная команда. Введите 'help' для списка команд.");
-                    break;
                 case "done":
                     HandleDone(input);
                     break;
@@ -76,6 +74,10 @@ partial class Program
 
                 case "update":
                     HandleUpdate(input);
+                    break;
+                
+                default:
+                    Console.WriteLine("Неизвестная команда. Введите 'help' для списка команд.");
                     break;
 
             }
@@ -99,13 +101,16 @@ partial class Program
 
     private static void HandleAdd(string input)
     {
-        if (input.Length <= 4)
+        bool isMultiline = HasFlag(input, "--multiline", 'm');
+        string taskText = isMultiline 
+            ? ReadMultilineText() 
+            : (input.Length > 4 ? input.Substring(4).Trim('"') : "");
+        
+        if (string.IsNullOrWhiteSpace(taskText))
         {
-            Console.WriteLine("Ошибка: введите текст задачи после add.");
+            Console.WriteLine("Ошибка: текст задачи не может быть пустым.");
             return;
         }
-
-        string taskText = input.Substring(4).Trim('"');
 
         if (_todoCount >= _todos.Length)
         {
@@ -118,6 +123,24 @@ partial class Program
         _todoCount++; 
 
         Console.WriteLine("Задача успешно добавлена!");
+    }
+
+      
+     private static string ReadMultilineText()
+    {
+        Console.WriteLine("Многострочный режим (введите !end для завершения):");
+        StringBuilder sb = new StringBuilder();
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? line = Console.ReadLine();
+            if (line == null || line.Trim() == "!end") break;
+
+            if (sb.Length > 0) sb.Append('\n');
+            sb.Append(line);
+        }
+        return sb.ToString();
     }
 
     private static void HandleView()
