@@ -67,4 +67,30 @@ public static class FileManager
         fields.Add(current.ToString());
         return fields;
     }
+        public static void SaveProfile(Profile profile, string filePath)
+    {
+        EnsureDataDirectory(Path.GetDirectoryName(filePath) ?? DataDirectory);
+
+        string[] lines =
+        {
+            profile.FirstName,
+            profile.LastName,
+            profile.BirthYear.ToString()
+        };
+
+        File.WriteAllLines(filePath, lines);
+    }
+
+    public static Profile? LoadProfile(string filePath)
+    {
+        if (!File.Exists(filePath))
+            return null;
+
+        string[] lines = File.ReadAllLines(filePath);
+
+        if (lines.Length < 3 || !int.TryParse(lines[2], out int birthYear))
+            return null;
+
+        return new Profile(lines[0], lines[1], birthYear);
+    }
 }
