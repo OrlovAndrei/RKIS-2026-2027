@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 
 namespace TodoListApp;
@@ -8,6 +9,12 @@ internal class Program
     private const int InitialCapacity = 2;
     private const int GrowthFactor = 2;
     private const string MultilineEnd = "!end";
+    private const int PreviewLength = 30;
+    private const string Ellipsis = "...";
+    private const int TextWidth = PreviewLength + 3;
+    private const int IndexWidth = 6;
+    private const int StatusWidth = 12;
+    private const string DateFormat = "dd.MM.yyyy HH:mm:ss";
     private static readonly char[] Separators = { ' ', '\t' };
 
     private static string?[] todos = new string?[InitialCapacity];
@@ -79,7 +86,7 @@ internal class Program
                     break;
 
                 case "view":
-                    ViewTasks();
+                    ViewTasks(arguments);
                     break;
 
 
@@ -112,7 +119,12 @@ internal class Program
         Console.WriteLine("profile — данные пользователя");
         Console.WriteLine("add \"текст задачи\" — добавить задачу");
         Console.WriteLine("add --multiline или -m — добавить несколько строк до !end");
-        Console.WriteLine("view — показать задачи");
+        Console.WriteLine("view [флаги] — показать таблицу задач");
+        Console.WriteLine("  -i, --index         индекс");
+        Console.WriteLine("  -s, --status        статус");
+        Console.WriteLine("  -d, --update-date   дата изменения");
+        Console.WriteLine("  -a, --all           все колонки");
+        Console.WriteLine("  Флаги можно объединять: view -is");
         Console.WriteLine("done <индекс> — отметить задачу выполненной");
         Console.WriteLine("delete <индекс> — удалить задачу");
         Console.WriteLine("update <индекс> \"новый текст\" — изменить задачу");
@@ -194,17 +206,123 @@ internal class Program
         }
     }
 
-    private static void ViewTasks()
+    private static void ViewTasks(string arguments)
     {
+        if (!TryGetViewFlags(arguments, out bool showIndex, out bool showStatus, out bool showDate))
+        {
+            Console.WriteLine("Неизвестный флаг команды view. Введите help.");
+            return;
+        }
+
         if (todoCount == 0)
         {
             Console.WriteLine("Список задач пуст.");
+            return;
         }
+
+        PrintTaskRow("Задача", showIndex ? "Индекс" : null,
+            showStatus ? "Статус" : null, showDate ? "Изменена" : null);
 
         for (int i = 0; i < todoCount; i++)
         {
-            Console.WriteLine($"{i} {todos[i]} {GetStatusText(i)} {dates[i]:dd.MM.yyyy HH:mm:ss}");
+            PrintTaskRow(GetPreview(todos[i] ?? ""), showIndex ? i.ToString() : null,
+                showStatus ? GetStatusText(i) : null,
+                showDate ? dates[i].ToString(DateFormat) : null);
         }
+    }
+
+    private static bool TryGetViewFlags(string arguments, out bool showIndex,
+        out bool showStatus, out bool showDate)
+    {
+        showIndex = false;
+        showStatus = false;
+        showDate = false;
+
+        foreach (string flag in arguments.Split(Separators, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string flags = flag switch
+            {
+                "--index" => "i",
+                "--status" => "s",
+                "--update-date" => "d",
+                "--all" => "a",
+                _ when flag.StartsWith('-') && !flag.StartsWith("--") => flag[1..],
+                _ => ""
+            };
+
+            if (flags.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (char letter in flags)
+            {
+                switch (letter)
+                {
+                    case 'i':
+                        showIndex = true;
+                        break;
+
+                    case 's':
+                        showStatus = true;
+                        break;
+
+                    case 'd':
+                        showDate = true;
+                        break;
+
+                    case 'a':
+                        showIndex = true;
+                        showStatus = true;
+                        showDate = true;
+                        break;
+
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static string GetPreview(string text)
+    {
+        string singleLine = text.Replace('\n', ' ').Replace('\t', ' ');
+        int[] positions = StringInfo.ParseCombiningCharacters(singleLine);
+        if (positions.Length > PreviewLength)
+        {
+            return singleLine[..positions[PreviewLength]] + Ellipsis;
+        }
+
+        return singleLine;
+    }
+
+    private static void PrintTaskRow(string text, string? index, string? status, string? date)
+    {
+        if (index != null)
+        {
+            Console.Write($"{index,IndexWidth} | ");
+        }
+
+        Console.Write(text);
+        if (status != null || date != null)
+        {
+            int spaces = TextWidth - new StringInfo(text).LengthInTextElements;
+            Console.Write(new string(' ', spaces));
+        }
+
+        if (status != null)
+        {
+            Console.Write($" | {status,-StatusWidth}");
+        }
+
+        if (date != null)
+        {
+            Console.Write($" | {date}");
+        }
+
+        Console.WriteLine();
     }
 
     private static void GrowArrays()
