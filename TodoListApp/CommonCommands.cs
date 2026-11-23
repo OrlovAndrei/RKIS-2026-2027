@@ -16,7 +16,8 @@ public class HelpCommand : ICommand
         Console.WriteLine("view -a / --all - все колонки");
         Console.WriteLine("view -is, -isd - сочетания коротких флагов");
         Console.WriteLine("read <номер> - полный текст задачи");
-        Console.WriteLine("done <номер> - отметить выполненной");
+        Console.WriteLine("status <номер> <статус> - изменить статус задачи");
+        Console.WriteLine("Статусы: notstarted, inprogress, completed, postponed, failed");
         Console.WriteLine("update <номер> \"текст\" - изменить задачу");
         Console.WriteLine("delete <номер> - удалить задачу");
         Console.WriteLine("exit - выход");

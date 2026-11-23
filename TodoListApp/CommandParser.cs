@@ -27,7 +27,7 @@ public static class CommandParser
             case "add": return ParseAdd(input, parts, todoList);
             case "view": return ParseView(parts, todoList);
             case "read": return ParseIndexedCommand("read", parts, todoList);
-            case "done": return ParseIndexedCommand("done", parts, todoList);
+            case "status": return ParseStatus(parts, todoList);
             case "delete": return ParseIndexedCommand("delete", parts, todoList);
             case "update": return ParseUpdate(input, todoList);
             default:
@@ -99,10 +99,22 @@ public static class CommandParser
         return name switch
         {
             "read" => new ReadCommand { TodoList = todoList, Index = index },
-            "done" => new DoneCommand { TodoList = todoList, Index = index },
             "delete" => new DeleteCommand { TodoList = todoList, Index = index },
             _ => new MessageCommand { Text = "Неизвестная команда" }
         };
+    }
+
+    private static ICommand ParseStatus(string[] parts, TodoList todoList)
+    {
+        if (parts.Length != 3)
+            return new MessageCommand { Text = "Формат: status 1 completed" };
+        if (!int.TryParse(parts[1], out int index) || index < 1)
+            return new MessageCommand { Text = "Задачи с таким номером нет" };
+        if (!Enum.TryParse<TodoStatus>(parts[2], ignoreCase: true, out TodoStatus status) ||
+            !Enum.IsDefined(status))
+            return new MessageCommand { Text = "Неизвестный статус. Используйте: notstarted, inprogress, completed, postponed, failed" };
+
+        return new StatusCommand { TodoList = todoList, Index = index, Status = status };
     }
 
     private static ICommand ParseUpdate(string input, TodoList todoList)

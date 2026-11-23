@@ -18,25 +18,6 @@ public class ReadCommand : ICommand
     }
 }
 
-public class DoneCommand : ICommand
-{
-    public TodoList TodoList { get; set; } = null!;
-    public int Index { get; set; }
-
-    public void Execute()
-    {
-        TodoItem? item = TodoList.GetItem(Index - 1);
-        if (item == null)
-        {
-            Console.WriteLine("Задачи с таким номером нет");
-            return;
-        }
-        item.MarkDone();
-        TodoSaver.SaveTasks(TodoList);
-        Console.WriteLine("Задача выполнена");
-    }
-}
-
 public class DeleteCommand : ICommand
 {
     public TodoList TodoList { get; set; } = null!;
