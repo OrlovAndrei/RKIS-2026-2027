@@ -11,6 +11,7 @@ public class DoneCommand : ICommand
             return;
 
         task!.MarkDone();
+        FileManager.SaveTodos(TodoList, FileManager.TodoPath);
         Console.WriteLine($"Задача #{Index} отмечена как выполненная.");
     }
 }
