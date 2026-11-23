@@ -258,6 +258,7 @@ partial class Program
 
         return true;
     }    
+    
     private static string ReadMultilineText()
     {
         Console.WriteLine("Многострочный режим (введите !end для завершения):");
