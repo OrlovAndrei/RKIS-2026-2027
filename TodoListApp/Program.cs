@@ -32,5 +32,42 @@ internal class Program
 
         int age = currentYear - birthYear;
         Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {age}");
+
+        Console.WriteLine("Введите help для списка команд.");
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? input = Console.ReadLine()?.Trim();
+            if (input == null)
+            {
+                break;
+            }
+
+            if (input.Length == 0)
+            {
+                continue;
+            }
+
+            switch (input)
+            {
+                case "help":
+                    Console.WriteLine("help — список команд");
+                    Console.WriteLine("profile — данные пользователя");
+                    Console.WriteLine("exit — выход");
+                    break;
+
+                case "profile":
+                    Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+                    break;
+
+                case "exit":
+                    return;
+
+                default:
+                    Console.WriteLine("Неизвестная команда. Введите help.");
+                    break;
+            }
+        }
     }
 }
