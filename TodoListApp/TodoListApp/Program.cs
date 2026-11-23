@@ -7,17 +7,15 @@ class Program
     // Константы (вместо магических чисел)
 
     const int StartCapacity = 2; 
-    const int MaxTextLength = 30; 
+    const int MaxTextLength = 30;
 
     // Поля класса 
 
-    // Данные пользователя
-    static string firstName = "";
-    static string lastName = "";
-    static int birthYear = 0;
+    // Данные пользователя — теперь объект класса Profile
+    static Profile profile = new Profile("", "", 0);
 
     // Три параллельных массива задач
-    
+
     // Тексты задач
     static string[] todos = new string[StartCapacity];
 
@@ -81,26 +79,29 @@ class Program
 
     // Пользователь
 
+    // Читает данные пользователя при старте и создаёт объект Profile
     static void ReadUserInfo()
     {
         Console.Write("Введите имя: ");
-        firstName = Console.ReadLine()!;
+        string name = Console.ReadLine()!;
 
         Console.Write("Введите фамилию: ");
-        lastName = Console.ReadLine()!;
+        string surname = Console.ReadLine()!;
 
         Console.Write("Введите год рождения: ");
-        birthYear = int.Parse(Console.ReadLine()!);
+        int year = int.Parse(Console.ReadLine()!);
 
-        Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {CalculateAge(birthYear)}");
+        // Вызывается конструктор Profile
+        profile = new Profile(name, surname, year);
+
+        Console.WriteLine($"Добавлен пользователь {profile.GetInfo()}");
     }
 
-    // Сокращённый синтаксис => метод из одной строки, сразу возвращает результат
-    static int CalculateAge(int year) => DateTime.Now.Year - year;
+    // Profile.GetInfo() считает возраст
 
     static void ShowProfile()
     {
-        Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+        Console.WriteLine(profile.GetInfo());
     }
 
     // Команды
