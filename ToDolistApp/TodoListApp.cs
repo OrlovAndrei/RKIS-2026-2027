@@ -206,6 +206,22 @@ partial class Program
 
         Console.WriteLine($"Задача №{index} успешно обновлена.");
     }
+    private static bool HasFlag(string input, string longFlag, char shortFlag)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return false;
+
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 1; i < parts.Length; i++)
+        {
+            if (parts[i] == longFlag) return true;
+
+            if (parts[i].StartsWith("-") && !parts[i].StartsWith("--"))
+            {
+                if (parts[i].Contains(shortFlag)) return true;
+            }
+        }
+        return false;
+    }
     private static void ResizeArrays()
     {
         int newLength = _todos.Length * 2;
