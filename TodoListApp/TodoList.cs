@@ -1,98 +1,80 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
-// Хранит задачи и отвечает за добавление, удаление, поиск и вывод.
-public class TodoList
+// Вместо самодельного массива используем приватный List<TodoItem>.
+public class TodoList : IEnumerable<TodoItem>
 {
-    private const int InitialSize = 2;
-    private const int GrowthFactor = 2;
+    private readonly List<TodoItem> _items = new List<TodoItem>();
 
-    private TodoItem?[] _items;
-    private int _count;
+    public int Count => _items.Count;
 
-    // Даём FileManager прочитать количество, не открывая приватный массив.
-    public int Count => _count;
-
-    public TodoList()
-    {
-        _items = new TodoItem?[InitialSize];
-        _count = 0;
-    }
+    // Индексатор: например, todoList[0] — первая задача.
+    public TodoItem this[int index] => _items[index];
 
     public void Add(TodoItem item)
     {
-        if (item == null)
-            throw new ArgumentNullException(nameof(item));
-
-        if (_count == _items.Length)
-            _items = IncreaseArray(_items, item);
-        else
-            _items[_count] = item;
-
-        _count++;
+        if (item == null) throw new ArgumentNullException(nameof(item));
+        _items.Add(item);
     }
 
-    // Этот метод доступен только внутри TodoList.
-    private TodoItem?[] IncreaseArray(TodoItem?[] items, TodoItem item)
-    {
-        TodoItem?[] newItems = new TodoItem?[items.Length * GrowthFactor];
-        for (int i = 0; i < _count; i++)
-            newItems[i] = items[i];
-
-        newItems[_count] = item;
-        return newItems;
-    }
-
-    // Внутри программы индекс начинается с нуля.
+    // Для старых команд удобно возвращать null при неверном номере.
     public TodoItem? GetItem(int index)
     {
-        if (index < 0 || index >= _count)
-            return null;
-        return _items[index];
+        if (index < 0 || index >= Count) return null;
+        return this[index];
     }
 
     public bool Delete(int index)
     {
-        if (GetItem(index) == null)
-            return false;
-
-        for (int i = index; i < _count - 1; i++)
-            _items[i] = _items[i + 1];
-
-        _count--;
-        _items[_count] = null;
+        if (GetItem(index) == null) return false;
+        _items.RemoveAt(index);
         return true;
     }
 
-    public void View(bool showIndex, bool showDone, bool showDate)
+    // Новая установка статуса вместо старого Done.
+    public bool SetStatus(int index, TodoStatus status)
     {
-        if (_count == 0)
+        TodoItem? item = GetItem(index);
+        if (item == null) return false;
+        item.SetStatus(status);
+        return true;
+    }
+
+    // Метод-итератор через yield return: TodoList можно использовать в foreach.
+    public IEnumerator<TodoItem> GetEnumerator()
+    {
+        for (int i = 0; i < _items.Count; i++)
+            yield return _items[i];
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    // Вывод с флагами view (позже эту логику вызовет ViewCommand).
+    public void View(bool showIndex, bool showStatus, bool showDate)
+    {
+        if (Count == 0)
         {
             Console.WriteLine("Список задач пуст");
             return;
         }
 
         string header = "";
-        if (showIndex)
-            header += "№".PadRight(3) + " | ";
+        if (showIndex) header += "№".PadRight(3) + " | ";
         header += "Текст задачи".PadRight(33);
-        if (showDone)
-            header += " | " + "Статус".PadRight(12);
-        if (showDate)
-            header += " | Дата изменения";
+        if (showStatus) header += " | " + "Статус".PadRight(12);
+        if (showDate) header += " | Дата изменения";
 
         Console.WriteLine(header);
         Console.WriteLine(new string('-', header.Length));
 
-        for (int i = 0; i < _count; i++)
+        int number = 1;
+        foreach (TodoItem item in this)
         {
-            TodoItem? item = _items[i];
-            if (item == null) continue;
-
-            string row = showIndex ? (i + 1).ToString().PadRight(3) + " | " : "";
-            row += showDone && showDate
-                ? item.GetShortInfo()
-                : item.GetShortInfo(showDone, showDate);
+            string row = showIndex ? number.ToString().PadRight(3) + " | " : "";
+            row += item.GetShortInfo(showStatus, showDate);
             Console.WriteLine(row);
+            number++;
         }
     }
 }
