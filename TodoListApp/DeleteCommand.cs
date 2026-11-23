@@ -11,6 +11,7 @@ public class DeleteCommand : ICommand
             return;
 
         TodoList.Delete(Index - 1);
+        FileManager.SaveTodos(TodoList, FileManager.TodoPath);
         Console.WriteLine($"Задача #{Index} удалена.");
     }
 }
