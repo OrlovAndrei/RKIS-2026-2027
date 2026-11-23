@@ -96,7 +96,7 @@ static void PrintHelp()
     Console.WriteLine("help - вывести список команд");
     Console.WriteLine("profile - вывести данные пользователя");
     Console.WriteLine("add \"текст задачи\" - добавить задачу");
-    Console.WriteLine("add --multiline (-m) - добавить многострочную задачу; завершите ввод строкой !end");
+    Console.WriteLine("add --multiline, --multi-line (-m) - добавить многострочную задачу; завершите ввод строкой !end");
     Console.WriteLine("view [--index (-i)] [--status (-s)] [--update-date (-d)] [--all (-a)] - вывести задачи");
     Console.WriteLine("read <idx> - вывести полную информацию о задаче");
     Console.WriteLine("done <idx> - отметить задачу выполненной");
@@ -153,7 +153,7 @@ static void AddTask(
     {
         string[] parts = arguments.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
         string flag = parts[0];
-        if (flag == "--multiline" || flag == "-m")
+        if (flag == "--multiline" || flag == "--multi-line" || flag == "-m")
         {
             multiline = true;
             if (parts.Length > 1)
@@ -177,6 +177,7 @@ static void AddTask(
 
         while (true)
         {
+            Console.Write("> ");
             string? line = Console.ReadLine();
             if (line is null)
             {
@@ -359,10 +360,13 @@ static void ViewTasks(
 
 static string FormatTaskPreview(string task)
 {
-    string oneLineTask = task.Replace("\r", string.Empty, StringComparison.Ordinal)
-        .Replace("\n", "\\n", StringComparison.Ordinal);
+    string normalizedTask = task.Replace("\r\n", "\n", StringComparison.Ordinal)
+        .Replace('\r', '\n');
 
-    return oneLineTask.Length > 30 ? oneLineTask[..30] + "..." : oneLineTask;
+    string preview = normalizedTask.Length > 30 ? normalizedTask[..30] : normalizedTask;
+    preview = preview.Replace('\n', ' ');
+
+    return normalizedTask.Length > 30 ? preview + "..." : preview;
 }
 
 static string BuildTableBorder(int[] widths)
