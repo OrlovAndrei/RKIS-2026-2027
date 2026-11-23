@@ -24,12 +24,6 @@ public class TodoItem
         LastUpdate = lastUpdate;
     }
 
-    // Временная совместимость с кодом ЛР8. Удалим на последнем этапе.
-    public bool IsDone => Status == TodoStatus.Completed;
-    public TodoItem(string text, bool isDone, DateTime lastUpdate)
-        : this(text, isDone ? TodoStatus.Completed : TodoStatus.NotStarted, lastUpdate) { }
-    public void MarkDone() => SetStatus(TodoStatus.Completed);
-
     public void SetStatus(TodoStatus status)
     {
         if (!Enum.IsDefined(status))
