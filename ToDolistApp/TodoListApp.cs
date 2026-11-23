@@ -7,6 +7,7 @@ partial class Program
 {
     private const int InitialCapacity = 2;
     private const int CurrentYear = 2026;
+    private const int MaxTableTextLength = 30;
 
     private static string[] _todos = new string[InitialCapacity];
     private static bool[] _statuses = new bool[InitialCapacity];
@@ -14,10 +15,10 @@ partial class Program
 
     private static int _todoCount = 0;
 
-    static void Main(string[] args) 
+    static void Main(string[] args)
     {
         Console.WriteLine("Работу выполнил Вахрамеев");
-        
+
         Console.Write("Введите имя: ");
         string firstName = Console.ReadLine() ?? "";
 
@@ -57,7 +58,7 @@ partial class Program
                     break;
 
                 case "view":
-                    HandleView();
+                    HandleView(input);
                     break;
 
                 case "exit":
@@ -75,7 +76,7 @@ partial class Program
                 case "update":
                     HandleUpdate(input);
                     break;
-                
+
                 default:
                     Console.WriteLine("Неизвестная команда. Введите 'help' для списка команд.");
                     break;
@@ -102,10 +103,10 @@ partial class Program
     private static void HandleAdd(string input)
     {
         bool isMultiline = HasFlag(input, "--multiline", 'm');
-        string taskText = isMultiline 
-            ? ReadMultilineText() 
+        string taskText = isMultiline
+            ? ReadMultilineText()
             : (input.Length > 4 ? input.Substring(4).Trim('"') : "");
-        
+
         if (string.IsNullOrWhiteSpace(taskText))
         {
             Console.WriteLine("Ошибка: текст задачи не может быть пустым.");
@@ -118,30 +119,14 @@ partial class Program
         }
 
         _todos[_todoCount] = taskText;
-        _statuses[_todoCount] = false;  
+        _statuses[_todoCount] = false;
         _dates[_todoCount] = DateTime.Now;
-        _todoCount++; 
+        _todoCount++;
 
         Console.WriteLine("Задача успешно добавлена!");
     }
 
-      
-     private static string ReadMultilineText()
-    {
-        Console.WriteLine("Многострочный режим (введите !end для завершения):");
-        StringBuilder sb = new StringBuilder();
 
-        while (true)
-        {
-            Console.Write("> ");
-            string? line = Console.ReadLine();
-            if (line == null || line.Trim() == "!end") break;
-
-            if (sb.Length > 0) sb.Append('\n');
-            sb.Append(line);
-        }
-        return sb.ToString();
-    }
 
     private static void HandleView()
     {
@@ -151,11 +136,50 @@ partial class Program
             return;
         }
 
+        bool showAll = HasFlag(input, "--all", 'a');
+        bool showIndex = showAll || HasFlag(input, "--index", 'i');
+        bool showStatus = showAll || HasFlag(input, "--status", 's');
+        bool showDate = showAll || HasFlag(input, "--update-date", 'd');
+
+        StringBuilder header = new StringBuilder();
+        if (showIndex) header.Append($"| {"Индекс",-6} ");
+        header.Append($"| {"Текст задачи",-MaxTableTextLength} ");
+        if (showStatus) header.Append($"| {"Статус",-12} ");
+        if (showDate) header.Append($"| {"Дата изменения",-19} ");
+        header.Append("|");
+
+        string line = new string('-', header.Length);
+        Console.WriteLine(line);
+        Console.WriteLine(header);
+        Console.WriteLine(line);
         for (int i = 0; i < _todoCount; i++)
         {
-            string statusText = _statuses[i] ? "сделано" : "не сделано";
-             Console.WriteLine($"{i + 1}. {_todos[i]} <{statusText}> <{_dates[i]:dd.MM.yyyy HH:mm:ss}>");
+            StringBuilder row = new StringBuilder();
+
+            if (showIndex) row.Append($"| {i + 1,-6} ");
+
+            string text = (_todos[i] ?? "").Replace('\n', ' ');
+            if (text.Length > MaxTableTextLength)
+            {
+                text = text.Substring(0, MaxTableTextLength - 3) + "...";
+            }
+            row.Append($"| {text,-MaxTableTextLength} ");
+
+            if (showStatus)
+            {
+                string status = _statuses[i] ? "выполнена" : "не выполнена";
+                row.Append($"| {status,-12} ");
+            }
+
+            if (showDate)
+            {
+                row.Append($"| {_dates[i]:dd.MM.yyyy HH:mm:ss} ");
+            }
+
+            row.Append("|");
+            Console.WriteLine(row);
         }
+        Console.WriteLine(row);
     }
     private static void HandleDone(string input)
     {
@@ -173,8 +197,8 @@ partial class Program
             return;
         }
 
-        _statuses[actualIndex] = true; 
-        _dates[actualIndex] = DateTime.Now; 
+        _statuses[actualIndex] = true;
+        _dates[actualIndex] = DateTime.Now;
         Console.WriteLine($"Задача №{index} отмечена выполненной.");
     }
     private static void HandleDelete(string input)
@@ -207,7 +231,7 @@ partial class Program
 
         Console.WriteLine($"Задача №{index} успешно удалена со сдвигом.");
     }
-     private static void HandleUpdate(string input)
+    private static void HandleUpdate(string input)
     {
         string[] parts = input.Split(' ', 3);
         if (parts.Length < 3 || !int.TryParse(parts[1], out int index))
@@ -228,6 +252,22 @@ partial class Program
         _dates[actualIndex] = DateTime.Now; // В dates обновляется текущая дата
 
         Console.WriteLine($"Задача №{index} успешно обновлена.");
+    }
+    private static string ReadMultilineText()
+    {
+        Console.WriteLine("Многострочный режим (введите !end для завершения):");
+        StringBuilder sb = new StringBuilder();
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? line = Console.ReadLine();
+            if (line == null || line.Trim() == "!end") break;
+
+            if (sb.Length > 0) sb.Append('\n');
+            sb.Append(line);
+        }
+        return sb.ToString();
     }
     private static bool HasFlag(string input, string longFlag, char shortFlag)
     {
@@ -266,4 +306,3 @@ partial class Program
         Console.WriteLine($"Все массивы расширены до {_todos.Length} элементов.");
     }
 }
- 
