@@ -76,6 +76,9 @@ partial class Program
                 case "update":
                     HandleUpdate(input);
                     break;
+                case "read":
+                    HandleRead(input);
+                    break;
 
                 default:
                     Console.WriteLine("Неизвестная команда. Введите 'help' для списка команд.");
@@ -98,8 +101,7 @@ partial class Program
   update <индекс> <текст> - обновить текст задачи
   exit                    - выход");
     }
-
-
+    
     private static void HandleAdd(string input)
     {
         bool isMultiline = HasFlag(input, "--multiline", 'm');
@@ -125,10 +127,8 @@ partial class Program
 
         Console.WriteLine("Задача успешно добавлена!");
     }
-
-
-
-    private static void HandleView()
+    
+    private static void HandleView(string input)
     {
         if (_todoCount == 0)
         {
@@ -179,80 +179,85 @@ partial class Program
             row.Append("|");
             Console.WriteLine(row);
         }
-        Console.WriteLine(row);
+        Console.WriteLine(line);
     }
+    
     private static void HandleDone(string input)
     {
-        string[] parts = input.Split(' ');
-        if (parts.Length < 2 || !int.TryParse(parts[1], out int index))
-        {
-            Console.WriteLine("Ошибка: укажите числовой индекс. Пример: done 1");
-            return;
-        }
+        if (!TryGetActualIndex(input, out int actualIndex)) return;
 
-        int actualIndex = index - 1;
-        if (actualIndex < 0 || actualIndex >= _todoCount)
-        {
-            Console.WriteLine("Ошибка: неверный индекс задачи.");
-            return;
-        }
-
-        _statuses[actualIndex] = true;
-        _dates[actualIndex] = DateTime.Now;
-        Console.WriteLine($"Задача №{index} отмечена выполненной.");
+        _statuses[actualIndex] = true; 
+        _dates[actualIndex] = DateTime.Now; 
+        Console.WriteLine($"Задача №{actualIndex + 1} отмечена выполненной.");
     }
+    
     private static void HandleDelete(string input)
     {
-        string[] parts = input.Split(' ');
-        if (parts.Length < 2 || !int.TryParse(parts[1], out int index))
-        {
-            Console.WriteLine("Ошибка: укажите числовой индекс. Пример: delete 1");
-            return;
-        }
+    if (!TryGetActualIndex(input, out int actualIndex)) return;
 
-        int actualIndex = index - 1;
-        if (actualIndex < 0 || actualIndex >= _todoCount)
-        {
-            Console.WriteLine("Ошибка: неверный индекс задачи.");
-            return;
-        }
-
-        for (int i = actualIndex; i < _todoCount - 1; i++)
-        {
-            _todos[i] = _todos[i + 1];
-            _statuses[i] = _statuses[i + 1];
-            _dates[i] = _dates[i + 1];
-        }
-
-        _todoCount--;
-        _todos[_todoCount] = null!;
-        _statuses[_todoCount] = false;
-        _dates[_todoCount] = default;
-
-        Console.WriteLine($"Задача №{index} успешно удалена со сдвигом.");
+    for (int i = actualIndex; i < _todoCount - 1; i++)
+    {
+        _todos[i] = _todos[i + 1];
+        _statuses[i] = _statuses[i + 1];
+        _dates[i] = _dates[i + 1];
     }
+
+    _todoCount--;
+    _todos[_todoCount] = null!;
+    _statuses[_todoCount] = false;
+    _dates[_todoCount] = default;
+
+    Console.WriteLine($"Задача №{actualIndex + 1} успешно удалена со сдвигом.");
+    }
+    
     private static void HandleUpdate(string input)
     {
+        if (!TryGetActualIndex(input, out int actualIndex)) return;
+
         string[] parts = input.Split(' ', 3);
-        if (parts.Length < 3 || !int.TryParse(parts[1], out int index))
+        if (parts.Length < 3 || string.IsNullOrWhiteSpace(parts[2]))
         {
             Console.WriteLine("Ошибка: формат команды: update <idx> \"new_text\"");
-            return;
+           return;
         }
 
-        int actualIndex = index - 1;
+        _todos[actualIndex] = parts[2].Trim('"');
+        _dates[actualIndex] = DateTime.Now;
+
+        Console.WriteLine($"Задача №{actualIndex + 1} успешно обновлена.");
+    }
+    
+    private static void HandleRead(string input)
+    {
+        if (!TryGetActualIndex(input, out int actualIndex)) return;
+
+        string status = _statuses[actualIndex] ? "выполнена" : "не выполнена";
+        Console.WriteLine($"Задача №{actualIndex + 1}");
+        Console.WriteLine($"Статус: {status}");
+        Console.WriteLine($"Дата последнего изменения: {_dates[actualIndex]:dd.MM.yyyy HH:mm:ss}");
+        Console.WriteLine($"Полный текст:\n{_todos[actualIndex]}");
+    }
+
+     private static bool TryGetActualIndex(string input, out int actualIndex)
+    {
+        actualIndex = -1;
+        string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length < 2 || !int.TryParse(parts[1], out int index))
+        {
+            Console.WriteLine("Ошибка: укажите корректный числовой индекс задачи.");
+            return false;
+        }
+
+        actualIndex = index - 1;
         if (actualIndex < 0 || actualIndex >= _todoCount)
         {
-            Console.WriteLine("Ошибка: неверный индекс задачи.");
-            return;
+            Console.WriteLine("Ошибка: задачи с таким индексом не существует.");
+            return false;
         }
 
-        string newText = parts[2].Trim('"');
-        _todos[actualIndex] = newText; // В todos записывается новый текст
-        _dates[actualIndex] = DateTime.Now; // В dates обновляется текущая дата
-
-        Console.WriteLine($"Задача №{index} успешно обновлена.");
-    }
+        return true;
+    }    
     private static string ReadMultilineText()
     {
         Console.WriteLine("Многострочный режим (введите !end для завершения):");
@@ -269,6 +274,7 @@ partial class Program
         }
         return sb.ToString();
     }
+    
     private static bool HasFlag(string input, string longFlag, char shortFlag)
     {
         if (string.IsNullOrWhiteSpace(input)) return false;
@@ -285,6 +291,7 @@ partial class Program
         }
         return false;
     }
+    
     private static void ResizeArrays()
     {
         int newLength = _todos.Length * 2;
