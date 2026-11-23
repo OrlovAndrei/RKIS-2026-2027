@@ -61,7 +61,7 @@ public class TodoList
 
             if (showIndex)
             {
-                result += $"{i} ";
+                result += $"{i + 1} ";
             }
 
             result += items[i].Text;
