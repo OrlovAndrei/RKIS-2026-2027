@@ -20,7 +20,7 @@ public class TodoItem
     public TodoItem(string text, TodoStatus status, DateTime lastUpdate)
     {
         Text = text;
-        IsDone = isDone;
+        Status = status;
         LastUpdate = lastUpdate;
     }
 
@@ -43,7 +43,6 @@ public class TodoItem
         {
             cleanText = cleanText.Substring(0, MaxShortTextLength - 3) + "...";
         }
-        string status = IsDone ? "выполнена" : "не выполнена";
         return $"{cleanText} | {GetStatusText(Status)} | {LastUpdate:dd.MM.yyyy HH:mm:ss}";
     }
 
