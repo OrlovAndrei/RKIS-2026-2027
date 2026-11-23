@@ -83,7 +83,6 @@ partial class Program
         }
     }
 
-
     private static void HandleHelp()
     {
         Console.WriteLine(@"Доступные команды:
