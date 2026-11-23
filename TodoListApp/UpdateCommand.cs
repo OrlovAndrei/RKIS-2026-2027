@@ -26,6 +26,7 @@ public class UpdateCommand : ICommand
         }
 
         task!.UpdateText(newText.Trim());
+        FileManager.SaveTodos(TodoList, FileManager.TodoPath);
         Console.WriteLine($"Задача #{Index} обновлена.");
     }
 }
