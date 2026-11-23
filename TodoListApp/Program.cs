@@ -35,30 +35,83 @@ internal class Program
 
         Console.WriteLine("Введите help для списка команд.");
 
+        string?[] todos = new string?[2];
+        int todoCount = 0;
+
         while (true)
         {
             Console.Write("> ");
-            string? input = Console.ReadLine()?.Trim();
+            string? input = Console.ReadLine();
             if (input == null)
             {
                 break;
             }
 
-            if (input.Length == 0)
+            string[] parts = input.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
             {
                 continue;
             }
 
-            switch (input)
+            switch (parts[0])
             {
                 case "help":
                     Console.WriteLine("help — список команд");
                     Console.WriteLine("profile — данные пользователя");
+                    Console.WriteLine("add \"текст задачи\" — добавить задачу");
+                    Console.WriteLine("view — показать задачи");
                     Console.WriteLine("exit — выход");
                     break;
 
                 case "profile":
                     Console.WriteLine($"{firstName} {lastName}, {birthYear}");
+                    break;
+
+                case "add":
+                    string text = parts.Length == 2 ? parts[1].Trim() : "";
+                    if (text.Length < 2 || text[0] != '"' || text[^1] != '"')
+                    {
+                        Console.WriteLine("Используйте add \"текст задачи\".");
+                        break;
+                    }
+
+                    text = text[1..^1].Trim();
+                    if (text.Length == 0)
+                    {
+                        Console.WriteLine("Введите текст задачи.");
+                        break;
+                    }
+
+                    if (todoCount == todos.Length)
+                    {
+                        var bigger = new string?[todos.Length * 2];
+                        for (int i = 0; i < todos.Length; i++)
+                        {
+                            bigger[i] = todos[i];
+                        }
+
+                        todos = bigger;
+                    }
+
+                    todos[todoCount] = text;
+                    todoCount++;
+                    Console.WriteLine("Задача добавлена.");
+                    break;
+
+                case "view":
+                    if (todoCount == 0)
+                    {
+                        Console.WriteLine("Список задач пуст.");
+                    }
+
+                    foreach (string? todo in todos)
+                    {
+                        if (!string.IsNullOrEmpty(todo))
+                        {
+                            Console.WriteLine(todo);
+                        }
+                    }
+
                     break;
 
                 case "exit":
