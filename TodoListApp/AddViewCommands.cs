@@ -66,6 +66,27 @@ public class ViewCommand : ICommand
 
     public void Execute()
     {
-        TodoList.View(ShowIndex, ShowStatus, ShowDate);
+        if (TodoList.Count == 0)
+        {
+            Console.WriteLine("Список задач пуст");
+            return;
+        }
+
+        string header = "";
+        if (ShowIndex) header += "№".PadRight(3) + " | ";
+        header += "Текст задачи".PadRight(33);
+        if (ShowStatus) header += " | " + "Статус".PadRight(12);
+        if (ShowDate) header += " | Дата изменения";
+        Console.WriteLine(header);
+        Console.WriteLine(new string('-', header.Length));
+
+        int number = 1;
+        // Проверяем работу IEnumerable<TodoItem> и yield return.
+        foreach (TodoItem item in TodoList)
+        {
+            string prefix = ShowIndex ? number.ToString().PadRight(3) + " | " : "";
+            Console.WriteLine(prefix + item.GetShortInfo(ShowStatus, ShowDate));
+            number++;
+        }
     }
 }
