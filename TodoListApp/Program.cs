@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace TodoListApp;
 
@@ -8,22 +9,26 @@ public class Program
     {
         Console.WriteLine("Работу выполнили Илиадис и Дедкова");
 
-        Console.Write("Введите имя: ");
-        string name = Console.ReadLine() ?? "";
+        FileManager.EnsureDataDirectory(FileManager.DataDirectory);
 
-        Console.Write("Введите фамилию: ");
-        string lastName = Console.ReadLine() ?? "";
+        if (!File.Exists(FileManager.ProfilePath))
+            File.WriteAllText(FileManager.ProfilePath, "");
 
-        Console.Write("Введите год рождения: ");
-        int birthYear;
+        if (!File.Exists(FileManager.TodoPath))
+            File.WriteAllText(FileManager.TodoPath, "");
 
-        while (!int.TryParse(Console.ReadLine(), out birthYear))
+        Profile? profile = FileManager.LoadProfile(FileManager.ProfilePath);
+        TodoList todoList = FileManager.LoadTodos(FileManager.TodoPath);
+
+        if (profile == null)
         {
-            Console.Write("Введите корректный год рождения: ");
+            profile = CreateProfile();
+            FileManager.SaveProfile(profile, FileManager.ProfilePath);
         }
-
-        Profile profile = new Profile(name, lastName, birthYear);
-        TodoList todoList = new TodoList();
+        else
+        {
+            Console.WriteLine($"\nС возвращением, {profile.FirstName}!");
+        }
 
         Console.WriteLine("\nДобро пожаловать в TodoList!");
         Console.WriteLine("Введите help для списка команд.");
@@ -48,5 +53,24 @@ public class Program
         }
 
         Console.WriteLine("Программа завершена.");
+    }
+
+    private static Profile CreateProfile()
+    {
+        Console.Write("Введите имя: ");
+        string name = Console.ReadLine() ?? "";
+
+        Console.Write("Введите фамилию: ");
+        string lastName = Console.ReadLine() ?? "";
+
+        Console.Write("Введите год рождения: ");
+        int birthYear;
+
+        while (!int.TryParse(Console.ReadLine(), out birthYear))
+        {
+            Console.Write("Введите корректный год рождения: ");
+        }
+
+        return new Profile(name, lastName, birthYear);
     }
 }
