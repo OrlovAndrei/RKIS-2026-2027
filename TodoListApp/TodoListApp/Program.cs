@@ -4,26 +4,24 @@
 
 class Program
 {
-    // ==================== Константы (вместо магических чисел) ====================
+    // Константы (вместо магических чисел)
 
-    const int StartCapacity = 2;  // начальная ёмкость массивов
-    const int MaxTextLength = 30; // сколько символов задачи видно в таблице view
+    const int StartCapacity = 2; 
+    const int MaxTextLength = 30; 
 
-    // ==================== Поля класса ====================
+    // Поля класса 
 
-    // Данные пользователя (заполняются при старте)
+    // Данные пользователя
     static string firstName = "";
     static string lastName = "";
     static int birthYear = 0;
 
-    // ==================== Три параллельных массива задач ====================
-    // Элементы с одним индексом описывают одну задачу:
-    // todos[0], statuses[0], dates[0] — это одна и та же задача.
-
+    // Три параллельных массива задач
+    
     // Тексты задач
     static string[] todos = new string[StartCapacity];
 
-    // Выполнена ли задача: false — не сделана, true — сделана
+    // Выполнена ли задача
     static bool[] statuses = new bool[StartCapacity];
 
     // Дата создания / последнего изменения задачи
@@ -32,7 +30,7 @@ class Program
     // Сколько задач реально добавлено
     static int todoCount = 0;
 
-    // ==================== Точка входа ====================
+    // Точка входа
 
     static void Main()
     {
@@ -50,13 +48,12 @@ class Program
             Console.Write("> ");
             string? input = Console.ReadLine();
 
-            // null (конец ввода) или команда exit — выходим из цикла
             if (input == null || input.Trim() == "exit")
                 break;
 
             string command = input.Trim();
 
-            // Диспетчер: каждая команда — отдельный метод
+            // Диспетчер
             if (command == "help")
                 ShowHelp();
             else if (command == "profile")
@@ -73,6 +70,8 @@ class Program
                 HandleUpdate(command);
             else if (command == "delete" || command.StartsWith("delete "))
                 HandleDelete(command);
+            else if (command == "read" || command.StartsWith("read "))
+                HandleRead(command);
             else
                 Console.WriteLine("Неизвестная команда. Введите help для списка команд.");
         }
@@ -80,9 +79,8 @@ class Program
         Console.WriteLine("Программа завершена. До свидания!");
     }
 
-    // ==================== Пользователь ====================
+    // Пользователь
 
-    // Читает данные пользователя при старте
     static void ReadUserInfo()
     {
         Console.Write("Введите имя: ");
@@ -97,7 +95,7 @@ class Program
         Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст - {CalculateAge(birthYear)}");
     }
 
-    // Сокращённый синтаксис => : метод из одной строки, сразу возвращает результат
+    // Сокращённый синтаксис => метод из одной строки, сразу возвращает результат
     static int CalculateAge(int year) => DateTime.Now.Year - year;
 
     static void ShowProfile()
@@ -105,7 +103,7 @@ class Program
         Console.WriteLine($"{firstName} {lastName}, {birthYear}");
     }
 
-    // ==================== Команды ====================
+    // Команды
 
     static void ShowHelp()
     {
@@ -118,12 +116,11 @@ class Program
         Console.WriteLine("  done <номер> — отметить задачу выполненной");
         Console.WriteLine("  update <номер> \"новый текст\" — изменить текст задачи");
         Console.WriteLine("  delete <номер> — удалить задачу");
+        Console.WriteLine("  read <номер> — показать задачу целиком (текст, статус, дата)");
         Console.WriteLine("  exit    — выход из программы");
     }
 
     // Показывает задачи. Флаги: --index/-i, --status/-s, --update-date/-d, --all/-a.
-    // Без флагов — только текст задачи.
-    // С флагами — таблица: колонки выровнены по ширине, текст обрезан до 30 символов.
     static void HandleView(string command)
     {
         if (todoCount == 0)
@@ -157,7 +154,7 @@ class Program
                 showStatus = true;
                 showDate = true;
             }
-            // Короткие флаги и их комбинации: -i, -s, -d, -a, -is, -sd...
+            // Короткие флаги и их комбинации
             else if (flag.StartsWith("-") && !flag.StartsWith("--") && flag.Length > 1)
             {
                 foreach (char c in flag.Substring(1))
@@ -187,7 +184,7 @@ class Program
         bool hasTable = showIndex || showStatus || showDate;
 
         // Шапка таблицы — только из выбранных колонок.
-        // Выравнивание через интерполяцию: {текст,ширина}, минус — влево, плюс — вправо.
+        // Выравнивание через интерполяцию
         if (hasTable)
         {
             string header = "";
@@ -211,7 +208,7 @@ class Program
                 row += $"{i + 1,2}  ";
 
             if (showStatus)
-                row += $"{(statuses[i] ? "сделано" : "не сделано"),-10}  ";
+                row += $"{(statuses[i] ? "выполнена" : "не выполнена"),-10}  ";
 
             if (showDate)
                 row += $"{dates[i].ToString("dd.MM.yyyy"),-10}  ";
@@ -222,7 +219,7 @@ class Program
         }
     }
 
-    // Обрезает текст задачи для таблицы: первые 30 символов + "...".
+    // Обрезает текст задачи для таблицы
     // Переводы строк (\n) заменяет пробелами — иначе многострочная задача
     static string TruncateText(string text)
     {
@@ -251,16 +248,15 @@ class Program
         EnsureCapacity();
 
         // Записываем задачу синхронно во все массивы под одним индексом
-        todos[todoCount] = taskText;     // текст
-        statuses[todoCount] = false;     // новая задача — не выполнена
-        dates[todoCount] = DateTime.Now; // дата создания
+        todos[todoCount] = taskText;     
+        statuses[todoCount] = false;     
+        dates[todoCount] = DateTime.Now; 
 
         todoCount++;
         Console.WriteLine($"Задача добавлена: {taskText}");
     }
 
-    // Многострочный режим (add --multiline / add -m): строки вводятся до команды !end,
-    // затем склеиваются в один текст через \n и сохраняются как ОДНА задача.
+    // Многострочный режим
     static void HandleAddMultiline()
     {
         Console.WriteLine("Многострочный режим: вводите строки задачи. Для завершения введите !end");
@@ -272,7 +268,6 @@ class Program
             Console.Write("> ");
             string? line = Console.ReadLine();
 
-            // Пустой поток или команда завершения — заканчиваем ввод.
             if (line == null || line.Trim() == "!end")
                 break;
 
@@ -319,15 +314,15 @@ class Program
             return;
         }
 
-        statuses[index] = true;      // отмечаем выполненной
-        dates[index] = DateTime.Now; // дата последнего изменения
+        statuses[index] = true;      
+        dates[index] = DateTime.Now; 
         Console.WriteLine($"Задача отмечена выполненной: {todos[index]}");
     }
 
     // Обновляет текст задачи: update <номер> "новый текст"
     static void HandleUpdate(string command)
     {
-        // Лимит 3: parts[0] — update, parts[1] — номер, parts[2] — весь новый текст
+        // parts[0] — update, parts[1] — номер, parts[2] — весь новый текст
         string[] parts = command.Split(' ', 3);
 
         if (parts.Length < 3)
@@ -352,8 +347,8 @@ class Program
             return;
         }
 
-        todos[index] = newText;      // новый текст
-        dates[index] = DateTime.Now; // дата последнего изменения
+        todos[index] = newText;      
+        dates[index] = DateTime.Now; 
         Console.WriteLine($"Задача обновлена: {todos[index]}");
     }
 
@@ -378,8 +373,6 @@ class Program
 
         Console.WriteLine($"Задача удалена: {todos[index]}");
 
-        // Сдвигаем все элементы правее удаляемого влево на одну позицию.
-        // Сдвигаем СРАЗУ во всех трёх массивах, иначе данные перепутаются.
         for (int i = index; i < todoCount - 1; i++)
         {
             todos[i] = todos[i + 1];
@@ -387,20 +380,43 @@ class Program
             dates[i] = dates[i + 1];
         }
 
-        // Задач стало на одну меньше.
-        // В последней ячейке остался «дубль», но он вне диапазона todoCount
-        // и никогда не выведется.
         todoCount--;
     }
 
-    // ==================== Расширение массивов ====================
+    // read <номер>: показывает задачу целиком (без обрезки)
+    static void HandleRead(string command)
+    {
+        string[] parts = command.Split(' ');
 
-    // Расширяет ВСЕ три массива в 2 раза, когда места не хватает.
-    // Массивы обязаны расти синхронно, иначе индексы разъедутся.
+        if (parts.Length < 2)
+        {
+            Console.WriteLine("Использование: read <номер задачи>");
+            return;
+        }
+
+        int index = GetTaskIndex(parts[1]);
+
+        if (index == -1)
+        {
+            Console.WriteLine("Задача с таким номером не найдена.");
+            return;
+        }
+
+        Console.WriteLine("Текст задачи:");
+        Console.WriteLine(todos[index]);
+
+        string statusText = statuses[index] ? "выполнена" : "не выполнена";
+        Console.WriteLine($"Статус: {statusText}");
+        Console.WriteLine($"Дата обновления: {dates[index].ToString("dd.MM.yyyy")}");
+    }
+
+    // Расширение массивов 
+
+    // Расширяет все три массива в 2 раза, когда не хватает места
     static void EnsureCapacity()
     {
         if (todoCount < todos.Length)
-            return; // место ещё есть
+            return;
 
         int newCapacity = todos.Length * 2;
         Console.WriteLine($"(массивы расширены до {newCapacity} элементов)");
@@ -422,14 +438,11 @@ class Program
         dates = biggerDates;
     }
 
-    // ==================== Общая логика для команд с номером задачи ====================
+    // Общая логика для команд с номером задачи
 
-    // Превращает номер с экрана (1, 2, 3...) в индекс массива (0, 1, 2...).
-    // Возвращает -1, если это не число или номер вне диапазона.
-    // Общий помощник для done, update и delete — принцип DRY: пишем один раз.
     static int GetTaskIndex(string text)
     {
-        if (!int.TryParse(text, out int number)) // false, если text — не число
+        if (!int.TryParse(text, out int number)) 
             return -1;
 
         int index = number - 1; // на экране нумерация с 1, в массиве с 0
