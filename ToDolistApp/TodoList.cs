@@ -1,52 +1,58 @@
 using System;
 using System.Text;
+using System.Collections;
+using System.Collections.Generic;
+
 
 namespace TodoListApp;
 
-public class TodoList
+public class TodoList : IEnumerable<TodoItem>
 {
-    private const int InitialCapacity = 2;
     private const int MaxTableTextLength = 30;
 
-    private TodoItem[] _items = new TodoItem[InitialCapacity];
-    private int _count = 0;
+    private List<TodoItem> _items = new List<TodoItem>();
+    
+    public int Count => _items.Count;
 
-    public int Count => _count;
+    public TodoItem this[int index]
+    {
+        get => _items[index];
+        set => _items[index] = value;
+    }
 
     public void Add(TodoItem item)
     {
-        if (_count >= _items.Length)
-        {
-            _items = IncreaseArray(_items, item);
-        }
-        else
-        {
-            _items[_count] = item;
-        }
-        _count++;
+        _items.Add(item);
     }
 
     public void Delete(int index)
     {
-        if (index < 0 || index >= _count) return;
-
-        for (int i = index; i < _count - 1; i++)
-        {
-            _items[i] = _items[i + 1];
-        }
-        _count--;
-        _items[_count] = null!;
+        if (index < 0 || index >= _items.Count) return;
+        _items.RemoveAt(index);
     }
 
     public TodoItem? GetItem(int index)
     {
-        if (index < 0 || index >= _count) return null;
+        if (index < 0 || index >= _items.Count) return null;
         return _items[index];
     }
-
-    public void View(bool showIndex, bool showDone, bool showDate)
+    public void SetStatus(int index, TodoStatus status)
     {
-        if (_count == 0)
+        if (index < 0 || index >= _items.Count) return;
+        _items[index].SetStatus(status);
+    }
+    public IEnumerator<TodoItem> GetEnumerator()
+    {
+        foreach (var item in _items)
+        {
+            yield return item;
+        }
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public void View(bool showIndex, bool showStatus, bool showDate)
+    {
+        if (_items.Count == 0)
         {
             Console.WriteLine("Список задач пуст.");
             return;
@@ -55,7 +61,7 @@ public class TodoList
         StringBuilder header = new StringBuilder();
         if (showIndex) header.Append($"| {"Индекс",-6} ");
         header.Append($"| {"Текст задачи",-MaxTableTextLength} ");
-        if (showDone) header.Append($"| {"Статус",-12} ");
+        if (showStatus) header.Append($"| {"Статус",-12} ");
         if (showDate) header.Append($"| {"Дата изменения",-19} ");
         header.Append("|");
 
@@ -64,7 +70,7 @@ public class TodoList
         Console.WriteLine(header);
         Console.WriteLine(line);
 
-        for (int i = 0; i < _count; i++)
+        for (int i = 0; i < _items.Count; i++)
         {
             TodoItem item = _items[i];
             StringBuilder row = new StringBuilder();
@@ -78,9 +84,9 @@ public class TodoList
             }
             row.Append($"| {text,-MaxTableTextLength} ");
 
-            if (showDone)
+            if (showStatus)
             {
-                string status = item.IsDone ? "выполнена" : "не выполнена";
+                string status = TodoItem.GetStatusText(item.Status);
                 row.Append($"| {status,-12} ");
             }
 
@@ -95,14 +101,4 @@ public class TodoList
         Console.WriteLine(line);
     }
 
-    private TodoItem[] IncreaseArray(TodoItem[] items, TodoItem item)
-    {
-        TodoItem[] newItems = new TodoItem[items.Length * 2];
-        for (int i = 0; i < items.Length; i++)
-        {
-            newItems[i] = items[i];
-        }
-        newItems[items.Length] = item;
-        return newItems;
-    }
 }
