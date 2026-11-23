@@ -11,7 +11,7 @@ internal class Program
     private const string MultilineEnd = "!end";
     private const int PreviewLength = 30;
     private const string Ellipsis = "...";
-    private const int TextWidth = PreviewLength + 3;
+    private static readonly int TextWidth = PreviewLength + Ellipsis.Length;
     private const int IndexWidth = 6;
     private const int StatusWidth = 12;
     private const string DateFormat = "dd.MM.yyyy HH:mm:ss";
@@ -27,7 +27,7 @@ internal class Program
     {
         Console.InputEncoding = Encoding.UTF8;
         Console.OutputEncoding = Encoding.UTF8;
-        Console.WriteLine("Учебный проект TodoListApp");
+        Console.WriteLine("TodoListApp — Зуев, Литовченко, группа 2122");
 
         Console.Write("Имя: ");
         string? firstName = Console.ReadLine()?.Trim();
