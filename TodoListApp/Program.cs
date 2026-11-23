@@ -102,6 +102,10 @@ internal class Program
                     UpdateTask(arguments);
                     break;
 
+                case "read":
+                    ReadTask(arguments);
+                    break;
+
                 case "exit":
                     Exit();
                     return;
@@ -128,6 +132,7 @@ internal class Program
         Console.WriteLine("done <индекс> — отметить задачу выполненной");
         Console.WriteLine("delete <индекс> — удалить задачу");
         Console.WriteLine("update <индекс> \"новый текст\" — изменить задачу");
+        Console.WriteLine("read <индекс> — показать полную задачу");
         Console.WriteLine("exit — выход");
     }
 
@@ -347,6 +352,18 @@ internal class Program
     private static string GetStatusText(int index)
     {
         return statuses[index] ? "сделано" : "не сделано";
+    }
+
+    private static void ReadTask(string arguments)
+    {
+        if (!TryGetIndex(arguments, out int index))
+        {
+            return;
+        }
+
+        Console.WriteLine(todos[index]);
+        Console.WriteLine($"Статус: {GetStatusText(index)}");
+        Console.WriteLine($"Изменена: {dates[index].ToString(DateFormat)}");
     }
 
     private static bool TryGetIndex(string argument, out int index)
