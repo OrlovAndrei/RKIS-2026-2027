@@ -7,6 +7,7 @@ internal class Program
 
     private const int InitialCapacity = 2;
     private const int GrowthFactor = 2;
+    private const string MultilineEnd = "!end";
     private static readonly char[] Separators = { ' ', '\t' };
 
     private static string?[] todos = new string?[InitialCapacity];
@@ -110,6 +111,7 @@ internal class Program
         Console.WriteLine("help — список команд");
         Console.WriteLine("profile — данные пользователя");
         Console.WriteLine("add \"текст задачи\" — добавить задачу");
+        Console.WriteLine("add --multiline или -m — добавить несколько строк до !end");
         Console.WriteLine("view — показать задачи");
         Console.WriteLine("done <индекс> — отметить задачу выполненной");
         Console.WriteLine("delete <индекс> — удалить задачу");
@@ -129,10 +131,23 @@ internal class Program
 
     private static void AddTask(string arguments)
     {
-        string? text = GetTaskText(arguments);
-        if (text == null)
+        string? text;
+        switch (arguments)
         {
-            Console.WriteLine("Используйте add \"текст задачи\".");
+            case "-m":
+            case "--multiline":
+            case "--multi-line":
+                text = ReadMultilineTask();
+                break;
+
+            default:
+                text = GetTaskText(arguments);
+                break;
+        }
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Console.WriteLine("Введите текст в кавычках или используйте add -m.");
             return;
         }
 
@@ -146,6 +161,37 @@ internal class Program
         dates[todoCount] = DateTime.Now;
         todoCount++;
         Console.WriteLine("Задача добавлена.");
+    }
+
+
+    private static string? ReadMultilineTask()
+    {
+        Console.WriteLine("Введите текст задачи. Для завершения введите !end.");
+        var text = new StringBuilder();
+        bool firstLine = true;
+
+        while (true)
+        {
+            Console.Write("> ");
+            string? line = Console.ReadLine();
+            if (line == null)
+            {
+                return null;
+            }
+
+            if (line == MultilineEnd)
+            {
+                return text.ToString();
+            }
+
+            if (!firstLine)
+            {
+                text.Append('\n');
+            }
+
+            text.Append(line);
+            firstLine = false;
+        }
     }
 
     private static void ViewTasks()
