@@ -26,9 +26,8 @@ partial class Program
         string lastName = Console.ReadLine() ?? "";
 
         Console.Write("Введите год рождения: ");
-        string yearInput = Console.ReadLine() ?? "";
-
-        int birthYear = Convert.ToInt32(string.IsNullOrWhiteSpace(yearInput) ? "0" : yearInput);
+        string? yearInput = Console.ReadLine();
+        if (!int.TryParse(yearInput, out int birthYear)){   birthYear = 0;}
         int age = CurrentYear - birthYear;
 
         Console.WriteLine($"Добавлен пользователь {firstName} {lastName}, возраст {age}");
@@ -94,8 +93,9 @@ partial class Program
         Console.WriteLine(@"Доступные команды:
   help                    - список команд
   profile                 - данные пользователя
-  add <текст>             - добавить новую задачу
-  view                    - показать список всех задач
+  add <текст>                 - добавить задачу в одну строку
+  add --multiline (-m)        - добавить многострочную задачу (до !end)
+  view [-i] [-s] [-d] [-a]    - показать таблицу задач (флаги можно объединять: -is)
   done <индекс>           - отметить задачу выполненной
   delete <индекс>         - удалить задачу по индексу
   update <индекс> <текст> - обновить текст задачи
