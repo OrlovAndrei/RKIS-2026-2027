@@ -48,10 +48,24 @@ public static class CommandParser
                     ShowDate = showAll || HasFlag(trimmed, "--update-date", 'd')
                 };
 
-            case "done":
-                if (!TryParseIndex(trimmed, out int doneIdx))
-                    return new UnknownCommand { Message = "Ошибка: укажите числовой индекс. Пример: done 1" };
-                return new DoneCommand { TodoList = todoList, Index = doneIdx, FilePath = todoFilePath  };
+            case "status":
+                string[] statusParts = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (statusParts.Length < 3 || !int.TryParse(statusParts[1], out int stIdx) ||
+                    !Enum.TryParse<TodoStatus>(statusParts[2], true, out TodoStatus parsedStatus))
+                {
+                    return new UnknownCommand
+                    {
+                        Message = "Ошибка: формат: status <индекс> <статус> (notstarted, inprogress, completed, postponed, failed)"
+                    };
+                }
+                return new StatusCommand
+                {
+                    TodoList = todoList,
+                    Index = stIdx,
+                    Status = parsedStatus,
+                    FilePath = todoFilePath
+                };
+
 
             case "delete":
                 if (!TryParseIndex(trimmed, out int delIdx))
