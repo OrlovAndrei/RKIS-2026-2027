@@ -44,3 +44,13 @@ view:
   - Вывод оформлен в виде таблицы. Текст обрезается до 30 символов.
 read <idx>:
   - Выводит полный текст задачи по её ID, статус и дату изменения.
+
+  ## Архитектура команд (паттерн «Команда»)
+
+- `ICommand` — интерфейс с методом `Execute()`.
+- Классы команд: `AddCommand`, `ViewCommand`, `ReadCommand`, `DoneCommand`,
+  `UpdateCommand`, `DeleteCommand`, `ProfileCommand`, `HelpCommand`,
+  `ExitCommand`, `UnknownCommand`.
+- `CommandParser.Parse(input, todoList, profile)` разбирает строку пользователя,
+  создаёт нужный объект команды и возвращает его как `ICommand`.
+- Главный цикл: читает строку → `Parse` → `Execute`.
