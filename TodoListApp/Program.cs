@@ -41,6 +41,9 @@ while (true)
     Console.Write("> ");
     string? input = Console.ReadLine();
 
+    if (input is null)
+        break;
+
     if (string.IsNullOrWhiteSpace(input))
         continue;
 
