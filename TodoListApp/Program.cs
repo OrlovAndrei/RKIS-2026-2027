@@ -10,6 +10,8 @@ internal class Program
     private static readonly char[] Separators = { ' ', '\t' };
 
     private static string?[] todos = new string?[InitialCapacity];
+    private static bool[] statuses = new bool[InitialCapacity];
+    private static DateTime[] dates = new DateTime[InitialCapacity];
     private static int todoCount;
 
 
@@ -79,6 +81,19 @@ internal class Program
                     ViewTasks();
                     break;
 
+
+                case "done":
+                    CompleteTask(arguments);
+                    break;
+
+                case "delete":
+                    DeleteTask(arguments);
+                    break;
+
+                case "update":
+                    UpdateTask(arguments);
+                    break;
+
                 case "exit":
                     Exit();
                     return;
@@ -96,6 +111,9 @@ internal class Program
         Console.WriteLine("profile — данные пользователя");
         Console.WriteLine("add \"текст задачи\" — добавить задачу");
         Console.WriteLine("view — показать задачи");
+        Console.WriteLine("done <индекс> — отметить задачу выполненной");
+        Console.WriteLine("delete <индекс> — удалить задачу");
+        Console.WriteLine("update <индекс> \"новый текст\" — изменить задачу");
         Console.WriteLine("exit — выход");
     }
 
@@ -124,6 +142,8 @@ internal class Program
         }
 
         todos[todoCount] = text;
+        statuses[todoCount] = false;
+        dates[todoCount] = DateTime.Now;
         todoCount++;
         Console.WriteLine("Задача добавлена.");
     }
@@ -137,19 +157,96 @@ internal class Program
 
         for (int i = 0; i < todoCount; i++)
         {
-            Console.WriteLine(todos[i]);
+            Console.WriteLine($"{i} {todos[i]} {GetStatusText(i)} {dates[i]:dd.MM.yyyy HH:mm:ss}");
         }
     }
 
     private static void GrowArrays()
     {
-        var newTodos = new string?[todos.Length * GrowthFactor];
+        int capacity = todos.Length * GrowthFactor;
+        var newTodos = new string?[capacity];
+        var newStatuses = new bool[capacity];
+        var newDates = new DateTime[capacity];
         for (int i = 0; i < todoCount; i++)
         {
             newTodos[i] = todos[i];
+            newStatuses[i] = statuses[i];
+            newDates[i] = dates[i];
         }
 
         todos = newTodos;
+        statuses = newStatuses;
+        dates = newDates;
+    }
+
+
+    private static string GetStatusText(int index)
+    {
+        return statuses[index] ? "сделано" : "не сделано";
+    }
+
+    private static bool TryGetIndex(string argument, out int index)
+    {
+        if (int.TryParse(argument, out index) && index >= 0 && index < todoCount)
+        {
+            return true;
+        }
+
+        Console.WriteLine("Нет задачи с таким индексом.");
+        return false;
+    }
+
+    private static void CompleteTask(string arguments)
+    {
+        if (!TryGetIndex(arguments, out int index))
+        {
+            return;
+        }
+
+        statuses[index] = true;
+        dates[index] = DateTime.Now;
+        Console.WriteLine("Задача выполнена.");
+    }
+
+    private static void DeleteTask(string arguments)
+    {
+        if (!TryGetIndex(arguments, out int index))
+        {
+            return;
+        }
+
+        for (int i = index; i < todoCount - 1; i++)
+        {
+            todos[i] = todos[i + 1];
+            statuses[i] = statuses[i + 1];
+            dates[i] = dates[i + 1];
+        }
+
+        todoCount--;
+        todos[todoCount] = null;
+        statuses[todoCount] = false;
+        dates[todoCount] = default;
+        Console.WriteLine("Задача удалена.");
+    }
+
+    private static void UpdateTask(string arguments)
+    {
+        var (indexArgument, textArgument) = GetCommand(arguments);
+        string? text = GetTaskText(textArgument);
+        if (text == null)
+        {
+            Console.WriteLine("Используйте update <индекс> \"новый текст\".");
+            return;
+        }
+
+        if (!TryGetIndex(indexArgument, out int index))
+        {
+            return;
+        }
+
+        todos[index] = text;
+        dates[index] = DateTime.Now;
+        Console.WriteLine("Задача изменена.");
     }
 
 
