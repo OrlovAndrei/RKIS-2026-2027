@@ -4,6 +4,7 @@ public class TodoList
 {
     private TodoItem[] items = new TodoItem[2];
     private int count = 0;
+        public int Count => count;
 
     public void Add(TodoItem item)
     {
