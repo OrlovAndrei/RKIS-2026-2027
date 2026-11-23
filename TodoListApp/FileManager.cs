@@ -51,15 +51,15 @@ public static class FileManager
         if (dir != null) EnsureDataDirectory(dir);
         if (!File.Exists(filePath)) File.WriteAllText(filePath, "");
 
-        List<string> lines = new List<string> { "Index;Text;IsDone;LastUpdate" };
-        for (int i = 0; i < todos.Count; i++)
+        List<string> lines = new List<string> { "Index;Text;Status;LastUpdate" };
+        int i = 0;
+        foreach (TodoItem item in todos)
         {
-            TodoItem? item = todos.GetItem(i);
-            if (item == null) continue;
             string text = EscapeCsv(item.Text);
-            string status = item.IsDone ? "true" : "false";
+            string status = item.Status.ToString();
             string updated = item.LastUpdate.ToString("O", CultureInfo.InvariantCulture);
             lines.Add($"{i};{text};{status};{updated}");
+            i++;
         }
         File.WriteAllLines(filePath, lines);
     }
@@ -72,7 +72,9 @@ public static class FileManager
         string[] lines = File.ReadAllLines(filePath);
         if (lines.Length == 0)
             return todos;
-        if (lines[0] != "Index;Text;IsDone;LastUpdate")
+        // Поддерживаем формат из ЛР8, чтобы старые задачи не пропали.
+        bool oldFormat = lines[0] == "Index;Text;IsDone;LastUpdate";
+        if (!oldFormat && lines[0] != "Index;Text;Status;LastUpdate")
             throw new InvalidDataException("Неверный заголовок todo.csv");
 
         for (int lineNo = 1; lineNo < lines.Length; lineNo++)
@@ -80,13 +82,34 @@ public static class FileManager
             List<string> parts = SplitCsvLine(lines[lineNo]);
             if (parts.Count != 4 ||
                 !int.TryParse(parts[0], out int index) || index != todos.Count ||
-                !bool.TryParse(parts[2], out bool isDone) ||
                 !DateTime.TryParse(parts[3], CultureInfo.InvariantCulture,
                     DateTimeStyles.RoundtripKind, out DateTime updated))
                 throw new InvalidDataException($"Ошибка формата todo.csv, строка {lineNo + 1}");
 
+            TodoStatus status;
+            if (oldFormat)
+            {
+                if (!bool.TryParse(parts[2], out bool isDone))
+                    throw new InvalidDataException($"Неверный статус, строка {lineNo + 1}");
+                status = isDone ? TodoStatus.Completed : TodoStatus.NotStarted;
+            }
+            else
+            {
+                // Новый CSV: NotStarted / InProgress / Completed / Postponed / Failed.
+                try
+                {
+                    status = Enum.Parse<TodoStatus>(parts[2], ignoreCase: true);
+                    if (!Enum.IsDefined(status))
+                        throw new ArgumentException("Статус неизвестен");
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new InvalidDataException($"Неверный статус, строка {lineNo + 1}", ex);
+                }
+            }
+
             string text = UnescapeCsv(parts[1]);
-            todos.Add(new TodoItem(text, isDone, updated));
+            todos.Add(new TodoItem(text, status, updated));
         }
         return todos;
     }
