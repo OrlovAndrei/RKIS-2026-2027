@@ -35,7 +35,7 @@ public static class FileManager
     public static void SaveTodos(TodoList todos, string filePath)
     {
         StringBuilder sb = new StringBuilder();
-        sb.AppendLine("Index;Text;IsDone;LastUpdate");
+        sb.AppendLine("Index;Text;Status;LastUpdate");
 
         for (int i = 0; i < todos.Count; i++)
         {
@@ -43,10 +43,10 @@ public static class FileManager
             if (item == null) continue;
 
             string escapedText = EscapeCsv(item.Text);
-            string isDoneStr = item.IsDone.ToString().ToLower();
+            string statusStr = item.Status.ToString();
             string dateStr = item.LastUpdate.ToString("yyyy-MM-ddTHH:mm:ss");
 
-            sb.AppendLine($"{i};{escapedText};{isDoneStr};{dateStr}");
+            sb.AppendLine($"{i};{escapedText};{statusStr};{dateStr}");
         }
 
         File.WriteAllText(filePath, sb.ToString(), Encoding.UTF8);
@@ -65,10 +65,13 @@ public static class FileManager
             if (parts.Length < 4) continue;
 
             string text = UnescapeCsv(parts[1]);
-            bool.TryParse(parts[2], out bool isDone);
+            if (!Enum.TryParse<TodoStatus>(parts[2], true, out TodoStatus status))
+            {
+                status = TodoStatus.NotStarted;
+            }
             DateTime.TryParse(parts[3], out DateTime lastUpdate);
 
-            list.Add(new TodoItem(text, isDone, lastUpdate));
+            list.Add(new TodoItem(text, status, lastUpdate));
         }
 
         return list;
