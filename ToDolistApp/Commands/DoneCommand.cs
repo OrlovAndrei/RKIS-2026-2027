@@ -8,6 +8,7 @@ public class DoneCommand : IndexedCommand
     {
         if (!TryGetItem(out TodoItem item, out _)) return;
         item.MarkDone();
+         FileManager.SaveTodos(TodoList, FilePath);
         Console.WriteLine($"Задача №{Index} отмечена выполненной.");
     }
 }

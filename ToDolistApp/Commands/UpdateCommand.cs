@@ -15,6 +15,7 @@ public class UpdateCommand : IndexedCommand
         }
         if (!TryGetItem(out TodoItem item, out _)) return;
         item.UpdateText(NewText);
+        FileManager.SaveTodos(TodoList, FilePath);
         Console.WriteLine($"Задача №{Index} успешно обновлена.");
     }
 }

@@ -8,6 +8,7 @@ public class AddCommand : ICommand
     public TodoList TodoList { get; set; } = null!;
     public bool IsMultiline { get; set; }
     public string Text { get; set; } = "";
+    public string FilePath { get; set; } = "";
 
     public void Execute()
     {
@@ -20,6 +21,7 @@ public class AddCommand : ICommand
         }
 
         TodoList.Add(new TodoItem(taskText));
+        FileManager.SaveTodos(TodoList, FilePath);
         Console.WriteLine("Задача успешно добавлена!");
     }
 

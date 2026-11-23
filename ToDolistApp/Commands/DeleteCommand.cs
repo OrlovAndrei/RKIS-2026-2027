@@ -8,6 +8,7 @@ public class DeleteCommand : IndexedCommand
     {
         if (!TryGetItem(out _, out int actualIndex)) return;
         TodoList.Delete(actualIndex);
+        FileManager.SaveTodos(TodoList, FilePath);
         Console.WriteLine($"Задача №{Index} успешно удалена со сдвигом.");
     }
 }

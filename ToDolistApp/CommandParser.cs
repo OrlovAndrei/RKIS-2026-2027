@@ -4,7 +4,7 @@ namespace TodoListApp;
 
 public static class CommandParser
 {
-    public static ICommand Parse(string inputString, TodoList todoList, Profile profile)
+    public static ICommand Parse(string inputString, TodoList todoList, Profile profile, string todoFilePath)
     {
         if (string.IsNullOrWhiteSpace(inputString))
         {
@@ -13,7 +13,7 @@ public static class CommandParser
 
         string trimmed = inputString.Trim();
         string commandName = trimmed.Split(' ')[0].ToLower();
-
+        
         switch (commandName)
         {
             case "help":
@@ -34,7 +34,8 @@ public static class CommandParser
                 {
                     TodoList = todoList,
                     IsMultiline = isMultiline,
-                    Text = text
+                    Text = text,
+                    FilePath = todoFilePath
                 };
 
             case "view":
@@ -50,12 +51,12 @@ public static class CommandParser
             case "done":
                 if (!TryParseIndex(trimmed, out int doneIdx))
                     return new UnknownCommand { Message = "Ошибка: укажите числовой индекс. Пример: done 1" };
-                return new DoneCommand { TodoList = todoList, Index = doneIdx };
+                return new DoneCommand { TodoList = todoList, Index = doneIdx, FilePath = todoFilePath  };
 
             case "delete":
                 if (!TryParseIndex(trimmed, out int delIdx))
                     return new UnknownCommand { Message = "Ошибка: укажите числовой индекс. Пример: delete 1" };
-                return new DeleteCommand { TodoList = todoList, Index = delIdx };
+                return new DeleteCommand { TodoList = todoList, Index = delIdx, FilePath = todoFilePath  };
 
             case "read":
                 if (!TryParseIndex(trimmed, out int readIdx))
@@ -70,7 +71,8 @@ public static class CommandParser
                 {
                     TodoList = todoList,
                     Index = updIdx,
-                    NewText = parts[2].Trim('"')
+                    NewText = parts[2].Trim('"'),
+                    FilePath = todoFilePath 
                 };
 
             default:

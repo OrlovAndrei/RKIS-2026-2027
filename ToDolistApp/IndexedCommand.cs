@@ -6,7 +6,7 @@ public abstract class IndexedCommand : ICommand
 {
     public TodoList TodoList { get; set; } = null!;
     public int Index { get; set; }
-
+     public string FilePath { get; set; } = "";
     public abstract void Execute();
 
     protected bool TryGetItem(out TodoItem item, out int actualIndex)
