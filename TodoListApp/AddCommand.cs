@@ -26,6 +26,7 @@ public class AddCommand : ICommand
             if (lines.Count > 0)
             {
                 TodoList.Add(new TodoItem(string.Join("\n", lines)));
+                FileManager.SaveTodos(TodoList, FileManager.TodoPath);
                 Console.WriteLine("Многострочная задача добавлена.");
             }
         }
@@ -42,6 +43,7 @@ public class AddCommand : ICommand
             if (!string.IsNullOrWhiteSpace(text))
             {
                 TodoList.Add(new TodoItem(text.Trim()));
+                FileManager.SaveTodos(TodoList, FileManager.TodoPath);
                 Console.WriteLine("Задача добавлена.");
             }
         }
