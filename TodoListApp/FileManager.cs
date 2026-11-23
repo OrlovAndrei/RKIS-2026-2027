@@ -67,7 +67,8 @@ public static class FileManager
         fields.Add(current.ToString());
         return fields;
     }
-        public static void SaveProfile(Profile profile, string filePath)
+
+    public static void SaveProfile(Profile profile, string filePath)
     {
         EnsureDataDirectory(Path.GetDirectoryName(filePath) ?? DataDirectory);
 
@@ -92,5 +93,59 @@ public static class FileManager
             return null;
 
         return new Profile(lines[0], lines[1], birthYear);
+    }
+
+    public static void SaveTodos(TodoList todos, string filePath)
+    {
+        EnsureDataDirectory(Path.GetDirectoryName(filePath) ?? DataDirectory);
+
+        var lines = new List<string>();
+
+        for (int i = 0; i < todos.Count; i++)
+        {
+            TodoItem? item = todos.GetItem(i);
+            if (item == null)
+                continue;
+
+            string isDone = item.IsCompleted ? "true" : "false";
+            string date = item.LastModified.ToString("s", CultureInfo.InvariantCulture);
+
+            lines.Add($"{i};{EscapeCsv(item.Text)};{isDone};{date}");
+        }
+
+        File.WriteAllLines(filePath, lines);
+    }
+
+    public static TodoList LoadTodos(string filePath)
+    {
+        var todos = new TodoList();
+
+        if (!File.Exists(filePath))
+            return todos;
+
+        foreach (string line in File.ReadAllLines(filePath))
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            List<string> fields = SplitCsvLine(line);
+            if (fields.Count < 4)
+                continue;
+
+            string text = UnescapeCsv(fields[1]);
+            bool isDone = bool.TryParse(fields[2], out bool done) && done;
+
+            DateTime lastModified = DateTime.TryParse(
+                fields[3],
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out DateTime parsed)
+                ? parsed
+                : DateTime.Now;
+
+            todos.Add(new TodoItem(text, isDone, lastModified));
+        }
+
+        return todos;
     }
 }
