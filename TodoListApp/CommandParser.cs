@@ -18,7 +18,7 @@ public static class CommandParser
             case "add": return ParseAdd(args, todoList);
             case "view": return ParseView(args, todoList);
             case "read": return ParseTaskCommand(args, new ReadCommand { TodoList = todoList });
-            case "done": return ParseTaskCommand(args, new DoneCommand { TodoList = todoList });
+            case "status": return ParseStatus(args, todoList);
             case "remove": return ParseTaskCommand(args, new RemoveCommand { TodoList = todoList });
             case "update": return ParseUpdate(args, todoList);
             case "exit": return new ExitCommand();
@@ -84,6 +84,23 @@ public static class CommandParser
 
         var command = new UpdateCommand { TodoList = todoList, Text = text };
         return ParseTaskCommand(parts.Length > 0 ? parts[0] : "", command);
+    }
+
+    // status <номер> <статус>, например: status 2 inprogress
+    private static ICommand ParseStatus(string args, TodoList todoList)
+    {
+        string[] parts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2)
+            return Error("Формат: status <номер> <статус>, например status 2 inprogress");
+
+        // TryParse принимает и числа ("7"), поэтому дополнительно проверяем, что такой статус есть
+        if (!Enum.TryParse(parts[1], true, out TodoStatus status) || !Enum.IsDefined(status))
+        {
+            string names = string.Join(", ", Enum.GetNames<TodoStatus>()).ToLower();
+            return Error($"Неизвестный статус «{parts[1]}». Доступны: {names}");
+        }
+
+        return ParseTaskCommand(parts[0], new StatusCommand { TodoList = todoList, Status = status });
     }
 
     // Для команд с номером задачи: проверяем, что номер — число, и переводим его в индекс с 0.

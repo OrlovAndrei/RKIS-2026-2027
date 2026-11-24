@@ -1,72 +1,97 @@
+using System.Collections;
 using System.Text;
 
-// Список задач на основе массива, который расширяется при заполнении
-public class TodoList
+// Список задач. Внутри обычный List<T>, который сам увеличивает размер, поэтому свой IncreaseArray больше не нужен.
+// IEnumerable<TodoItem> позволяет перебирать задачи через foreach
+public class TodoList : IEnumerable<TodoItem>
 {
-    private TodoItem[] _items = new TodoItem[2];
-    private int _count = 0;
+    private readonly List<TodoItem> _items = new();
 
-    public int Count => _count;
+    public int Count => _items.Count;
 
-    public void Add(TodoItem item)
+    // Индексатор: todos[0] вместо todos.GetItem(0). При неверном индексе бросает исключение, как и массив
+    public TodoItem this[int index]
     {
-        if (_count == _items.Length)
-            _items = IncreaseArray(_items, item);
-        else
-            _items[_count] = item;
-        _count++;
+        get
+        {
+            if (index < 0 || index >= _items.Count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return _items[index];
+        }
     }
 
-    public void Delete(int index)
-    {
-        if (index < 0 || index >= _count)
-            return;
-
-        // Сдвигаем задачи после удаляемой на одну позицию влево, чтобы не было «дыр» в массиве
-        for (int i = index; i < _count - 1; i++)
-            _items[i] = _items[i + 1];
-
-        _count--;
-        _items[_count] = null!; // убираем лишнюю ссылку, чтобы объект мог собрать GC
-    }
-
-    // Возвращает null, если задачи с таким индексом нет — проверку делает вызывающий код
+    // «Безопасная» версия индексатора: возвращает null, если задачи с таким индексом нет
     public TodoItem? GetItem(int index)
     {
-        if (index < 0 || index >= _count)
+        if (index < 0 || index >= _items.Count)
             return null;
         return _items[index];
     }
 
+    public void Add(TodoItem item)
+    {
+        _items.Add(item);
+    }
+
+    public void Delete(int index)
+    {
+        if (index < 0 || index >= _items.Count)
+            return;
+        _items.RemoveAt(index);
+    }
+
+    public void Update(int index, string newText)
+    {
+        this[index].UpdateText(newText);
+    }
+
+    public void SetStatus(int index, TodoStatus status)
+    {
+        this[index].SetStatus(status);
+    }
+
     public bool Contains(string text)
     {
-        for (int i = 0; i < _count; i++)
+        foreach (TodoItem item in _items)
         {
-            if (_items[i].Text == text)
+            if (item.Text == text)
                 return true;
         }
         return false;
     }
 
-    // Вывод задач таблицей; колонку с текстом показываем всегда, остальные — по флагам
-    public void View(bool showIndex, bool showDone, bool showDate)
+    // Метод-итератор: yield return отдаёт задачи по одной, а компилятор сам строит перечислитель
+    public IEnumerator<TodoItem> GetEnumerator()
     {
-        if (_count == 0)
+        for (int i = 0; i < _items.Count; i++)
+        {
+            yield return _items[i];
+        }
+    }
+
+    // Старый необобщённый интерфейс тоже надо реализовать, но он просто вызывает обобщённый
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    // Вывод задач таблицей; колонку с текстом показываем всегда, остальные — по флагам
+    public void View(bool showIndex, bool showStatus, bool showDate)
+    {
+        if (_items.Count == 0)
         {
             Console.WriteLine("Список дел пуст.");
             return;
         }
 
         var sb = new StringBuilder();
-        sb.AppendLine(BuildRow("№", "Задача", "Статус", "Изменена", showIndex, showDone, showDate));
-        sb.AppendLine(BuildRow(new string('-', 4), new string('-', 33), new string('-', 12), new string('-', 16),
-            showIndex, showDone, showDate));
+        sb.AppendLine(BuildRow("№", "Задача", "Статус", "Изменена", showIndex, showStatus, showDate));
+        sb.AppendLine(BuildRow(new string('-', 4), new string('-', 33), new string('-', 10), new string('-', 16),
+            showIndex, showStatus, showDate));
 
-        for (int i = 0; i < _count; i++)
+        int number = 1;
+        foreach (TodoItem item in this)
         {
-            TodoItem item = _items[i];
-            sb.AppendLine(BuildRow((i + 1).ToString(), item.GetShortText(), item.StatusText,
-                item.LastUpdate.ToString("dd.MM.yyyy HH:mm"), showIndex, showDone, showDate));
+            sb.AppendLine(BuildRow(number.ToString(), item.GetShortText(), item.StatusText,
+                item.LastUpdate.ToString("dd.MM.yyyy HH:mm"), showIndex, showStatus, showDate));
+            number++;
         }
 
         Console.Write(sb.ToString());
@@ -74,24 +99,13 @@ public class TodoList
 
     // Одна строка таблицы: отрицательная ширина в {x,-N} выравнивает по левому краю
     private static string BuildRow(string index, string text, string status, string date,
-        bool showIndex, bool showDone, bool showDate)
+        bool showIndex, bool showStatus, bool showDate)
     {
         var row = new StringBuilder();
         if (showIndex) row.Append($"{index,-4} | ");
         row.Append($"{text,-33}");
-        if (showDone) row.Append($" | {status,-12}");
+        if (showStatus) row.Append($" | {status,-10}");
         if (showDate) row.Append($" | {date,-16}");
         return row.ToString().TrimEnd();
-    }
-
-    // Размер массива нельзя изменить, поэтому создаём новый в 2 раза больше,
-    // копируем старые задачи и кладём новую сразу после них
-    private TodoItem[] IncreaseArray(TodoItem[] items, TodoItem item)
-    {
-        var newItems = new TodoItem[items.Length * 2];
-        for (int i = 0; i < items.Length; i++)
-            newItems[i] = items[i];
-        newItems[items.Length] = item;
-        return newItems;
     }
 }

@@ -7,27 +7,36 @@ public class TodoItem
     // Сеттеры приватные: менять задачу можно только через методы ниже,
     // поэтому дата изменения всегда обновляется вместе с данными
     public string Text { get; private set; }
-    public bool IsDone { get; private set; }
+    public TodoStatus Status { get; private set; }
     public DateTime LastUpdate { get; private set; }
 
-    public string StatusText => IsDone ? "выполнена" : "не выполнена";
+    // Статус словами для таблицы и команды read
+    public string StatusText => Status switch
+    {
+        TodoStatus.NotStarted => "не начата",
+        TodoStatus.InProgress => "в процессе",
+        TodoStatus.Completed => "выполнена",
+        TodoStatus.Postponed => "отложена",
+        TodoStatus.Failed => "провалена",
+        _ => Status.ToString()
+    };
 
-    // Новая задача: не выполнена, изменена только что
-    public TodoItem(string text) : this(text, false, DateTime.Now)
+    // Новая задача: ещё не начата, изменена только что
+    public TodoItem(string text) : this(text, TodoStatus.NotStarted, DateTime.Now)
     {
     }
 
     // Задача, прочитанная из файла: статус и дату берём из файла, а не «сейчас»
-    public TodoItem(string text, bool isDone, DateTime lastUpdate)
+    public TodoItem(string text, TodoStatus status, DateTime lastUpdate)
     {
         Text = CheckText(text);
-        IsDone = isDone;
+        Status = status;
         LastUpdate = lastUpdate;
     }
 
-    public void MarkDone()
+    public void SetStatus(TodoStatus status)
     {
-        IsDone = true;
+        Status = status;
         LastUpdate = DateTime.Now;
     }
 

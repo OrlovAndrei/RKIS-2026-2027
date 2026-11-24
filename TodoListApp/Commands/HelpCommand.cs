@@ -13,7 +13,7 @@ public class HelpCommand : ICommand
             "    --update-date (-d)     - показать дату изменения\n" +
             "    --all (-a)             - показать всё; короткие флаги можно объединять: view -is\n" +
             "read <номер>               - полный текст задачи, статус и дата изменения\n" +
-            "done <номер>               - отметить задачу выполненной\n" +
+            "status <номер> <статус>    - сменить статус: notstarted, inprogress, completed, postponed, failed\n" +
             "update <номер> \"текст\"     - изменить текст задачи\n" +
             "remove <номер>             - удалить задачу\n" +
             "exit                       - выход");

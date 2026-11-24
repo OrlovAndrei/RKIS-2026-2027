@@ -1,6 +1,6 @@
 public class RemoveCommand : TaskCommand
 {
-    protected override void ExecuteOnItem(TodoItem item)
+    protected override void Run()
     {
         TodoList.Delete(Index);
         FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);

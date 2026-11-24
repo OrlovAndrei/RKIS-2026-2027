@@ -2,7 +2,7 @@ public class UpdateCommand : TaskCommand
 {
     public string Text { get; set; } = "";
 
-    protected override void ExecuteOnItem(TodoItem item)
+    protected override void Run()
     {
         if (string.IsNullOrWhiteSpace(Text))
         {
@@ -10,7 +10,7 @@ public class UpdateCommand : TaskCommand
             return;
         }
 
-        item.UpdateText(Text);
+        TodoList.Update(Index, Text);
         FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
         Console.WriteLine($"Задача №{Index + 1} изменена.");
     }

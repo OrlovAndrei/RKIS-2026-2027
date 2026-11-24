@@ -38,16 +38,16 @@ public static class FileManager
         return new Profile(lines[0], lines[1], birthYear);
     }
 
-    // Одна задача — одна строка: Index;"Text";IsDone;LastUpdate
+    // Одна задача — одна строка: Index;"Text";Status;LastUpdate
     public static void SaveTodos(TodoList todos, string filePath)
     {
         var lines = new string[todos.Count];
-        for (int i = 0; i < todos.Count; i++)
+        int i = 0;
+        foreach (TodoItem item in todos) // foreach работает благодаря IEnumerable в TodoList
         {
-            TodoItem item = todos.GetItem(i)!; // индекс точно в пределах списка
-            string isDone = item.IsDone ? "true" : "false";
             string date = item.LastUpdate.ToString(DateFormat, CultureInfo.InvariantCulture);
-            lines[i] = $"{i};{EscapeCsv(item.Text)};{isDone};{date}";
+            lines[i] = $"{i};{EscapeCsv(item.Text)};{item.Status};{date}";
+            i++;
         }
         File.WriteAllLines(filePath, lines);
     }
@@ -74,7 +74,7 @@ public static class FileManager
     }
 
     // Текст задачи может содержать ';', поэтому режем строку с двух концов:
-    // слева стоит индекс, а справа — IsDone и LastUpdate. Всё, что между ними, — текст
+    // слева стоит индекс, а справа — Status и LastUpdate. Всё, что между ними, — текст
     private static TodoItem? ParseTodoLine(string line)
     {
         int first = line.IndexOf(';');
@@ -84,15 +84,18 @@ public static class FileManager
             return null;
 
         string text = UnescapeCsv(line.Substring(first + 1, middle - first - 1));
-        string doneText = line.Substring(middle + 1, last - middle - 1);
+        string statusText = line.Substring(middle + 1, last - middle - 1);
         string dateText = line.Substring(last + 1);
 
-        if (text.Length == 0 || !bool.TryParse(doneText, out bool isDone))
+        if (text.Length == 0)
+            return null;
+        // TryParse принимает и числа ("7"), поэтому дополнительно проверяем, что такой статус есть
+        if (!Enum.TryParse(statusText, out TodoStatus status) || !Enum.IsDefined(status))
             return null;
         if (!DateTime.TryParseExact(dateText, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime lastUpdate))
             return null;
 
-        return new TodoItem(text, isDone, lastUpdate);
+        return new TodoItem(text, status, lastUpdate);
     }
 
     // Текст берём в кавычки, кавычки внутри удваиваем, а перенос строки заменяем на \n

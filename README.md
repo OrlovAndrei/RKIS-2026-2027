@@ -181,7 +181,7 @@ Struct, Record, Boxing/Unboxing
   - `--all`, `-a` — все колонки
   - короткие флаги объединяются: `view -is`, `view -i -s -d`
 - `read <номер>` — полный текст задачи, статус и дата изменения
-- `done <номер>` — отметить задачу выполненной
+- `status <номер> <статус>` — сменить статус задачи: `notstarted`, `inprogress`, `completed`, `postponed`, `failed` (например, `status 2 inprogress`)
 - `update <номер> "текст"` — изменить текст задачи
 - `remove <номер>` — удалить задачу
 - `exit` — выход
@@ -222,6 +222,15 @@ command.Execute();
 2. если профиль есть в файле — он загружается, иначе программа просит зарегистрироваться и сразу сохраняет профиль;
 3. задачи загружаются из `todo.csv`, а если файла нет — создаётся пустой.
 
-Любая команда, которая меняет список (`add`, `done`, `update`, `remove`), сразу сохраняет его в файл.
+Любая команда, которая меняет список (`add`, `status`, `update`, `remove`), сразу сохраняет его в файл.
 
 Класс `FileManager` (статический): `EnsureDataDirectory`, `SaveProfile`, `LoadProfile`, `SaveTodos`, `LoadTodos`. Пути собираются через `Path.Combine`, а перед чтением файлов проверяется `File.Exists`.
+
+## Список, итератор и статусы (занятие 9)
+
+- `TodoList` хранит задачи в приватном `List<TodoItem>`, метод `IncreaseArray` удалён
+- Индексатор: `todos[0]` вместо `GetItem(0)` (при неверном индексе бросает исключение; `GetItem` — безопасная версия, возвращает `null`)
+- `TodoList` реализует `IEnumerable<TodoItem>` через `yield return`, поэтому задачи можно перебирать в `foreach`
+- Вместо `IsDone` у задачи теперь `Status` типа `enum TodoStatus` (`NotStarted`, `InProgress`, `Completed`, `Postponed`, `Failed`); в таблице и в `read` он показывается словами
+- Команда `done` заменена на `status`; в `TodoList` метод `Done` заменён на `SetStatus(index, status)`
+- В `todo.csv` вместо `true/false` записывается имя статуса: `Index;"Text";Status;LastUpdate`

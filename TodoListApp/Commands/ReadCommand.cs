@@ -1,8 +1,8 @@
 public class ReadCommand : TaskCommand
 {
-    protected override void ExecuteOnItem(TodoItem item)
+    protected override void Run()
     {
         Console.WriteLine($"Задача №{Index + 1}:");
-        Console.WriteLine(item.GetFullInfo());
+        Console.WriteLine(TodoList[Index].GetFullInfo());
     }
 }
