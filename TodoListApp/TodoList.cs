@@ -1,45 +1,49 @@
+using System.Collections;
+
 namespace TodoListApp;
 
-public class TodoList
+public class TodoList : IEnumerable<TodoItem>
 {
-    private TodoItem[] items = new TodoItem[2];
-    private int count = 0;
-        public int Count => count;
+    private readonly List<TodoItem> items = new List<TodoItem>();
 
+    public int Count => items.Count;
+
+    // Добавление задачи
     public void Add(TodoItem item)
     {
-        if (count == items.Length)
-        {
-            items = IncreaseArray(items, item);
-        }
-        else
-        {
-            items[count] = item;
-        }
-
-        count++;
+        items.Add(item);
     }
 
+    // Удаление задачи
     public void Delete(int index)
     {
-        if (index < 0 || index >= count)
+        if (index < 0 || index >= items.Count)
         {
             Console.WriteLine("Задачи с таким индексом нет.");
             return;
         }
 
-        for (int i = index; i < count - 1; i++)
-        {
-            items[i] = items[i + 1];
-        }
-
-        count--;
-        items[count] = null!;
+        items.RemoveAt(index);
     }
 
+    // Индексатор для доступа к задачам
+    public TodoItem this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= items.Count)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return items[index];
+        }
+    }
+
+    // Получение задачи по индексу
     public TodoItem? GetItem(int index)
     {
-        if (index < 0 || index >= count)
+        if (index < 0 || index >= items.Count)
         {
             return null;
         }
@@ -47,15 +51,16 @@ public class TodoList
         return items[index];
     }
 
+    // Просмотр задач
     public void View(bool showIndex, bool showDone, bool showDate)
     {
-        if (count == 0)
+        if (items.Count == 0)
         {
             Console.WriteLine("Список задач пуст.");
             return;
         }
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < items.Count; i++)
         {
             string result = "";
 
@@ -84,14 +89,17 @@ public class TodoList
         }
     }
 
-    private TodoItem[] IncreaseArray(TodoItem[] currentItems, TodoItem item)
+    // Итератор для перебора задач
+    public IEnumerator<TodoItem> GetEnumerator()
     {
-        TodoItem[] newItems = new TodoItem[currentItems.Length * 2];
+        foreach (TodoItem item in items)
+        {
+            yield return item;
+        }
+    }
 
-        Array.Copy(currentItems, newItems, count);
-
-        newItems[count] = item;
-
-        return newItems;
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
