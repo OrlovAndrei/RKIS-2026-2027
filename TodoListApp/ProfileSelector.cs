@@ -40,6 +40,13 @@ public static class ProfileSelector
         if (!File.Exists(path))
             FileManager.SaveTodos(todos, path); // у нового пользователя файл создаём пустым
 
+        // Любое изменение списка автоматически сохраняется в файл. Если когда-нибудь данные понадобится
+        // хранить в базе, достаточно подписать на эти события другой метод — TodoList и команды менять не придётся
+        AppInfo.Todos.OnTodoAdded += FileManager.SaveTodoList;
+        AppInfo.Todos.OnTodoDeleted += FileManager.SaveTodoList;
+        AppInfo.Todos.OnTodoUpdated += FileManager.SaveTodoList;
+        AppInfo.Todos.OnStatusChanged += FileManager.SaveTodoList;
+
         // История команд принадлежит прошлому пользователю — undo/redo между профилями не переносим
         AppInfo.UndoStack.Clear();
         AppInfo.RedoStack.Clear();

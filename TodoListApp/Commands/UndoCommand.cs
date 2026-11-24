@@ -12,6 +12,5 @@ public class UndoCommand : ICommand
         UndoableCommand command = AppInfo.UndoStack.Pop();
         command.Unexecute();
         AppInfo.RedoStack.Push(command);
-        FileManager.SaveCurrentTodos();
     }
 }

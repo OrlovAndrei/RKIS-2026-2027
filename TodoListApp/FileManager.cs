@@ -59,8 +59,9 @@ public static class FileManager
         return profiles;
     }
 
-    // Сохраняет задачи текущего пользователя в его файл
-    public static void SaveCurrentTodos()
+    // Обработчик событий TodoList: сохраняет задачи текущего пользователя в его файл.
+    // Сама задача из события здесь не нужна, но у обработчика должна быть та же сигнатура, что у события
+    public static void SaveTodoList(TodoItem item)
     {
         if (AppInfo.CurrentProfileId is Guid id)
             SaveTodos(AppInfo.Todos, GetTodosFilePath(id));

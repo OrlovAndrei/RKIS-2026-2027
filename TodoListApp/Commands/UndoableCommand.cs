@@ -1,7 +1,7 @@
 // Базовый класс для команд, которые меняют список задач и поэтому попадают в историю (undo/redo)
 public abstract class UndoableCommand : ICommand
 {
-    // Новое действие пользователя: выполняем, запоминаем для undo и сохраняем данные.
+    // Новое действие пользователя: выполняем и запоминаем для undo (данные сохранятся сами через события TodoList).
     // После нового действия «повторить» то, что было отменено раньше, уже нельзя — redo-стек очищаем
     public void Execute()
     {
@@ -10,7 +10,6 @@ public abstract class UndoableCommand : ICommand
 
         AppInfo.UndoStack.Push(this);
         AppInfo.RedoStack.Clear();
-        FileManager.SaveCurrentTodos();
     }
 
     // Повторить отменённое действие (вызывается командой redo): та же команда возвращается в undo-стек
@@ -20,7 +19,6 @@ public abstract class UndoableCommand : ICommand
             return;
 
         AppInfo.UndoStack.Push(this);
-        FileManager.SaveCurrentTodos();
     }
 
     // Само действие команды; возвращает false, если выполнить его не удалось

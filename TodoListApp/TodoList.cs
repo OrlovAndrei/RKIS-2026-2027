@@ -17,6 +17,13 @@ public class TodoList : IEnumerable<TodoItem>
         _items = items;
     }
 
+    // События: TodoList сообщает, что данные изменились, а что с этим делать (например, сохранить в файл),
+    // решают подписчики. Сам TodoList не знает, как и куда сохраняются данные
+    public event Action<TodoItem>? OnTodoAdded;
+    public event Action<TodoItem>? OnTodoDeleted;
+    public event Action<TodoItem>? OnTodoUpdated;
+    public event Action<TodoItem>? OnStatusChanged;
+
     public int Count => _items.Count;
 
     // Индексатор: todos[0] вместо todos.GetItem(0). При неверном индексе бросает исключение, как и массив
@@ -41,6 +48,7 @@ public class TodoList : IEnumerable<TodoItem>
     public void Add(TodoItem item)
     {
         _items.Add(item);
+        OnTodoAdded?.Invoke(item);
     }
 
     // Вставляет задачу на нужное место (так undo возвращает удалённую задачу туда, где она была)
@@ -49,23 +57,30 @@ public class TodoList : IEnumerable<TodoItem>
         if (index < 0 || index > _items.Count)
             return;
         _items.Insert(index, item);
+        OnTodoAdded?.Invoke(item);
     }
 
     public void Delete(int index)
     {
         if (index < 0 || index >= _items.Count)
             return;
+        TodoItem item = _items[index];
         _items.RemoveAt(index);
+        OnTodoDeleted?.Invoke(item);
     }
 
     public void Update(int index, string newText)
     {
-        this[index].UpdateText(newText);
+        TodoItem item = this[index];
+        item.UpdateText(newText);
+        OnTodoUpdated?.Invoke(item);
     }
 
     public void SetStatus(int index, TodoStatus status)
     {
-        this[index].SetStatus(status);
+        TodoItem item = this[index];
+        item.SetStatus(status);
+        OnStatusChanged?.Invoke(item);
     }
 
     public bool Contains(string text)

@@ -1,6 +1,26 @@
 // Превращает введённую строку в объект команды: разбирает имя, флаги и параметры
 public static class CommandParser
 {
+    // Словарь «имя команды → метод, который разбирает аргументы и создаёт команду».
+    // Благодаря ему в Parse не нужны длинные if или switch: новая команда — это одна строка в конструкторе
+    private static readonly Dictionary<string, Func<string, ICommand>> _commandHandlers = new();
+
+    // Статический конструктор выполняется один раз до первого использования класса — регистрируем все команды
+    static CommandParser()
+    {
+        _commandHandlers["help"] = _ => new HelpCommand(); // лямбда: аргументы этой команде не нужны
+        _commandHandlers["exit"] = _ => new ExitCommand();
+        _commandHandlers["undo"] = _ => new UndoCommand();
+        _commandHandlers["redo"] = _ => new RedoCommand();
+        _commandHandlers["profile"] = ParseProfile;
+        _commandHandlers["add"] = ParseAdd;
+        _commandHandlers["view"] = ParseView;
+        _commandHandlers["read"] = ParseRead;
+        _commandHandlers["status"] = ParseStatus;
+        _commandHandlers["update"] = ParseUpdate;
+        _commandHandlers["delete"] = ParseDelete;
+    }
+
     public static ICommand Parse(string inputString)
     {
         // Первое слово — имя команды, остальное — аргументы
@@ -11,21 +31,11 @@ public static class CommandParser
         string name = parts[0].ToLower();
         string args = parts.Length > 1 ? parts[1].Trim() : "";
 
-        switch (name)
-        {
-            case "help": return new HelpCommand();
-            case "profile": return ParseProfile(args);
-            case "add": return ParseAdd(args);
-            case "view": return ParseView(args);
-            case "read": return ParseRead(args);
-            case "status": return ParseStatus(args);
-            case "update": return ParseUpdate(args);
-            case "delete": return ParseDelete(args);
-            case "undo": return new UndoCommand();
-            case "redo": return new RedoCommand();
-            case "exit": return new ExitCommand();
-            default: return Error($"Команды {name} нет, help - список команд.");
-        }
+        // Находим обработчик по имени команды и запускаем его с аргументами
+        if (_commandHandlers.TryGetValue(name, out Func<string, ICommand>? handler))
+            return handler(args);
+
+        return Error($"Команды {name} нет, help - список команд.");
     }
 
     // profile — показать профиль, profile --out (-o) — выйти из профиля

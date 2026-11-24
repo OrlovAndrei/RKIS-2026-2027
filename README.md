@@ -197,16 +197,16 @@ Struct, Record, Boxing/Unboxing
 ## Команды (паттерн «Команда»)
 
 - `ICommand` — интерфейс с единственным методом `Execute()`
-- Каждая команда — отдельный класс в папке `Commands`: `AddCommand`, `ViewCommand`, `ReadCommand`, `StatusCommand`, `UpdateCommand`, `DeleteCommand`, `UndoCommand`, `RedoCommand`, `ProfileCommand`, `HelpCommand`, `ExitCommand`. Флаги хранятся в `bool`-свойствах, текст и номер задачи — в свойствах `string` и `int`, список и профиль передаются через свойства `TodoList` и `Profile`
+- Каждая команда — отдельный класс в папке `Commands`: `AddCommand`, `ViewCommand`, `ReadCommand`, `StatusCommand`, `UpdateCommand`, `DeleteCommand`, `UndoCommand`, `RedoCommand`, `ProfileCommand`, `HelpCommand`, `ExitCommand`. Флаги хранятся в `bool`-свойствах, текст и номер задачи — в свойствах `string` и `int`, а список задач и профиль берутся из `AppInfo`
 - `TaskCommand` — абстрактный базовый класс для команд с номером задачи (`status`, `update`, `delete`): проверяет, что задача с таким номером существует
 - `ErrorCommand` — возвращается, если строку не удалось разобрать, и печатает причину ошибки
-- `CommandParser.Parse(input, todoList, profile)` — статический метод, который определяет команду, разбирает флаги и параметры и возвращает готовый `ICommand`
+- `CommandParser.Parse(input)` — статический метод, который определяет команду, разбирает флаги и параметры и возвращает готовый `ICommand`
 
 Главный цикл программы:
 
 ```csharp
 string? input = Console.ReadLine();
-ICommand command = CommandParser.Parse(input, todoList, profile);
+ICommand command = CommandParser.Parse(input);
 command.Execute();
 ```
 
@@ -257,3 +257,9 @@ command.Execute();
 - `profile --out` (`-o`) — выход из профиля: программа возвращается к выбору профиля
 - При каждом входе в профиль стеки `undo` и `redo` очищаются, команды не переносятся между пользователями
 - Старый файл `profile.txt` из занятия 8 больше не используется
+
+## Делегаты и события (занятие 12)
+
+**Парсер на делегатах.** В `CommandParser` вместо длинного `switch` есть словарь `Dictionary<string, Func<string, ICommand>>`: ключ — имя команды, значение — метод, который получает аргументы и возвращает готовую команду. Команды регистрируются в статическом конструкторе (`_commandHandlers["add"] = ParseAdd;`), а `Parse` выделяет имя и аргументы, находит обработчик по имени и запускает его. Чтобы добавить команду, достаточно написать метод разбора и добавить одну строку в конструктор.
+
+**Сохранение через события.** `TodoList` больше не знает про `FileManager`. Вместо этого у него есть события `OnTodoAdded`, `OnTodoDeleted`, `OnTodoUpdated` и `OnStatusChanged`, которые вызываются в методах `Add` (и `Insert`), `Delete`, `Update` и `SetStatus`. При входе в профиль (`ProfileSelector`) на эти события подписывается `FileManager.SaveTodoList`, поэтому любое изменение списка — в том числе `undo` и `redo` — автоматически сохраняется в файл пользователя. Команды и `TodoList` напрямую файлы не трогают: если данные понадобится хранить в базе, достаточно подписать на события другой метод.
