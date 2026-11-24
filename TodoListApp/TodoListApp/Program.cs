@@ -193,7 +193,7 @@ class Program
             if (showIndex)
                 header += $"{"№",2}  ";
             if (showStatus)
-                header += $"{"Статус",-10}  ";
+                header += $"{"Статус",-12}  ";
             if (showDate)
                 header += $"{"Дата",-10}  ";
             header += "Текст";
@@ -209,7 +209,7 @@ class Program
                 row += $"{i + 1,2}  ";
 
             if (showStatus)
-                row += $"{(statuses[i] ? "выполнена" : "не выполнена"),-10}  ";
+                row += $"{(statuses[i] ? "выполнена" : "не выполнена"),-12}  ";
 
             if (showDate)
                 row += $"{dates[i].ToString("dd.MM.yyyy"),-10}  ";
