@@ -1,31 +1,45 @@
 using System.Text;
 
-public class AddCommand : ICommand
+public class AddCommand : UndoableCommand
 {
-    public required TodoList TodoList { get; set; }
     public string Text { get; set; } = "";
 
     // Флаг --multiline / -m: текст задачи вводится построчно уже при выполнении команды
     public bool Multiline { get; set; }
 
-    public void Execute()
+    // Созданную задачу запоминаем: undo уберёт её из списка, а redo вернёт именно её же
+    private TodoItem? _item;
+
+    protected override bool Apply()
     {
-        string text = Multiline ? ReadMultiline() : Text;
-
-        if (string.IsNullOrWhiteSpace(text))
+        // При redo задача уже создана, поэтому текст заново не вводим и не проверяем
+        if (_item is null)
         {
-            Console.WriteLine("Текст задачи не может быть пустым.");
-            return;
-        }
-        if (TodoList.Contains(text))
-        {
-            Console.WriteLine("Такая задача уже есть в списке.");
-            return;
+            string text = Multiline ? ReadMultiline() : Text;
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                Console.WriteLine("Текст задачи не может быть пустым.");
+                return false;
+            }
+            if (AppInfo.Todos.Contains(text))
+            {
+                Console.WriteLine("Такая задача уже есть в списке.");
+                return false;
+            }
+            _item = new TodoItem(text);
         }
 
-        TodoList.Add(new TodoItem(text));
-        FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
-        Console.WriteLine($"Задача добавлена под номером {TodoList.Count}.");
+        AppInfo.Todos.Add(_item);
+        Console.WriteLine($"Задача добавлена под номером {AppInfo.Todos.Count}.");
+        return true;
+    }
+
+    public override void Unexecute()
+    {
+        // Отмена идёт строго в обратном порядке, поэтому добавленная задача сейчас последняя в списке
+        AppInfo.Todos.Delete(AppInfo.Todos.Count - 1);
+        Console.WriteLine("Добавление задачи отменено.");
     }
 
     // Читаем строки до !end и склеиваем их через \n в один текст задачи

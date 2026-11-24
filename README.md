@@ -183,7 +183,7 @@ Struct, Record, Boxing/Unboxing
 - `read <номер>` — полный текст задачи, статус и дата изменения
 - `status <номер> <статус>` — сменить статус задачи: `notstarted`, `inprogress`, `completed`, `postponed`, `failed` (например, `status 2 inprogress`)
 - `update <номер> "текст"` — изменить текст задачи
-- `remove <номер>` — удалить задачу
+- `delete <номер>` — удалить задачу
 - `exit` — выход
 
 Номера задач начинаются с 1. Числа разбираются через `TryParse`, неверный номер или неизвестный флаг выводит сообщение об ошибке.
@@ -197,8 +197,8 @@ Struct, Record, Boxing/Unboxing
 ## Команды (паттерн «Команда»)
 
 - `ICommand` — интерфейс с единственным методом `Execute()`
-- Каждая команда — отдельный класс в папке `Commands`: `AddCommand`, `ViewCommand`, `ReadCommand`, `DoneCommand`, `UpdateCommand`, `RemoveCommand`, `ProfileCommand`, `HelpCommand`, `ExitCommand`. Флаги хранятся в `bool`-свойствах, текст и номер задачи — в свойствах `string` и `int`, список и профиль передаются через свойства `TodoList` и `Profile`
-- `TaskCommand` — абстрактный базовый класс для команд с номером задачи (`read`, `done`, `update`, `remove`): сам находит задачу и сообщает, если её нет (шаблонный метод)
+- Каждая команда — отдельный класс в папке `Commands`: `AddCommand`, `ViewCommand`, `ReadCommand`, `StatusCommand`, `UpdateCommand`, `DeleteCommand`, `UndoCommand`, `RedoCommand`, `ProfileCommand`, `HelpCommand`, `ExitCommand`. Флаги хранятся в `bool`-свойствах, текст и номер задачи — в свойствах `string` и `int`, список и профиль передаются через свойства `TodoList` и `Profile`
+- `TaskCommand` — абстрактный базовый класс для команд с номером задачи (`status`, `update`, `delete`): проверяет, что задача с таким номером существует
 - `ErrorCommand` — возвращается, если строку не удалось разобрать, и печатает причину ошибки
 - `CommandParser.Parse(input, todoList, profile)` — статический метод, который определяет команду, разбирает флаги и параметры и возвращает готовый `ICommand`
 
@@ -222,7 +222,7 @@ command.Execute();
 2. если профиль есть в файле — он загружается, иначе программа просит зарегистрироваться и сразу сохраняет профиль;
 3. задачи загружаются из `todo.csv`, а если файла нет — создаётся пустой.
 
-Любая команда, которая меняет список (`add`, `status`, `update`, `remove`), сразу сохраняет его в файл.
+Любая команда, которая меняет список (`add`, `status`, `update`, `delete`), сразу сохраняет его в файл.
 
 Класс `FileManager` (статический): `EnsureDataDirectory`, `SaveProfile`, `LoadProfile`, `SaveTodos`, `LoadTodos`. Пути собираются через `Path.Combine`, а перед чтением файлов проверяется `File.Exists`.
 
@@ -234,3 +234,13 @@ command.Execute();
 - Вместо `IsDone` у задачи теперь `Status` типа `enum TodoStatus` (`NotStarted`, `InProgress`, `Completed`, `Postponed`, `Failed`); в таблице и в `read` он показывается словами
 - Команда `done` заменена на `status`; в `TodoList` метод `Done` заменён на `SetStatus(index, status)`
 - В `todo.csv` вместо `true/false` записывается имя статуса: `Index;"Text";Status;LastUpdate`
+
+## AppInfo и отмена действий (занятие 10)
+
+- `AppInfo` — статический класс с общими данными: `Todos` (задачи), `CurrentProfile` (профиль), `UndoStack` и `RedoStack`. Команды берут всё нужное оттуда, поэтому `CommandParser.Parse(input)` теперь принимает только строку
+- В `ICommand` добавлен метод `Unexecute()` — отмена действия команды. У команд, которые ничего не меняют (`view`, `read`, `help`...), у него реализация по умолчанию, и они в историю не попадают
+- Команды, меняющие список (`add`, `status`, `update`, `delete`), наследуют `UndoableCommand`. После выполнения такая команда кладётся в `UndoStack`; команда, которая не смогла выполниться (например, неверный номер), в историю не попадает
+- `undo` — достаёт последнюю команду из `UndoStack`, отменяет её и кладёт в `RedoStack`
+- `redo` — достаёт команду из `RedoStack`, выполняет снова и возвращает в `UndoStack`. Любое новое изменение очищает `RedoStack`
+- Отмена и повтор сразу сохраняются в файл, как и обычные изменения
+- Команда `remove` переименована в `delete`; `TodoList` получил метод `Insert`, чтобы `undo` мог вернуть удалённую задачу на прежнее место

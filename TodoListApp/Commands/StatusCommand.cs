@@ -3,10 +3,23 @@ public class StatusCommand : TaskCommand
 {
     public TodoStatus Status { get; set; }
 
-    protected override void Run()
+    // Прежний статус нужен, чтобы undo мог его вернуть
+    private TodoStatus _oldStatus;
+
+    protected override bool Apply()
     {
-        TodoList.SetStatus(Index, Status);
-        FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
-        Console.WriteLine($"Задача №{Index + 1}: статус изменён на «{TodoList[Index].StatusText}».");
+        if (!CheckIndex())
+            return false;
+
+        _oldStatus = AppInfo.Todos[Index].Status;
+        AppInfo.Todos.SetStatus(Index, Status);
+        Console.WriteLine($"Задача №{Index + 1}: статус изменён на «{AppInfo.Todos[Index].StatusText}».");
+        return true;
+    }
+
+    public override void Unexecute()
+    {
+        AppInfo.Todos.SetStatus(Index, _oldStatus);
+        Console.WriteLine($"Изменение статуса задачи №{Index + 1} отменено.");
     }
 }

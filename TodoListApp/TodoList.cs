@@ -33,6 +33,14 @@ public class TodoList : IEnumerable<TodoItem>
         _items.Add(item);
     }
 
+    // Вставляет задачу на нужное место (так undo возвращает удалённую задачу туда, где она была)
+    public void Insert(int index, TodoItem item)
+    {
+        if (index < 0 || index > _items.Count)
+            return;
+        _items.Insert(index, item);
+    }
+
     public void Delete(int index)
     {
         if (index < 0 || index >= _items.Count)

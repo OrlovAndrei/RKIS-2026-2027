@@ -15,7 +15,9 @@ public class HelpCommand : ICommand
             "read <номер>               - полный текст задачи, статус и дата изменения\n" +
             "status <номер> <статус>    - сменить статус: notstarted, inprogress, completed, postponed, failed\n" +
             "update <номер> \"текст\"     - изменить текст задачи\n" +
-            "remove <номер>             - удалить задачу\n" +
+            "delete <номер>             - удалить задачу\n" +
+            "undo                       - отменить последнее изменение (add, status, update, delete)\n" +
+            "redo                       - вернуть отменённое изменение\n" +
             "exit                       - выход");
     }
 }

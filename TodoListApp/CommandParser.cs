@@ -1,7 +1,7 @@
 // Превращает введённую строку в объект команды: разбирает имя, флаги и параметры
 public static class CommandParser
 {
-    public static ICommand Parse(string inputString, TodoList todoList, Profile profile)
+    public static ICommand Parse(string inputString)
     {
         // Первое слово — имя команды, остальное — аргументы
         string[] parts = inputString.Trim().Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
@@ -14,30 +14,32 @@ public static class CommandParser
         switch (name)
         {
             case "help": return new HelpCommand();
-            case "profile": return new ProfileCommand { Profile = profile };
-            case "add": return ParseAdd(args, todoList);
-            case "view": return ParseView(args, todoList);
-            case "read": return ParseTaskCommand(args, new ReadCommand { TodoList = todoList });
-            case "status": return ParseStatus(args, todoList);
-            case "remove": return ParseTaskCommand(args, new RemoveCommand { TodoList = todoList });
-            case "update": return ParseUpdate(args, todoList);
+            case "profile": return new ProfileCommand();
+            case "add": return ParseAdd(args);
+            case "view": return ParseView(args);
+            case "read": return ParseRead(args);
+            case "status": return ParseStatus(args);
+            case "update": return ParseUpdate(args);
+            case "delete": return ParseDelete(args);
+            case "undo": return new UndoCommand();
+            case "redo": return new RedoCommand();
             case "exit": return new ExitCommand();
             default: return Error($"Команды {name} нет, help - список команд.");
         }
     }
 
-    private static ICommand ParseAdd(string args, TodoList todoList)
+    private static ICommand ParseAdd(string args)
     {
         if (args == "--multiline" || args == "-m")
-            return new AddCommand { TodoList = todoList, Multiline = true };
+            return new AddCommand { Multiline = true };
 
         // Кавычки вокруг текста необязательны: add "купить хлеб" == add купить хлеб
-        return new AddCommand { TodoList = todoList, Text = args.Trim('"').Trim() };
+        return new AddCommand { Text = args.Trim('"').Trim() };
     }
 
-    private static ICommand ParseView(string args, TodoList todoList)
+    private static ICommand ParseView(string args)
     {
-        var command = new ViewCommand { TodoList = todoList };
+        var command = new ViewCommand();
 
         foreach (string flag in args.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
@@ -76,22 +78,42 @@ public static class CommandParser
         return command;
     }
 
+    private static ICommand ParseRead(string args)
+    {
+        if (!TryGetIndex(args, out int index))
+            return Error("Номер задачи должен быть числом.");
+
+        return new ReadCommand { Index = index };
+    }
+
+    private static ICommand ParseDelete(string args)
+    {
+        if (!TryGetIndex(args, out int index))
+            return Error("Номер задачи должен быть числом.");
+
+        return new DeleteCommand { Index = index };
+    }
+
     // update <номер> "текст": первое слово — номер задачи, всё остальное — новый текст
-    private static ICommand ParseUpdate(string args, TodoList todoList)
+    private static ICommand ParseUpdate(string args)
     {
         string[] parts = args.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
-        string text = parts.Length > 1 ? parts[1].Trim('"').Trim() : "";
+        if (parts.Length == 0 || !TryGetIndex(parts[0], out int index))
+            return Error("Номер задачи должен быть числом.");
 
-        var command = new UpdateCommand { TodoList = todoList, Text = text };
-        return ParseTaskCommand(parts.Length > 0 ? parts[0] : "", command);
+        string text = parts.Length > 1 ? parts[1].Trim('"').Trim() : "";
+        return new UpdateCommand { Index = index, Text = text };
     }
 
     // status <номер> <статус>, например: status 2 inprogress
-    private static ICommand ParseStatus(string args, TodoList todoList)
+    private static ICommand ParseStatus(string args)
     {
         string[] parts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length != 2)
             return Error("Формат: status <номер> <статус>, например status 2 inprogress");
+
+        if (!TryGetIndex(parts[0], out int index))
+            return Error("Номер задачи должен быть числом.");
 
         // TryParse принимает и числа ("7"), поэтому дополнительно проверяем, что такой статус есть
         if (!Enum.TryParse(parts[1], true, out TodoStatus status) || !Enum.IsDefined(status))
@@ -100,18 +122,16 @@ public static class CommandParser
             return Error($"Неизвестный статус «{parts[1]}». Доступны: {names}");
         }
 
-        return ParseTaskCommand(parts[0], new StatusCommand { TodoList = todoList, Status = status });
+        return new StatusCommand { Index = index, Status = status };
     }
 
-    // Для команд с номером задачи: проверяем, что номер — число, и переводим его в индекс с 0.
-    // Существует ли задача, проверит сама команда при выполнении
-    private static ICommand ParseTaskCommand(string numberText, TaskCommand command)
+    // Пользователь вводит номер с 1, а в списке индексы с 0 — переводим.
+    // Существует ли задача с таким номером, проверит сама команда при выполнении
+    private static bool TryGetIndex(string text, out int index)
     {
-        if (!int.TryParse(numberText, out int number))
-            return Error("Номер задачи должен быть числом.");
-
-        command.Index = number - 1;
-        return command;
+        bool isNumber = int.TryParse(text, out int number);
+        index = number - 1;
+        return isNumber;
     }
 
     private static ICommand Error(string message) => new ErrorCommand { Message = message };

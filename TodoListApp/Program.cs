@@ -2,14 +2,14 @@
 FileManager.EnsureDataDirectory(FileManager.DataDirectory);
 
 // Профиль: если файл есть — загружаем, иначе регистрируем нового пользователя (Register сам его сохранит)
-Profile profile = FileManager.LoadProfile(FileManager.ProfileFilePath) ?? Register();
+AppInfo.CurrentProfile = FileManager.LoadProfile(FileManager.ProfileFilePath) ?? Register();
 
 // Задачи: если файла нет, LoadTodos вернёт пустой список, а сам файл создаём пустым
-TodoList todoList = FileManager.LoadTodos(FileManager.TodoFilePath);
+AppInfo.Todos = FileManager.LoadTodos(FileManager.TodoFilePath);
 if (!File.Exists(FileManager.TodoFilePath))
     File.WriteAllText(FileManager.TodoFilePath, "");
 
-Console.WriteLine($"Здравствуйте, {profile.FirstName}! Введите help, чтобы увидеть список команд.");
+Console.WriteLine($"Здравствуйте, {AppInfo.CurrentProfile.FirstName}! Введите help, чтобы увидеть список команд.");
 
 // Главный цикл: строку разбирает CommandParser, а выполняет полученная команда
 while (true)
@@ -21,7 +21,7 @@ while (true)
     if (string.IsNullOrWhiteSpace(input))
         continue;
 
-    ICommand command = CommandParser.Parse(input, todoList, profile);
+    ICommand command = CommandParser.Parse(input);
     command.Execute();
 }
 

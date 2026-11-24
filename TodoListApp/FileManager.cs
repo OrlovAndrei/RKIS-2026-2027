@@ -38,6 +38,12 @@ public static class FileManager
         return new Profile(lines[0], lines[1], birthYear);
     }
 
+    // Сохраняет задачи текущего пользователя в файл
+    public static void SaveCurrentTodos()
+    {
+        SaveTodos(AppInfo.Todos, TodoFilePath);
+    }
+
     // Одна задача — одна строка: Index;"Text";Status;LastUpdate
     public static void SaveTodos(TodoList todos, string filePath)
     {
