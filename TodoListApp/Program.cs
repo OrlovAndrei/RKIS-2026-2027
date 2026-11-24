@@ -5,7 +5,7 @@ class Program
 {
     static void Main()
     {
-        Console.WriteLine("Работу выполнили Кузнецов и Курбатов");
+        Console.WriteLine("Работу выполнили Мироненко и Харитонов");
 
         // Папка data создаётся внутри TodoListApp, если запускать из неё.
         string dataDir = Path.Combine(Directory.GetCurrentDirectory(), "data");
