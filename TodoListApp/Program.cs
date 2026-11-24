@@ -1,6 +1,15 @@
-var profile = Register();
-var todoList = new TodoList();
-Console.WriteLine("Введите help, чтобы увидеть список команд.");
+// Папку для данных проверяем до начала работы
+FileManager.EnsureDataDirectory(FileManager.DataDirectory);
+
+// Профиль: если файл есть — загружаем, иначе регистрируем нового пользователя (Register сам его сохранит)
+Profile profile = FileManager.LoadProfile(FileManager.ProfileFilePath) ?? Register();
+
+// Задачи: если файла нет, LoadTodos вернёт пустой список, а сам файл создаём пустым
+TodoList todoList = FileManager.LoadTodos(FileManager.TodoFilePath);
+if (!File.Exists(FileManager.TodoFilePath))
+    File.WriteAllText(FileManager.TodoFilePath, "");
+
+Console.WriteLine($"Здравствуйте, {profile.FirstName}! Введите help, чтобы увидеть список команд.");
 
 // Главный цикл: строку разбирает CommandParser, а выполняет полученная команда
 while (true)
@@ -38,6 +47,7 @@ Profile Register()
     }
 
     var newProfile = new Profile(firstName, lastName, birthYear);
+    FileManager.SaveProfile(newProfile, FileManager.ProfileFilePath);
     Console.WriteLine($"Добавлен пользователь {newProfile.GetInfo()}");
     return newProfile;
 }

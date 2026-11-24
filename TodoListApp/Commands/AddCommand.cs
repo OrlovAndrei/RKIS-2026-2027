@@ -24,6 +24,7 @@ public class AddCommand : ICommand
         }
 
         TodoList.Add(new TodoItem(text));
+        FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
         Console.WriteLine($"Задача добавлена под номером {TodoList.Count}.");
     }
 

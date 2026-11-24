@@ -12,11 +12,17 @@ public class TodoItem
 
     public string StatusText => IsDone ? "выполнена" : "не выполнена";
 
-    public TodoItem(string text)
+    // Новая задача: не выполнена, изменена только что
+    public TodoItem(string text) : this(text, false, DateTime.Now)
+    {
+    }
+
+    // Задача, прочитанная из файла: статус и дату берём из файла, а не «сейчас»
+    public TodoItem(string text, bool isDone, DateTime lastUpdate)
     {
         Text = CheckText(text);
-        IsDone = false;
-        LastUpdate = DateTime.Now;
+        IsDone = isDone;
+        LastUpdate = lastUpdate;
     }
 
     public void MarkDone()

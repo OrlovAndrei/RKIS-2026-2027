@@ -11,6 +11,7 @@ public class UpdateCommand : TaskCommand
         }
 
         item.UpdateText(Text);
+        FileManager.SaveTodos(TodoList, FileManager.TodoFilePath);
         Console.WriteLine($"Задача №{Index + 1} изменена.");
     }
 }
