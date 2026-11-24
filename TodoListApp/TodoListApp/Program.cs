@@ -1,32 +1,16 @@
-﻿// TodoListApp — практические задания к Лекциям 2–5
-// Лекция 5 «Значимые и ссылочные типы, строки» — флаги команд и табличный вывод
+﻿// TodoListApp — практические задания к Лекциям 2–6
+// Лекция 6 «Введение в ООП» — список задач переписан на классы TodoItem и TodoList
 // Работу выполнили: Талаева и Хрустель, группа 2121у
 
 class Program
 {
-    // Константы (вместо магических чисел)
-
-    const int StartCapacity = 2; 
-    const int MaxTextLength = 30;
-
     // Поля класса 
 
-    // Данные пользователя — теперь объект класса Profile
+    // Данные пользователя — объект класса Profile
     static Profile profile = new Profile("", "", 0);
 
-    // Три параллельных массива задач
-
-    // Тексты задач
-    static string[] todos = new string[StartCapacity];
-
-    // Выполнена ли задача
-    static bool[] statuses = new bool[StartCapacity];
-
-    // Дата создания / последнего изменения задачи
-    static DateTime[] dates = new DateTime[StartCapacity];
-
-    // Сколько задач реально добавлено
-    static int todoCount = 0;
+    // Список задач — объект класса TodoList
+    static TodoList list = new TodoList();
 
     // Точка входа
 
@@ -121,16 +105,15 @@ class Program
         Console.WriteLine("  exit    — выход из программы");
     }
 
-    // Показывает задачи. Флаги: --index/-i, --status/-s, --update-date/-d, --all/-a.
+    // Показывает задачи. Флаги: --index/-i, --status/-s, --update-date/-d, --all/-a
     static void HandleView(string command)
     {
-        if (todoCount == 0)
+        if (list.Count == 0)
         {
             Console.WriteLine("Список задач пуст.");
             return;
         }
 
-        // По умолчанию показываем только текст
         bool showIndex = false;
         bool showStatus = false;
         bool showDate = false;
@@ -182,54 +165,8 @@ class Program
             }
         }
 
-        bool hasTable = showIndex || showStatus || showDate;
-
-        // Шапка таблицы — только из выбранных колонок.
-        // Выравнивание через интерполяцию
-        if (hasTable)
-        {
-            string header = "";
-
-            if (showIndex)
-                header += $"{"№",2}  ";
-            if (showStatus)
-                header += $"{"Статус",-12}  ";
-            if (showDate)
-                header += $"{"Дата",-10}  ";
-            header += "Текст";
-
-            Console.WriteLine(header);
-        }
-
-        for (int i = 0; i < todoCount; i++)
-        {
-            string row = "";
-
-            if (showIndex)
-                row += $"{i + 1,2}  ";
-
-            if (showStatus)
-                row += $"{(statuses[i] ? "выполнена" : "не выполнена"),-12}  ";
-
-            if (showDate)
-                row += $"{dates[i].ToString("dd.MM.yyyy"),-10}  ";
-
-            row += TruncateText(todos[i]);
-
-            Console.WriteLine(row);
-        }
-    }
-
-    // Обрезает текст задачи для таблицы
-    // Переводы строк (\n) заменяет пробелами — иначе многострочная задача
-    static string TruncateText(string text)
-    {
-        string flat = text.Replace('\n', ' ');
-
-        if (flat.Length <= MaxTextLength)
-            return flat;
-
-        return flat.Substring(0, MaxTextLength) + "...";
+        // Шапка и строки таблицы печатаются классом TodoList
+        list.View(showIndex, showStatus, showDate);
     }
 
     // Разбирает команду add и добавляет задачу во все три массива
@@ -245,15 +182,11 @@ class Program
             return;
         }
 
-        // Убедиться, что во всех трёх массивах есть место
-        EnsureCapacity();
+        // Задача — объект (в конструкторе TodoItem)
+        TodoItem item = new TodoItem(taskText);
 
-        // Записываем задачу синхронно во все массивы под одним индексом
-        todos[todoCount] = taskText;     
-        statuses[todoCount] = false;     
-        dates[todoCount] = DateTime.Now; 
+        list.Add(item);
 
-        todoCount++;
         Console.WriteLine($"Задача добавлена: {taskText}");
     }
 
@@ -286,13 +219,9 @@ class Program
             return;
         }
 
-        EnsureCapacity();
+        // Многострочный текст хранится в TodoItem
+        list.Add(new TodoItem(result));
 
-        todos[todoCount] = result;
-        statuses[todoCount] = false;
-        dates[todoCount] = DateTime.Now;
-
-        todoCount++;
         Console.WriteLine($"Задача добавлена: {result}");
     }
 
@@ -315,12 +244,14 @@ class Program
             return;
         }
 
-        statuses[index] = true;      
-        dates[index] = DateTime.Now; 
-        Console.WriteLine($"Задача отмечена выполненной: {todos[index]}");
+        // Задачу получаем из списка через GetItem, меняем только через её метод
+        TodoItem item = list.GetItem(index);
+        item.MarkDone();
+
+        Console.WriteLine($"Задача отмечена выполненной: {item.GetShortInfo()}");
     }
 
-    // Обновляет текст задачи: update <номер> "новый текст"
+    // Обновляет текст задачи
     static void HandleUpdate(string command)
     {
         // parts[0] — update, parts[1] — номер, parts[2] — весь новый текст
@@ -348,12 +279,13 @@ class Program
             return;
         }
 
-        todos[index] = newText;      
-        dates[index] = DateTime.Now; 
-        Console.WriteLine($"Задача обновлена: {todos[index]}");
+        TodoItem item = list.GetItem(index);
+        item.UpdateText(newText);
+
+        Console.WriteLine($"Задача обновлена: {item.Text}");
     }
 
-    // Удаляет задачу по номеру: delete <номер>
+    // Удаляет задачу по номеру
     static void HandleDelete(string command)
     {
         string[] parts = command.Split(' ');
@@ -372,16 +304,12 @@ class Program
             return;
         }
 
-        Console.WriteLine($"Задача удалена: {todos[index]}");
+        TodoItem item = list.GetItem(index);
 
-        for (int i = index; i < todoCount - 1; i++)
-        {
-            todos[i] = todos[i + 1];
-            statuses[i] = statuses[i + 1];
-            dates[i] = dates[i + 1];
-        }
+        Console.WriteLine($"Задача удалена: {item.Text}");
 
-        todoCount--;
+        // Сдвиг массива внутри TodoList.Delete
+        list.Delete(index);
     }
 
     // read <номер>: показывает задачу целиком (без обрезки)
@@ -403,40 +331,8 @@ class Program
             return;
         }
 
-        Console.WriteLine("Текст задачи:");
-        Console.WriteLine(todos[index]);
-
-        string statusText = statuses[index] ? "выполнена" : "не выполнена";
-        Console.WriteLine($"Статус: {statusText}");
-        Console.WriteLine($"Дата обновления: {dates[index].ToString("dd.MM.yyyy")}");
-    }
-
-    // Расширение массивов 
-
-    // Расширяет все три массива в 2 раза, когда не хватает места
-    static void EnsureCapacity()
-    {
-        if (todoCount < todos.Length)
-            return;
-
-        int newCapacity = todos.Length * 2;
-        Console.WriteLine($"(массивы расширены до {newCapacity} элементов)");
-
-        // Создаём новые, более длинные массивы и копируем старые значения
-        string[] biggerTodos = new string[newCapacity];
-        bool[] biggerStatuses = new bool[newCapacity];
-        DateTime[] biggerDates = new DateTime[newCapacity];
-
-        for (int i = 0; i < todos.Length; i++)
-        {
-            biggerTodos[i] = todos[i];
-            biggerStatuses[i] = statuses[i];
-            biggerDates[i] = dates[i];
-        }
-
-        todos = biggerTodos;
-        statuses = biggerStatuses;
-        dates = biggerDates;
+        // Полное описание теперь собирает TodoItem
+        Console.WriteLine(list.GetItem(index).GetFullInfo());
     }
 
     // Общая логика для команд с номером задачи
@@ -448,7 +344,7 @@ class Program
 
         int index = number - 1; // на экране нумерация с 1, в массиве с 0
 
-        if (index < 0 || index >= todoCount)
+        if (index < 0 || index >= list.Count)
             return -1;
 
         return index;
