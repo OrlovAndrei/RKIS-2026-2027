@@ -107,10 +107,10 @@ public static class FileManager
             if (item == null)
                 continue;
 
-            string isDone = item.IsCompleted ? "true" : "false";
+            string status = item.Status.ToString();
             string date = item.LastModified.ToString("s", CultureInfo.InvariantCulture);
 
-            lines.Add($"{i};{EscapeCsv(item.Text)};{isDone};{date}");
+            lines.Add($"{i};{EscapeCsv(item.Text)};{status};{date}");
         }
 
         File.WriteAllLines(filePath, lines);
@@ -133,7 +133,16 @@ public static class FileManager
                 continue;
 
             string text = UnescapeCsv(fields[1]);
-            bool isDone = bool.TryParse(fields[2], out bool done) && done;
+
+            TodoStatus status;
+
+            if (!Enum.TryParse(fields[2], true, out status))
+            {
+                // Поддержка старых CSV-файлов с true/false.
+                status = bool.TryParse(fields[2], out bool done) && done
+                    ? TodoStatus.Completed
+                    : TodoStatus.NotStarted;
+            }
 
             DateTime lastModified = DateTime.TryParse(
                 fields[3],
@@ -143,7 +152,7 @@ public static class FileManager
                 ? parsed
                 : DateTime.Now;
 
-            todos.Add(new TodoItem(text, isDone, lastModified));
+            todos.Add(new TodoItem(text, status, lastModified));
         }
 
         return todos;

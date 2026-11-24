@@ -8,13 +8,11 @@ public class TodoList : IEnumerable<TodoItem>
 
     public int Count => items.Count;
 
-    // Добавление задачи
     public void Add(TodoItem item)
     {
         items.Add(item);
     }
 
-    // Удаление задачи
     public void Delete(int index)
     {
         if (index < 0 || index >= items.Count)
@@ -26,32 +24,36 @@ public class TodoList : IEnumerable<TodoItem>
         items.RemoveAt(index);
     }
 
-    // Индексатор для доступа к задачам
     public TodoItem this[int index]
     {
         get
         {
             if (index < 0 || index >= items.Count)
-            {
                 throw new ArgumentOutOfRangeException();
-            }
 
             return items[index];
         }
     }
 
-    // Получение задачи по индексу
     public TodoItem? GetItem(int index)
     {
         if (index < 0 || index >= items.Count)
-        {
             return null;
-        }
 
         return items[index];
     }
 
-    // Просмотр задач
+    public void SetStatus(int index, TodoStatus status)
+    {
+        if (index < 0 || index >= items.Count)
+        {
+            Console.WriteLine("Задачи с таким индексом нет.");
+            return;
+        }
+
+        items[index].SetStatus(status);
+    }
+
     public void View(bool showIndex, bool showDone, bool showDate)
     {
         if (items.Count == 0)
@@ -65,31 +67,20 @@ public class TodoList : IEnumerable<TodoItem>
             string result = "";
 
             if (showIndex)
-            {
                 result += $"{i + 1} ";
-            }
 
             result += items[i].Text;
 
             if (showDone)
-            {
-                string status = items[i].IsCompleted
-                    ? "done"
-                    : "not done";
-
-                result += $" | {status}";
-            }
+                result += $" | {items[i].Status}";
 
             if (showDate)
-            {
                 result += $" | {items[i].LastModified}";
-            }
 
             Console.WriteLine(result);
         }
     }
 
-    // Итератор для перебора задач
     public IEnumerator<TodoItem> GetEnumerator()
     {
         foreach (TodoItem item in items)

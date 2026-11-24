@@ -1,8 +1,9 @@
 namespace TodoListApp;
 
-public class DoneCommand : ICommand
+public class StatusCommand : ICommand
 {
     public int Index { get; set; }
+    public TodoStatus Status { get; set; }
     public TodoList TodoList { get; set; } = null!;
 
     public void Execute()
@@ -10,8 +11,9 @@ public class DoneCommand : ICommand
         if (!CommandHelper.TryGetTask(TodoList, Index, out TodoItem? task))
             return;
 
-        task!.MarkDone();
+        task!.SetStatus(Status);
         FileManager.SaveTodos(TodoList, FileManager.TodoPath);
-        Console.WriteLine($"Задача #{Index} отмечена как выполненная.");
+
+        Console.WriteLine($"Статус задачи #{Index} изменён на {Status}.");
     }
 }

@@ -3,26 +3,26 @@ namespace TodoListApp;
 public class TodoItem
 {
     public string Text { get; private set; }
-    public bool IsCompleted { get; private set; }
+    public TodoStatus Status { get; private set; }
     public DateTime LastModified { get; private set; }
 
     public TodoItem(string text)
     {
         Text = text;
-        IsCompleted = false;
+        Status = TodoStatus.NotStarted;
         LastModified = DateTime.Now;
     }
 
-    public TodoItem(string text, bool isCompleted, DateTime lastModified)
+    public TodoItem(string text, TodoStatus status, DateTime lastModified)
     {
         Text = text;
-        IsCompleted = isCompleted;
+        Status = status;
         LastModified = lastModified;
     }
 
-    public void MarkDone()
+    public void SetStatus(TodoStatus status)
     {
-        IsCompleted = true;
+        Status = status;
         LastModified = DateTime.Now;
     }
 
@@ -38,15 +38,11 @@ public class TodoItem
             ? Text.Substring(0, 30) + "..."
             : Text;
 
-        string status = IsCompleted ? "Выполнена" : "Не выполнена";
-
-        return $"{shortText} | {status} | {LastModified}";
+        return $"{shortText} | {Status} | {LastModified}";
     }
 
     public string GetFullInfo()
     {
-        string status = IsCompleted ? "Выполнена" : "Не выполнена";
-
-        return $"Задача: {Text}\nСтатус: {status}\nПоследнее изменение: {LastModified}";
+        return $"Задача: {Text}\nСтатус: {Status}\nПоследнее изменение: {LastModified}";
     }
 }

@@ -45,8 +45,25 @@ public static class CommandParser
             case "read":
                 return new ReadCommand { Index = index, TodoList = todoList };
 
-            case "done":
-                return new DoneCommand { Index = index, TodoList = todoList };
+            case "status":
+                if (positionalArgs.Length >= 2 &&
+                    int.TryParse(positionalArgs[0], out int taskIndex) &&
+                    Enum.TryParse<TodoStatus>(
+                        positionalArgs[1],
+                        true,
+                        out TodoStatus status))
+                {
+                    return new StatusCommand
+                    {
+                        Index = taskIndex,
+                        Status = status,
+                        TodoList = todoList
+                    };
+                }
+
+                return new UnknownCommand();
+
+
 
             case "update":
                 return new UpdateCommand
