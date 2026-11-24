@@ -8,8 +8,13 @@ public static class FileManager
 
     // Данные лежат в папке data рядом с исполняемым файлом (внутри bin), поэтому в git не попадают
     public static string DataDirectory { get; } = Path.Combine(AppContext.BaseDirectory, "data");
-    public static string ProfileFilePath { get; } = Path.Combine(DataDirectory, "profile.txt");
-    public static string TodoFilePath { get; } = Path.Combine(DataDirectory, "todo.csv");
+    public static string ProfilesFilePath { get; } = Path.Combine(DataDirectory, "profile.csv");
+
+    // У каждого пользователя свой файл с задачами: todos_<Id>.csv
+    public static string GetTodosFilePath(Guid profileId)
+    {
+        return Path.Combine(DataDirectory, $"todos_{profileId}.csv");
+    }
 
     // Если папки для данных ещё нет — создаём
     public static void EnsureDataDirectory(string dirPath)
@@ -18,50 +23,67 @@ public static class FileManager
             Directory.CreateDirectory(dirPath);
     }
 
-    // Профиль хранится тремя строками: имя, фамилия, год рождения
-    public static void SaveProfile(Profile profile, string filePath)
+    // Один профиль — одна строка: Id;Login;Password;FirstName;LastName;BirthYear
+    // (поля не содержат ';', это проверяется при вводе)
+    public static void SaveProfiles(List<Profile> profiles, string filePath)
     {
-        string[] lines = { profile.FirstName, profile.LastName, profile.BirthYear.ToString() };
-        File.WriteAllLines(filePath, lines);
-    }
-
-    // Возвращает null, если файла нет или он пустой/повреждён — тогда программа попросит зарегистрироваться
-    public static Profile? LoadProfile(string filePath)
-    {
-        if (!File.Exists(filePath))
-            return null;
-
-        string[] lines = File.ReadAllLines(filePath);
-        if (lines.Length < 3 || !int.TryParse(lines[2], out int birthYear))
-            return null;
-
-        return new Profile(lines[0], lines[1], birthYear);
-    }
-
-    // Сохраняет задачи текущего пользователя в файл
-    public static void SaveCurrentTodos()
-    {
-        SaveTodos(AppInfo.Todos, TodoFilePath);
-    }
-
-    // Одна задача — одна строка: Index;"Text";Status;LastUpdate
-    public static void SaveTodos(TodoList todos, string filePath)
-    {
-        var lines = new string[todos.Count];
-        int i = 0;
-        foreach (TodoItem item in todos) // foreach работает благодаря IEnumerable в TodoList
+        var lines = new string[profiles.Count];
+        for (int i = 0; i < profiles.Count; i++)
         {
-            string date = item.LastUpdate.ToString(DateFormat, CultureInfo.InvariantCulture);
-            lines[i] = $"{i};{EscapeCsv(item.Text)};{item.Status};{date}";
-            i++;
+            Profile p = profiles[i];
+            lines[i] = $"{p.Id};{p.Login};{p.Password};{p.FirstName};{p.LastName};{p.BirthYear}";
         }
         File.WriteAllLines(filePath, lines);
     }
 
     // Если файла нет — возвращаем пустой список. Повреждённые строки пропускаем и говорим об этом
-    public static TodoList LoadTodos(string filePath)
+    public static List<Profile> LoadProfiles(string filePath)
     {
-        var todos = new TodoList();
+        var profiles = new List<Profile>();
+        if (!File.Exists(filePath))
+            return profiles;
+
+        foreach (string line in File.ReadAllLines(filePath))
+        {
+            if (line.Trim().Length == 0)
+                continue;
+
+            string[] parts = line.Split(';');
+            if (parts.Length != 6 || !Guid.TryParse(parts[0], out Guid id) || !int.TryParse(parts[5], out int birthYear))
+            {
+                Console.WriteLine($"Профиль пропущен (неверный формат): {line}");
+                continue;
+            }
+            profiles.Add(new Profile(id, parts[1], parts[2], parts[3], parts[4], birthYear));
+        }
+        return profiles;
+    }
+
+    // Сохраняет задачи текущего пользователя в его файл
+    public static void SaveCurrentTodos()
+    {
+        if (AppInfo.CurrentProfileId is Guid id)
+            SaveTodos(AppInfo.Todos, GetTodosFilePath(id));
+    }
+
+    // Одна задача — одна строка: Index;"Text";Status;LastUpdate
+    public static void SaveTodos(IEnumerable<TodoItem> todos, string filePath)
+    {
+        var lines = new List<string>();
+        int index = 0;
+        foreach (TodoItem item in todos)
+        {
+            string date = item.LastUpdate.ToString(DateFormat, CultureInfo.InvariantCulture);
+            lines.Add($"{index};{EscapeCsv(item.Text)};{item.Status};{date}");
+            index++;
+        }
+        File.WriteAllLines(filePath, lines);
+    }
+
+    // Если файла нет — возвращаем пустой список. Повреждённые строки пропускаем и говорим об этом
+    public static List<TodoItem> LoadTodos(string filePath)
+    {
+        var todos = new List<TodoItem>();
         if (!File.Exists(filePath))
             return todos;
 

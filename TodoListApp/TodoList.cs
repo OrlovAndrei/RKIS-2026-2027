@@ -5,7 +5,17 @@ using System.Text;
 // IEnumerable<TodoItem> позволяет перебирать задачи через foreach
 public class TodoList : IEnumerable<TodoItem>
 {
-    private readonly List<TodoItem> _items = new();
+    private readonly List<TodoItem> _items;
+
+    public TodoList() : this(new List<TodoItem>())
+    {
+    }
+
+    // Оборачивает уже существующий список (например, список задач пользователя из AppInfo.AllTodos)
+    public TodoList(List<TodoItem> items)
+    {
+        _items = items;
+    }
 
     public int Count => _items.Count;
 

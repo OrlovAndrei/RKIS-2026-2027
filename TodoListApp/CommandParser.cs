@@ -14,7 +14,7 @@ public static class CommandParser
         switch (name)
         {
             case "help": return new HelpCommand();
-            case "profile": return new ProfileCommand();
+            case "profile": return ParseProfile(args);
             case "add": return ParseAdd(args);
             case "view": return ParseView(args);
             case "read": return ParseRead(args);
@@ -26,6 +26,22 @@ public static class CommandParser
             case "exit": return new ExitCommand();
             default: return Error($"Команды {name} нет, help - список команд.");
         }
+    }
+
+    // profile — показать профиль, profile --out (-o) — выйти из профиля
+    private static ICommand ParseProfile(string args)
+    {
+        var command = new ProfileCommand();
+
+        foreach (string flag in args.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (flag == "--out" || flag == "-o")
+                command.Out = true;
+            else
+                return Error($"Неизвестный флаг {flag}");
+        }
+
+        return command;
     }
 
     private static ICommand ParseAdd(string args)
