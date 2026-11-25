@@ -59,10 +59,9 @@ namespace TodoListApp
                         Console.WriteLine($"{firstName} {secondName}, {birthYear}.");
                         break;
                       case "add":
-            if (commandParts.Length < 2)
+            if (todoCount >= todos.Length)
             {
-                Console.WriteLine("Используйте: add \"текст задачи\"");
-                break;
+                ExpandArrays(ref todos, ref statuses, ref dates);
             }
 
             string taskWithQuotes = commandParts[1].Trim();
@@ -133,4 +132,13 @@ namespace TodoListApp
             
         }
     }
+}
+static void ExpandArrays(ref string[] todos,
+    ref bool[] statuses, ref DateTime[] dates)
+{
+    int newSize = todos.Length * GrowthFactor;
+
+    Array.Resize(ref todos, newSize);
+    Array.Resize(ref statuses, newSize);
+    Array.Resize(ref dates, newSize);
 }
