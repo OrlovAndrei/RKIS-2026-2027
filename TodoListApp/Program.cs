@@ -142,6 +142,10 @@ namespace TodoListApp
                 DoneTodo(commandParts, statuses, dates, todoCount);
                 break;
 
+            case "delete":
+                DeleteTodo(commandParts, todos, statuses, dates, ref todoCount);
+                break;
+
             case "exit":
             Console.WriteLine("Выход из программы.");
             return;
@@ -185,4 +189,35 @@ static void DoneTodo(string[] commandParts,
     dates[index] = DateTime.Now;
 
     Console.WriteLine("Задача выполнена!");
+}
+
+static void DeleteTodo(string[] commandParts,
+    string[] todos, bool[] statuses,
+    DateTime[] dates, ref int todoCount)
+{
+    if (commandParts.Length < 2 ||
+        !int.TryParse(commandParts[1], out int index))
+    {
+        Console.WriteLine("Введите номер задачи.");
+        return;
+    }
+
+    index--;
+
+    if (index < 0 || index >= todoCount)
+    {
+        Console.WriteLine("Задача не найдена.");
+        return;
+    }
+
+    for (int i = index; i < todoCount - 1; i++)
+    {
+        todos[i] = todos[i + 1];
+        statuses[i] = statuses[i + 1];
+        dates[i] = dates[i + 1];
+    }
+
+    todoCount--;
+
+    Console.WriteLine("Задача удалена!");
 }
