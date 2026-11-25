@@ -138,7 +138,11 @@ namespace TodoListApp
 
             break;
 
-             case "exit":
+            case "done":
+                DoneTodo(commandParts, statuses, dates, todoCount);
+                break;
+
+            case "exit":
             Console.WriteLine("Выход из программы.");
             return;
 
@@ -157,4 +161,28 @@ static void ExpandArrays(ref string[] todos,
     Array.Resize(ref todos, newSize);
     Array.Resize(ref statuses, newSize);
     Array.Resize(ref dates, newSize);
+}
+
+static void DoneTodo(string[] commandParts,
+    bool[] statuses, DateTime[] dates, int todoCount)
+{
+    if (commandParts.Length < 2 ||
+        !int.TryParse(commandParts[1], out int index))
+    {
+        Console.WriteLine("Введите номер задачи.");
+        return;
+    }
+
+    index--;
+
+    if (index < 0 || index >= todoCount)
+    {
+        Console.WriteLine("Задача не найдена.");
+        return;
+    }
+
+    statuses[index] = true;
+    dates[index] = DateTime.Now;
+
+    Console.WriteLine("Задача выполнена!");
 }
