@@ -43,7 +43,7 @@ namespace TodoListApp
                 if (input == null)
                      break;
 
-                string[] commandParts = input.Trim().Split(Separator, 2);
+                string[] commandParts = input.Trim().Split(' ', 2);
                 string command = commandParts[0].ToLower();
             
                 switch (command)
