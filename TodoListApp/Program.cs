@@ -22,10 +22,14 @@ namespace TodoListApp
             Console.WriteLine("Введите Фамилию:");
             string secondName = Console.ReadLine();
 
-            Console.WriteLine("Введите Год Рождения");
-            int birthYear = Convert.ToInt32(Console.ReadLine());
-            int currentYear = DateTime.Now.Year;
-            int age = currentYear - birthYear;
+            Console.WriteLine("Введите Год Рождения:");
+
+            int birthYear;
+
+            while (!int.TryParse(Console.ReadLine(), out birthYear))
+            {
+                Console.WriteLine("Введите корректный год рождения:");
+            }
             
             Console.WriteLine($"Добавлен новый пользователь {firstName} {secondName}, возраст - {age}");
 
