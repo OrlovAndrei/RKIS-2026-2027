@@ -4,8 +4,15 @@ namespace TodoListApp
 {
     class Program
     {
+        const int InitialCapacity = 2;
+        const int GrowthFactor = 2;
+        const int IndexOffset = 1;
+        const char Quote = '"';            
+        const char Separator = ' '; 
+
         static void Main(string[] args)
         {
+            
             Console.WriteLine("Работу выполнил Омельчук Зайцев и Сальников");
 
             Console.WriteLine("Введите Имя:");
@@ -21,15 +28,20 @@ namespace TodoListApp
             
             Console.WriteLine($"Добавлен новый пользователь {firstName} {secondName}, возраст - {age}");
 
-            string[] todos = new string[2];
+            string[] todos = new 
+            string[InitialCapacity];
             int todoCount = 0;
 
             while (true)
             {   
                 Console.Write("> ");
                 var line = Console.ReadLine();
-                if (line == null || line == "exit") break;
-                Console.WriteLine("Echo: " + line);
+
+                if (input == null)
+                     break;
+
+                string[] commandParts = input.Trim().Split(Separator, 2);
+                string command = commandParts[0].ToLower();
             
                 switch (command)
                 {
@@ -116,6 +128,7 @@ namespace TodoListApp
         default:
             Console.WriteLine("Неизвестная команда. Введите help для просмотра команд.");
             break;
+            
         }
     }
-}  
+}
