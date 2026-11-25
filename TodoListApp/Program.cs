@@ -51,9 +51,19 @@ namespace TodoListApp
                     case "help":
                         Console.WriteLine("Доступные команды:");
                         Console.WriteLine("help - список команд");
-                        Console.WriteLine("profile - данные пользователя");
-                        Console.WriteLine("add \"текст задачи\" - добавить задачу");
+                        Console.WriteLine("profile - профиль пользователя");
+                        Console.WriteLine("add \"текст\" - добавить задачу");
+                        Console.WriteLine("add --multiline или -m - многострочный ввод");
                         Console.WriteLine("view - показать задачи");
+                        Console.WriteLine("view --index или -i - показать индекс");
+                        Console.WriteLine("view --status или -s - показать статус");
+                        Console.WriteLine("view --update-date или -d - показать дату");
+                        Console.WriteLine("view --all или -a - показать всё");
+                        Console.WriteLine("view -is - показать индекс и статус");
+                        Console.WriteLine("read <idx> - прочитать задачу");
+                        Console.WriteLine("done <idx> - выполнить задачу");
+                        Console.WriteLine("delete <idx> - удалить задачу");
+                        Console.WriteLine("update <idx> \"текст\" - изменить задачу");
                         Console.WriteLine("exit - выход");
                         break;
                     case "profile":
