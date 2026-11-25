@@ -275,3 +275,25 @@ static void UpdateTodo(string[] commandParts,
 
     Console.WriteLine("Задача обновлена!");
 }
+
+static bool HasFlag(string input, string longFlag, char shortFlag)
+{
+    string[] flags = input.Split(' ');
+
+    foreach (string flag in flags)
+    {
+        if (flag == longFlag)
+        {
+            return true;
+        }
+
+        if (flag.StartsWith("-") &&
+            !flag.StartsWith("--") &&
+            flag.Substring(1).Contains(shortFlag))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
