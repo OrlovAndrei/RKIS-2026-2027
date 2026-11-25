@@ -28,8 +28,10 @@ namespace TodoListApp
             
             Console.WriteLine($"Добавлен новый пользователь {firstName} {secondName}, возраст - {age}");
 
-            string[] todos = new 
-            string[InitialCapacity];
+            string[] todos = new string[InitialCapacity];
+            bool[] statuses = new bool[InitialCapacity];
+            DateTime[] dates = new DateTime[InitialCapacity];
+
             int todoCount = 0;
 
             while (true)
