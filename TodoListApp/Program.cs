@@ -123,6 +123,10 @@ namespace TodoListApp
             case "update":
                 UpdateTodo(commandParts, todos, dates, todoCount);
                 break;
+            
+            case "read":
+                ReadTodo(commandParts, todos, statuses, dates, todoCount);
+                break;
 
             case "exit":
             Console.WriteLine("Выход из программы.");
@@ -359,4 +363,32 @@ static void ViewTodos(string[] commandParts,
 
         Console.WriteLine();
     }
+}
+
+static void ReadTodo(string[] commandParts,
+    string[] todos, bool[] statuses,
+    DateTime[] dates, int todoCount)
+{
+    if (commandParts.Length < 2 ||
+        !int.TryParse(commandParts[1], out int index))
+    {
+        Console.WriteLine("Введите номер задачи.");
+        return;
+    }
+
+    index--;
+
+    if (index < 0 || index >= todoCount)
+    {
+        Console.WriteLine("Задача не найдена.");
+        return;
+    }
+
+    Console.WriteLine($"Текст задачи: {todos[index]}");
+
+    string status = statuses[index]
+        ? "Выполнена" : "Не выполнена";
+
+    Console.WriteLine($"Статус: {status}");
+    Console.WriteLine($"Дата: {dates[index]:dd.MM.yyyy HH:mm}");
 }
