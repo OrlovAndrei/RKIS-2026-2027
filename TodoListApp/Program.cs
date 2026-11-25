@@ -17,17 +17,25 @@ namespace TodoListApp
             Console.WriteLine("Работу выполнил Омельчук Зайцев и Сальников");
 
             Console.WriteLine("Введите Имя:");
-            string firstName = Console.ReadLine();
+            string firstName = Console.ReadLine() ?? "";
 
             Console.WriteLine("Введите Фамилию:");
-            string secondName = Console.ReadLine();
+            string lastName = Console.ReadLine() ?? "";
 
             Console.WriteLine("Введите Год Рождения:");
 
             int birthYear;
 
-            while (!int.TryParse(Console.ReadLine(), out birthYear))
+            while (true)
             {
+                string? yearInput = Console.ReadLine();
+
+                if (yearInput == null)
+                    return;
+
+                if (int.TryParse(yearInput, out birthYear))
+                    break;
+
                 Console.WriteLine("Введите корректный год рождения:");
             }
             
@@ -40,16 +48,19 @@ namespace TodoListApp
             int todoCount = 0;
 
             while (true)
-            {   
+            {
                 Console.Write("> ");
-                var line = Console.ReadLine();
+                string? input = Console.ReadLine();
 
                 if (input == null)
-                     break;
+                            break;
+
+                if (string.IsNullOrWhiteSpace(input))
+                            continue;
 
                 string[] commandParts = input.Trim().Split(' ', 2);
                 string command = commandParts[0].ToLower();
-            
+
                 switch (command)
                 {
                     case "help":
