@@ -64,73 +64,14 @@ namespace TodoListApp
                 switch (command)
                 {
                     case "help":
-                        Console.WriteLine("Доступные команды:");
-                        Console.WriteLine("help - список команд");
-                        Console.WriteLine("profile - профиль пользователя");
-                        Console.WriteLine("add \"текст\" - добавить задачу");
-                        Console.WriteLine("add --multiline или -m - многострочный ввод");
-                        Console.WriteLine("view - показать задачи");
-                        Console.WriteLine("view --index или -i - показать индекс");
-                        Console.WriteLine("view --status или -s - показать статус");
-                        Console.WriteLine("view --update-date или -d - показать дату");
-                        Console.WriteLine("view --all или -a - показать всё");
-                        Console.WriteLine("view -is - показать индекс и статус");
-                        Console.WriteLine("read <idx> - прочитать задачу");
-                        Console.WriteLine("done <idx> - выполнить задачу");
-                        Console.WriteLine("delete <idx> - удалить задачу");
-                        Console.WriteLine("update <idx> \"текст\" - изменить задачу");
-                        Console.WriteLine("exit - выход");
+                        PrintHelp();
                         break;
                     case "profile":
-                        Console.WriteLine($"{firstName} {secondName}, {birthYear}.");
+                        PrintProfile(firstName, lastName, birthYear);
                         break;
                       case "add":
-                        if (commandParts.Length < 2)
-                        {
-                            Console.WriteLine("Введите текст задачи.");
-                            break;
-}
-
-                        string task;
-
-                        if (commandParts[1].Trim() == "--multiline" ||
-                            commandParts[1].Trim() == "-m")
-                        {
-                            task = ReadMultiline();
-                        }
-                        else
-                        {
-                            string taskWithQuotes = commandParts[1].Trim();
-
-                            if (taskWithQuotes.Length < 2 ||
-                                taskWithQuotes[0] != '"' ||
-                                taskWithQuotes[taskWithQuotes.Length - 1] != '"')
-                            {
-                                Console.WriteLine("Заключите задачу в кавычки.");
-                                break;
-                            }
-
-                            task = taskWithQuotes.Substring(
-                                1, taskWithQuotes.Length - 2);
-                        }
-
-                        if (string.IsNullOrWhiteSpace(task))
-                        {
-                            Console.WriteLine("Задача не может быть пустой.");
-                            break;
-                        }
-
-                        if (todoCount >= todos.Length)
-                        {
-                            ExpandArrays(ref todos, ref statuses, ref dates);
-                        }
-
-                        todos[todoCount] = task;
-                        statuses[todoCount] = false;
-                        dates[todoCount] = DateTime.Now;
-                        todoCount++;
-
-                        Console.WriteLine("Задача добавлена!");
+                        AddTodo(commandParts, ref todos,
+                            ref statuses, ref dates, ref todoCount);
                         break;
 
             case "view":
@@ -154,8 +95,8 @@ namespace TodoListApp
                 break;
 
             case "exit":
-            Console.WriteLine("Выход из программы.");
-            return;
+                ExitProgram();
+                return;
 
         default:
             Console.WriteLine("Неизвестная команда. Введите help для просмотра команд.");
@@ -416,4 +357,90 @@ static void ReadTodo(string[] commandParts,
 
     Console.WriteLine($"Статус: {status}");
     Console.WriteLine($"Дата: {dates[index]:dd.MM.yyyy HH:mm}");
+}
+
+static void PrintHelp()
+{
+    Console.WriteLine("Доступные команды:");
+    Console.WriteLine("help - список команд");
+    Console.WriteLine("profile - профиль");
+    Console.WriteLine("add \"текст\" - добавить задачу");
+    Console.WriteLine("add --multiline или -m - многострочный ввод");
+    Console.WriteLine("view - показать задачи");
+    Console.WriteLine("view --index или -i - показать индекс");
+    Console.WriteLine("view --status или -s - показать статус");
+    Console.WriteLine("view --update-date или -d - показать дату");
+    Console.WriteLine("view --all или -a - показать всё");
+    Console.WriteLine("view -is - показать индекс и статус");
+    Console.WriteLine("read <idx> - прочитать задачу");
+    Console.WriteLine("done <idx> - выполнить задачу");
+    Console.WriteLine("delete <idx> - удалить задачу");
+    Console.WriteLine("update <idx> \"текст\" - изменить задачу");
+    Console.WriteLine("exit - выход");
+}
+
+static void PrintProfile(string firstName,
+    string lastName, int birthYear)
+{
+    Console.WriteLine($"Имя: {firstName}");
+    Console.WriteLine($"Фамилия: {lastName}");
+    Console.WriteLine($"Год рождения: {birthYear}");
+    Console.WriteLine($"Возраст: {DateTime.Now.Year - birthYear}");
+}
+
+static void AddTodo(string[] commandParts,
+    ref string[] todos, ref bool[] statuses,
+    ref DateTime[] dates, ref int todoCount)
+{
+    if (commandParts.Length < 2)
+    {
+        Console.WriteLine("Введите текст задачи.");
+        return;
+    }
+
+    string task;
+
+    if (commandParts[1].Trim() == "--multiline" ||
+        commandParts[1].Trim() == "-m")
+    {
+        task = ReadMultiline();
+    }
+    else
+    {
+        string taskWithQuotes = commandParts[1].Trim();
+
+        if (taskWithQuotes.Length < 2 ||
+            !taskWithQuotes.StartsWith("\"") ||
+            !taskWithQuotes.EndsWith("\""))
+        {
+            Console.WriteLine("Заключите задачу в кавычки.");
+            return;
+        }
+
+        task = taskWithQuotes.Substring(
+            1, taskWithQuotes.Length - 2);
+    }
+
+    if (string.IsNullOrWhiteSpace(task))
+    {
+        Console.WriteLine("Задача не может быть пустой.");
+        return;
+    }
+
+    if (todoCount >= todos.Length)
+    {
+        ExpandArrays(ref todos, ref statuses, ref dates);
+    }
+
+    todos[todoCount] = task;
+    statuses[todoCount] = false;
+    dates[todoCount] = DateTime.Now;
+    todoCount++;
+
+    Console.WriteLine("Задача добавлена!");
+}
+
+static void ExitProgram()
+{
+    Console.WriteLine("Выход из программы.");
 }
