@@ -97,18 +97,34 @@ namespace TodoListApp
                 todos = newTodos;
             }
 
-            todos[todoCount] = task;
+            todos[todoCount] = taskText;
+            statuses[todoCount] = false;
+            dates[todoCount] = DateTime.Now;
             todoCount++;
 
             Console.WriteLine("Задача добавлена!");
             break;
-            
-             case "view":
-            if (todoCount == 0)
-            {
-                Console.WriteLine("Список задач пуст.");
+
+            case "view":
+                 if (todoCount == 0)
+                {
+                    Console.WriteLine("Список задач пуст.");
+                    break;
+                }
+
+                Console.WriteLine("Список задач:");
+
+                for (int index = 0; index < todoCount; index++)
+                {
+                    string status = statuses[index]
+                        ? "Сделано"
+                        : "Не сделано";
+
+                    Console.WriteLine(
+                        $"{index + 1}. {todos[index]} {status} {dates[index]}");
+                }
+
                 break;
-            }
 
             Console.WriteLine("Список задач:");
 
