@@ -39,7 +39,9 @@ namespace TodoListApp
                 Console.WriteLine("Введите корректный год рождения:");
             }
 
-            Console.WriteLine($"Добавлен новый пользователь {firstName} {secondName}, возраст - {age}");
+            int age = DateTime.Now.Year - birthYear;
+
+            Console.WriteLine($"Добавлен новый пользователь {firstName} {lastName}, возраст - {age}");
 
             string[] todos = new string[InitialCapacity];
             bool[] statuses = new bool[InitialCapacity];
@@ -251,7 +253,7 @@ namespace TodoListApp
             while (true)
             {
                 Console.Write("> ");
-                string line = Console.ReadLine();
+                string? line = Console.ReadLine();
 
                 if (line == null || line == "!end")
                 {
