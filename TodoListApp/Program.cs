@@ -146,6 +146,10 @@ namespace TodoListApp
                 DeleteTodo(commandParts, todos, statuses, dates, ref todoCount);
                 break;
 
+            case "update":
+                UpdateTodo(commandParts, todos, dates, todoCount);
+                break;
+
             case "exit":
             Console.WriteLine("Выход из программы.");
             return;
@@ -220,4 +224,54 @@ static void DeleteTodo(string[] commandParts,
     todoCount--;
 
     Console.WriteLine("Задача удалена!");
+}
+
+static void UpdateTodo(string[] commandParts,
+    string[] todos, DateTime[] dates, int todoCount)
+{
+    if (commandParts.Length < 2)
+    {
+        Console.WriteLine("Введите номер и новый текст задачи.");
+        return;
+    }
+
+    string[] updateParts = commandParts[1].Trim().Split(' ', 2);
+
+    if (updateParts.Length < 2 ||
+        !int.TryParse(updateParts[0], out int index))
+    {
+        Console.WriteLine("Некорректная команда.");
+        return;
+    }
+
+    index--;
+
+    if (index < 0 || index >= todoCount)
+    {
+        Console.WriteLine("Задача не найдена.");
+        return;
+    }
+
+    string newText = updateParts[1].Trim();
+
+    if (newText.Length < 2 ||
+        !newText.StartsWith("\"") ||
+        !newText.EndsWith("\""))
+    {
+        Console.WriteLine("Введите текст в кавычках.");
+        return;
+    }
+
+    newText = newText.Trim('"').Trim();
+
+    if (string.IsNullOrWhiteSpace(newText))
+    {
+        Console.WriteLine("Текст не может быть пустым.");
+        return;
+    }
+
+    todos[index] = newText;
+    dates[index] = DateTime.Now;
+
+    Console.WriteLine("Задача обновлена!");
 }
