@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace TodoListApp
 {
@@ -59,51 +60,53 @@ namespace TodoListApp
                         Console.WriteLine($"{firstName} {secondName}, {birthYear}.");
                         break;
                       case "add":
-            if (todoCount >= todos.Length)
-            {
-                ExpandArrays(ref todos, ref statuses, ref dates);
-            }
+                        if (commandParts.Length < 2)
+                        {
+                            Console.WriteLine("Введите текст задачи.");
+                            break;
+}
 
-            string taskWithQuotes = commandParts[1].Trim();
+                        string task;
 
-            if (taskWithQuotes.Length < 2 ||
-                taskWithQuotes[0] != '"' ||
-                taskWithQuotes[taskWithQuotes.Length - 1] != '"')
-            {
-                Console.WriteLine("Заключите задачу в кавычки.");
-                break;
-            }
+                        if (commandParts[1].Trim() == "--multiline" ||
+                            commandParts[1].Trim() == "-m")
+                        {
+                            task = ReadMultiline();
+                        }
+                        else
+                        {
+                            string taskWithQuotes = commandParts[1].Trim();
 
-            string task = taskWithQuotes.Substring(
-                1,
-                taskWithQuotes.Length - 2
-            ).Trim();
+                            if (taskWithQuotes.Length < 2 ||
+                                taskWithQuotes[0] != '"' ||
+                                taskWithQuotes[taskWithQuotes.Length - 1] != '"')
+                            {
+                                Console.WriteLine("Заключите задачу в кавычки.");
+                                break;
+                            }
 
-            if (string.IsNullOrWhiteSpace(task))
-            {
-                Console.WriteLine("Задача не может быть пустой.");
-                break;
-            }
+                            task = taskWithQuotes.Substring(
+                                1, taskWithQuotes.Length - 2);
+                        }
 
-            if (todoCount >= todos.Length)
-            {
-                string[] newTodos = new string[todos.Length * 2];
+                        if (string.IsNullOrWhiteSpace(task))
+                        {
+                            Console.WriteLine("Задача не может быть пустой.");
+                            break;
+                        }
 
-                for (int i = 0; i < todos.Length; i++)
-                {
-                    newTodos[i] = todos[i];
-                }
+                        if (todoCount >= todos.Length)
+                        {
+                            ExpandArrays(ref todos, ref statuses, ref dates);
+                        }
 
-                todos = newTodos;
-            }
+                        todos[todoCount] = task;
+                        statuses[todoCount] = false;
+                        dates[todoCount] = DateTime.Now;
+                        todoCount++;
 
-            todos[todoCount] = taskText;
-            statuses[todoCount] = false;
-            dates[todoCount] = DateTime.Now;
-            todoCount++;
-
-            Console.WriteLine("Задача добавлена!");
-            break;
+                        Console.WriteLine("Задача добавлена!");
+                        break;
 
             case "view":
                  if (todoCount == 0)
@@ -296,4 +299,31 @@ static bool HasFlag(string input, string longFlag, char shortFlag)
     }
 
     return false;
+}
+
+static string ReadMultiline()
+{
+    StringBuilder text = new StringBuilder();
+
+    Console.WriteLine("Введите текст задачи. Для завершения введите !end");
+
+    while (true)
+    {
+        Console.Write("> ");
+        string line = Console.ReadLine();
+
+        if (line == null || line == "!end")
+        {
+            break;
+        }
+
+        if (text.Length > 0)
+        {
+            text.Append("\n");
+        }
+
+        text.Append(line);
+    }
+
+    return text.ToString();
 }
