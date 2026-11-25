@@ -9,7 +9,6 @@ namespace TodoListApp
         static bool[] isCompleted = new bool[2];
         static DateTime[] updateDates = new DateTime[2];
         static int count = 0;
-
         static string name = "";
         static string lastname = "";
         static int yearOfBirth = 0;
@@ -17,7 +16,6 @@ namespace TodoListApp
         static void Main(string[] args)
         {
             Console.OutputEncoding = Encoding.UTF8;
-
             Console.WriteLine("Сделала Боярова и Горелова");
             Console.WriteLine("Введите ваше имя");
             name = Console.ReadLine() ?? "";
@@ -30,19 +28,16 @@ namespace TodoListApp
             }
             int age = 2026 - yearOfBirth;
             Console.WriteLine($"Добавлен пользователь {name} {lastname}, возраст- {age}");
-
             PrintHelp();
 
             while (true)
             {
                 Console.Write("\n> ");
                 string? input = Console.ReadLine();
-
                 if (string.IsNullOrWhiteSpace(input))
                 {
                     continue;
                 }
-
                 if (input == "exit")
                 {
                     Console.WriteLine("Выход из программы...");
@@ -70,6 +65,15 @@ namespace TodoListApp
                     case "read":
                         ReadTask(argsText);
                         break;
+                    case "done":
+                        DoneTask(argsText);
+                        break;
+                    case "delete":
+                        DeleteTask(argsText);
+                        break;
+                    case "update":
+                        UpdateTask(argsText);
+                        break;
                     default:
                         Console.WriteLine("Неизвестная команда. Введите 'help' для справки.");
                         break;
@@ -85,6 +89,9 @@ namespace TodoListApp
             Console.WriteLine("add --multiline (или -m) - добавить многострочную задачу (завершение: !end)");
             Console.WriteLine("view [флаги] - вывести список задач (--index/-i, --status/-s, --update-date/-d, --all/-a)");
             Console.WriteLine("read <idx> - посмотреть полный текст задачи по индексу");
+            Console.WriteLine("done <idx> - отметить задачу выполненной");
+            Console.WriteLine("delete <idx> - удалить задачу по индексу");
+            Console.WriteLine("update <idx> \"<новый текст>\" - обновить текст задачи");
             Console.WriteLine("exit - выход из программы");
         }
 
@@ -97,24 +104,20 @@ namespace TodoListApp
         {
             bool isMultiline = args.Contains("--multiline") || args.Contains("-m");
             string fullTaskText = "";
-
             if (isMultiline)
             {
                 Console.WriteLine("Многострочный режим. Вводите строки задачи. Для завершения введите '!end':");
                 StringBuilder sb = new StringBuilder();
-
                 while (true)
                 {
                     Console.Write("> ");
                     string? line = Console.ReadLine();
-
                     if (line == "!end")
                     {
                         break;
                     }
-
                     if (line != null)
-{
+                    {
                         if (sb.Length > 0)
                         {
                             sb.AppendLine();
@@ -122,7 +125,6 @@ namespace TodoListApp
                         sb.Append(line);
                     }
                 }
-
                 fullTaskText = sb.ToString();
             }
             else
@@ -149,14 +151,12 @@ namespace TodoListApp
                 string[] newTodos = new string[todos.Length * 2];
                 bool[] newCompleted = new bool[isCompleted.Length * 2];
                 DateTime[] newDates = new DateTime[updateDates.Length * 2];
-
                 for (int i = 0; i < todos.Length; i++)
                 {
                     newTodos[i] = todos[i];
                     newCompleted[i] = isCompleted[i];
                     newDates[i] = updateDates[i];
                 }
-
                 todos = newTodos;
                 isCompleted = newCompleted;
                 updateDates = newDates;
@@ -200,27 +200,22 @@ namespace TodoListApp
             for (int i = 0; i < count; i++)
             {
                 string row = "| ";
-
                 if (showIndex) row += $"ID: {i + 1,-3} | ";
-
                 if (showStatus)
                 {
                     string statusStr = isCompleted[i] ? "[Выполнена]" : "[Не выполнена]";
                     row += $"{statusStr,-14} | ";
                 }
-
                 if (showDate)
                 {
                     row += $"Изменено: {updateDates[i]:dd.MM.yyyy HH:mm} | ";
                 }
-
                 string taskText = todos[i] ?? "";
                 if (taskText.Length > 30)
                 {
                     taskText = taskText.Substring(0, 30) + "...";
                 }
                 taskText = taskText.Replace("\r\n", " ").Replace("\n", " ");
-
                 row += $"Задача: {taskText,-30} |";
                 Console.WriteLine(row);
             }
@@ -233,20 +228,130 @@ namespace TodoListApp
                 Console.WriteLine("Ошибка: укажите индекс задачи. Пример: read 1");
                 return;
             }
+
             if (int.TryParse(args.Trim(), out int idx))
             {
                 int realIdx = idx - 1;
+                if (realIdx < 0 || realIdx >= count || todos[realIdx] == null)
+                {
+                    Console.WriteLine("Ошибка: задачи с таким номером не существует.");
+                    return;
+                }
+                Console.WriteLine($"\n--- Задача #{idx} ---");
+                Console.WriteLine($"Полный текст:\n{todos[realIdx]}");
+                Console.WriteLine($"Статус: {(isCompleted[realIdx] ? "Выполнена" : "Не выполнена")}");
+                Console.WriteLine($"Дата последнего изменения: {updateDates[realIdx]:dd.MM.yyyy HH:mm:ss}");
+            }
+            else
+            {
+                Console.WriteLine("Ошибка: введите целое число для индекса.");
+            }
+        }
 
+        static void DoneTask(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                Console.WriteLine("Ошибка: укажите индекс задачи. Пример: done 1");
+                return;
+            }
+
+            if (int.TryParse(args.Trim(), out int idx))
+            {
+                int realIdx = idx - 1;
+                if (realIdx < 0 || realIdx >= count || todos[realIdx] == null)
+                {
+                    Console.WriteLine("Ошибка: задачи с таким номером не существует.");
+                    return;
+                }
+                isCompleted[realIdx] = true;
+                updateDates[realIdx] = DateTime.Now;
+                Console.WriteLine($"Задача #{idx} отмечена как выполненная.");
+            }
+            else
+            {
+                Console.WriteLine("Ошибка: введите целое число для индекса.");
+            }
+        }
+
+        static void DeleteTask(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                Console.WriteLine("Ошибка: укажите индекс задачи. Пример: delete 1");
+                return;
+            }
+
+            if (int.TryParse(args.Trim(), out int idx))
+            {
+                int realIdx = idx - 1;
                 if (realIdx < 0 || realIdx >= count || todos[realIdx] == null)
                 {
                     Console.WriteLine("Ошибка: задачи с таким номером не существует.");
                     return;
                 }
 
-                Console.WriteLine($"\n--- Задача #{idx} ---");
-                Console.WriteLine($"Полный текст:\n{todos[realIdx]}");
-                Console.WriteLine($"Статус: {(isCompleted[realIdx] ? "Выполнена" : "Не выполнена")}");
-                Console.WriteLine($"Дата последнего изменения: {updateDates[realIdx]:dd.MM.yyyy HH:mm:ss}");
+                for (int i = realIdx; i < count - 1; i++)
+                {
+                    todos[i] = todos[i + 1];
+                    isCompleted[i] = isCompleted[i + 1];
+                    updateDates[i] = updateDates[i + 1];
+                }
+
+                todos[count - 1] = string.Empty;
+                isCompleted[count - 1] = false;
+                updateDates[count - 1] = default;
+                count--;
+
+                Console.WriteLine($"Задача #{idx} удалена.");
+            }
+            else
+            {
+                Console.WriteLine("Ошибка: введите целое число для индекса.");
+            }
+        }
+
+        static void UpdateTask(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                Console.WriteLine("Ошибка: укажите индекс и новый текст. Пример: update 1 \"Новый текст\"");
+                return;
+            }
+
+            string[] parts = args.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+            {
+                Console.WriteLine("Ошибка: укажите новый текст задачи в кавычках после индекса.");
+                return;
+            }
+
+            if (int.TryParse(parts[0].Trim(), out int idx))
+            {
+                int realIdx = idx - 1;
+                if (realIdx < 0 || realIdx >= count || todos[realIdx] == null)
+                {
+                    Console.WriteLine("Ошибка: задачи с таким номером не существует.");
+                    return;
+                }
+
+                string rawText = parts[1].Trim();
+                if (!rawText.StartsWith("\"") || !rawText.EndsWith("\"") || rawText.Length < 2)
+                {
+                    Console.WriteLine("Ошибка: новый текст должен быть заключён в двойные кавычки (например: update 1 \"Новый текст\").");
+                    return;
+                }
+
+                string newText = rawText.Substring(1, rawText.Length - 2);
+                if (string.IsNullOrWhiteSpace(newText))
+                {
+                    Console.WriteLine("Ошибка: новый текст задачи не может быть пустым.");
+                    return;
+                }
+
+                todos[realIdx] = newText;
+                updateDates[realIdx] = DateTime.Now;
+                Console.WriteLine($"Задача #{idx} обновлена.");
             }
             else
             {
