@@ -109,37 +109,8 @@ namespace TodoListApp
                         break;
 
             case "view":
-                 if (todoCount == 0)
-                {
-                    Console.WriteLine("Список задач пуст.");
-                    break;
-                }
-
-                Console.WriteLine("Список задач:");
-
-                for (int index = 0; index < todoCount; index++)
-                {
-                    string status = statuses[index]
-                        ? "Сделано"
-                        : "Не сделано";
-
-                    Console.WriteLine(
-                        $"{index + 1}. {todos[index]} {status} {dates[index]}");
-                }
-
+                 ViewTodos(commandParts, todos, statuses, dates, todoCount);
                 break;
-
-            Console.WriteLine("Список задач:");
-
-            for (int i = 0; i < todos.Length; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(todos[i]))
-                {
-                    Console.WriteLine($"{i + 1}. {todos[i]}");
-                }
-            }
-
-            break;
 
             case "done":
                 DoneTodo(commandParts, statuses, dates, todoCount);
@@ -326,4 +297,66 @@ static string ReadMultiline()
     }
 
     return text.ToString();
+}
+
+static void ViewTodos(string[] commandParts,
+    string[] todos, bool[] statuses,
+    DateTime[] dates, int todoCount)
+{
+    string flags = commandParts.Length > 1
+        ? commandParts[1] : "";
+
+    bool showAll = HasFlag(flags, "--all", 'a');
+    bool showIndex = showAll || HasFlag(flags, "--index", 'i');
+    bool showStatus = showAll || HasFlag(flags, "--status", 's');
+    bool showDate = showAll || HasFlag(flags, "--update-date", 'd');
+
+    if (todoCount == 0)
+    {
+        Console.WriteLine("Список задач пуст.");
+        return;
+    }
+
+    if (showIndex)
+        Console.Write($"{"Индекс",-8}");
+
+    Console.Write($"{"Задача",-35}");
+
+    if (showStatus)
+        Console.Write($"{"Статус",-15}");
+
+    if (showDate)
+        Console.Write($"{"Дата",-20}");
+
+    Console.WriteLine();
+
+    for (int index = 0; index < todoCount; index++)
+    {
+        string task = todos[index]
+            .Replace("\r", "")
+            .Replace("\n", " ");
+
+        if (task.Length > 30)
+        {
+            task = task.Substring(0, 30) + "...";
+        }
+
+        if (showIndex)
+            Console.Write($"{index + 1,-8}");
+
+        Console.Write($"{task,-35}");
+
+        if (showStatus)
+        {
+            string status = statuses[index]
+                ? "Сделано" : "Не сделано";
+
+            Console.Write($"{status,-15}");
+        }
+
+        if (showDate)
+            Console.Write($"{dates[index]:dd.MM.yyyy HH:mm}");
+
+        Console.WriteLine();
+    }
 }
