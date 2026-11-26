@@ -95,7 +95,7 @@ namespace TodoListApp
                         break;
 
                     case "read":
-                        ReadTodo(commandParts, todos, statuses, dates, todoCount);
+                        ReadTodo(commandParts, todoList);
                         break;
 
                     case "exit":
@@ -286,9 +286,7 @@ namespace TodoListApp
             todoList.View(showIndex, showStatus, showDate);
         }
 
-        static void ReadTodo(string[] commandParts,
-            string[] todos, bool[] statuses,
-            DateTime[] dates, int todoCount)
+        static void ReadTodo(string[] commandParts, TodoList todoList)
         {
             if (commandParts.Length < 2 ||
                 !int.TryParse(commandParts[1], out int index))
@@ -299,19 +297,15 @@ namespace TodoListApp
 
             index--;
 
-            if (index < 0 || index >= todoCount)
+            TodoItem? item = todoList.GetItem(index);
+
+            if (item == null)
             {
                 Console.WriteLine("Задача не найдена.");
                 return;
             }
 
-            Console.WriteLine($"Текст задачи: {todos[index]}");
-
-            string status = statuses[index]
-                ? "Выполнена" : "Не выполнена";
-
-            Console.WriteLine($"Статус: {status}");
-            Console.WriteLine($"Дата: {dates[index]:dd.MM.yyyy HH:mm}");
+            Console.WriteLine(item.GetFullInfo());
         }
 
         static void PrintHelp()
