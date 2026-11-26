@@ -5,8 +5,7 @@ namespace TodoListApp
 {
     class Program
     {
-        const int InitialCapacity = 2;
-        const int GrowthFactor = 2;
+
         const int IndexOffset = 1;
         const char Quote = '"';
         const char Separator = ' ';
@@ -43,11 +42,6 @@ namespace TodoListApp
 
             Console.WriteLine($"Добавлен новый пользователь {profile.GetInfo()}");
 
-            string[] todos = new string[InitialCapacity];
-            bool[] statuses = new bool[InitialCapacity];
-            DateTime[] dates = new DateTime[InitialCapacity];
-
-            int todoCount = 0;
             TodoList todoList = new TodoList();
 
             while (true)
@@ -108,15 +102,6 @@ namespace TodoListApp
 
                 }
             }
-        }
-        static void ExpandArrays(ref string[] todos,
-            ref bool[] statuses, ref DateTime[] dates)
-        {
-            int newSize = todos.Length * GrowthFactor;
-
-            Array.Resize(ref todos, newSize);
-            Array.Resize(ref statuses, newSize);
-            Array.Resize(ref dates, newSize);
         }
 
         static void DoneTodo(string[] commandParts, TodoList todoList)
