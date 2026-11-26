@@ -39,9 +39,9 @@ namespace TodoListApp
                 Console.WriteLine("Введите корректный год рождения:");
             }
 
-            int age = DateTime.Now.Year - birthYear;
+            Profile profile = new Profile(firstName, lastName, birthYear);
 
-            Console.WriteLine($"Добавлен новый пользователь {firstName} {lastName}, возраст - {age}");
+            Console.WriteLine($"Добавлен новый пользователь {profile.GetInfo()}");
 
             string[] todos = new string[InitialCapacity];
             bool[] statuses = new bool[InitialCapacity];
@@ -69,7 +69,7 @@ namespace TodoListApp
                         PrintHelp();
                         break;
                     case "profile":
-                        PrintProfile(firstName, lastName, birthYear);
+                        Console.WriteLine(profile.GetInfo());
                         break;
                     case "add":
                         AddTodo(commandParts, ref todos,
@@ -380,16 +380,7 @@ namespace TodoListApp
             Console.WriteLine("update <idx> \"текст\" - изменить задачу");
             Console.WriteLine("exit - выход");
         }
-
-        static void PrintProfile(string firstName,
-            string lastName, int birthYear)
-        {
-            Console.WriteLine($"Имя: {firstName}");
-            Console.WriteLine($"Фамилия: {lastName}");
-            Console.WriteLine($"Год рождения: {birthYear}");
-            Console.WriteLine($"Возраст: {DateTime.Now.Year - birthYear}");
-        }
-
+        
         static void AddTodo(string[] commandParts,
             ref string[] todos, ref bool[] statuses,
             ref DateTime[] dates, ref int todoCount)
