@@ -48,6 +48,7 @@ namespace TodoListApp
             DateTime[] dates = new DateTime[InitialCapacity];
 
             int todoCount = 0;
+            TodoList todoList = new TodoList();
 
             while (true)
             {
@@ -68,12 +69,13 @@ namespace TodoListApp
                     case "help":
                         PrintHelp();
                         break;
+
                     case "profile":
                         Console.WriteLine(profile.GetInfo());
                         break;
+
                     case "add":
-                        AddTodo(commandParts, ref todos,
-                            ref statuses, ref dates, ref todoCount);
+                        AddTodo(commandParts, todoList);
                         break;
 
                     case "view":
@@ -380,10 +382,8 @@ namespace TodoListApp
             Console.WriteLine("update <idx> \"текст\" - изменить задачу");
             Console.WriteLine("exit - выход");
         }
-        
-        static void AddTodo(string[] commandParts,
-            ref string[] todos, ref bool[] statuses,
-            ref DateTime[] dates, ref int todoCount)
+
+        static void AddTodo(string[] commandParts, TodoList todoList)
         {
             if (commandParts.Length < 2)
             {
@@ -420,15 +420,8 @@ namespace TodoListApp
                 return;
             }
 
-            if (todoCount >= todos.Length)
-            {
-                ExpandArrays(ref todos, ref statuses, ref dates);
-            }
-
-            todos[todoCount] = task;
-            statuses[todoCount] = false;
-            dates[todoCount] = DateTime.Now;
-            todoCount++;
+            TodoItem item = new TodoItem(task);
+            todoList.Add(item);
 
             Console.WriteLine("Задача добавлена!");
         }
@@ -438,4 +431,4 @@ namespace TodoListApp
             Console.WriteLine("Выход из программы.");
         }
     }
-}        
+}
