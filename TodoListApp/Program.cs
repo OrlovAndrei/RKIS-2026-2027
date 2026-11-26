@@ -91,7 +91,7 @@ namespace TodoListApp
                         break;
 
                     case "update":
-                        UpdateTodo(commandParts, todos, dates, todoCount);
+                        UpdateTodo(commandParts, todoList);
                         break;
 
                     case "read":
@@ -174,8 +174,7 @@ namespace TodoListApp
             Console.WriteLine("Задача удалена!");
         }
 
-        static void UpdateTodo(string[] commandParts,
-            string[] todos, DateTime[] dates, int todoCount)
+        static void UpdateTodo(string[] commandParts, TodoList todoList)
         {
             if (commandParts.Length < 2)
             {
@@ -194,7 +193,9 @@ namespace TodoListApp
 
             index--;
 
-            if (index < 0 || index >= todoCount)
+            TodoItem? item = todoList.GetItem(index);
+
+            if (item == null)
             {
                 Console.WriteLine("Задача не найдена.");
                 return;
@@ -218,8 +219,7 @@ namespace TodoListApp
                 return;
             }
 
-            todos[index] = newText;
-            dates[index] = DateTime.Now;
+            item.UpdateText(newText);
 
             Console.WriteLine("Задача обновлена!");
         }
