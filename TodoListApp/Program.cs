@@ -83,7 +83,7 @@ namespace TodoListApp
                         break;
 
                     case "done":
-                        DoneTodo(commandParts, statuses, dates, todoCount);
+                        DoneTodo(commandParts, todoList);
                         break;
 
                     case "delete":
@@ -119,8 +119,7 @@ namespace TodoListApp
             Array.Resize(ref dates, newSize);
         }
 
-        static void DoneTodo(string[] commandParts,
-            bool[] statuses, DateTime[] dates, int todoCount)
+        static void DoneTodo(string[] commandParts, TodoList todoList)
         {
             if (commandParts.Length < 2 ||
                 !int.TryParse(commandParts[1], out int index))
@@ -131,14 +130,15 @@ namespace TodoListApp
 
             index--;
 
-            if (index < 0 || index >= todoCount)
+            TodoItem? item = todoList.GetItem(index);
+
+            if (item == null)
             {
                 Console.WriteLine("Задача не найдена.");
                 return;
             }
 
-            statuses[index] = true;
-            dates[index] = DateTime.Now;
+            item.MarkDone();
 
             Console.WriteLine("Задача выполнена!");
         }
