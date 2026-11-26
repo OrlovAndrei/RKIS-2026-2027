@@ -87,7 +87,7 @@ namespace TodoListApp
                         break;
 
                     case "delete":
-                        DeleteTodo(commandParts, todos, statuses, dates, ref todoCount);
+                        DeleteTodo(commandParts, todoList);
                         break;
 
                     case "update":
@@ -143,9 +143,7 @@ namespace TodoListApp
             Console.WriteLine("Задача выполнена!");
         }
 
-        static void DeleteTodo(string[] commandParts,
-            string[] todos, bool[] statuses,
-            DateTime[] dates, ref int todoCount)
+        static void DeleteTodo(string[] commandParts, TodoList todoList)
         {
             if (commandParts.Length < 2 ||
                 !int.TryParse(commandParts[1], out int index))
@@ -156,22 +154,7 @@ namespace TodoListApp
 
             index--;
 
-            if (index < 0 || index >= todoCount)
-            {
-                Console.WriteLine("Задача не найдена.");
-                return;
-            }
-
-            for (int i = index; i < todoCount - 1; i++)
-            {
-                todos[i] = todos[i + 1];
-                statuses[i] = statuses[i + 1];
-                dates[i] = dates[i + 1];
-            }
-
-            todoCount--;
-
-            Console.WriteLine("Задача удалена!");
+            todoList.Delete(index);
         }
 
         static void UpdateTodo(string[] commandParts, TodoList todoList)
